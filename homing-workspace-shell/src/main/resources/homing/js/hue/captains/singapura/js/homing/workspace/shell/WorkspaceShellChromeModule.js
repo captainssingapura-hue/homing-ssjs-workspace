@@ -488,6 +488,16 @@ class WorkspaceShellChrome {
     _buildMtp() {
         const self = this;
         const initialLayout = this._model.layout();
+        // ONE MENU STEWARD for the document, as there is one keyboard steward:
+        // a page has one menu open at a time, and the thing that knows that is
+        // the thing that owns it. The panes are handed it; a dock asks its
+        // holder for a ground menu BY NAME and never learns what the name says,
+        // which is why splitting the room can be offered at all - a dock does
+        // not know where it sits.
+        this._menus = new ContextMenuSteward(this._branch.createBranch('menus'), {
+            types: MENUS, keyboard: this._keyboard, keyboardId: 'workspace/menus'
+        });
+
         // THE PANES: a grid of cells, a dock in each, a desk over them. Where
         // this was one object that split itself and reported on ten callbacks,
         // it is three components reporting on ONE sink as frozen data, and
@@ -501,8 +511,11 @@ class WorkspaceShellChrome {
             budget: this._spec.maxTabs || 16,
             keyboard:   this._keyboard,
             keyboardId: 'workspace',
+            menus:      this._menus,
+            stripMenu:  'pane',
             onEvent: function (ev) { self._onPaneEvent(ev); }
         });
+        this._handleMenus();
         console.log('[WorkspaceShellChrome] MTP constructed with',
                     Object.keys(this._model.tabsBySlot ? {} : {}).length,
                     'replayed slot(s)');
@@ -518,6 +531,72 @@ class WorkspaceShellChrome {
         // as a design state rather than painted by anybody. A workspace is not
         // a special case of that - it is several docks in a grid, and each dock
         // already knows what a dock knows.
+    }
+
+    /**
+     * What the two menus do.
+     *
+     * The TAB menu is the pane's own kind, so every dock offers it wherever it
+     * is put: detach floats the tab where its chip was, close removes it. The
+     * PANE menu is the workspace's, about the room rather than the tab: part it
+     * beside or below, merge it into a pane across a whole divider, or close it
+     * and let the neighbour have the room.
+     *
+     * A merge direction with no pane across a splitter of its own is HIDDEN
+     * rather than greyed: there is nothing there, and an offer that cannot be
+     * taken in a place where nothing exists reads as a fault.
+     */
+    _handleMenus() {
+        const self = this;
+        const panes = this._mtp;
+        const DIR = { 'merge-left': 'left', 'merge-right': 'right', 'merge-up': 'up', 'merge-down': 'down' };
+
+        this._menus.handle('pane', {
+            pick: function (id, o) {
+                const slot = o.pane && o.pane.slotId;
+                if (!slot) return;
+                if (id === 'beside') panes.split(slot, 'right');
+                else if (id === 'below') panes.split(slot, 'bottom');
+                else if (id === 'close') panes.merge(slot, null);
+                else if (DIR[id]) {
+                    const to = panes.neighbourOf(slot, DIR[id]);
+                    if (to) panes.merge(slot, to);
+                }
+            },
+            state: function (id, o) {
+                const slot = o.pane && o.pane.slotId;
+                if (!slot) return { disabled: true };
+                if (DIR[id]) {
+                    const to = panes.neighbourOf(slot, DIR[id]);
+                    return { hidden: !to };
+                }
+                if (id === 'close') return { disabled: panes.slotIds().length < 2 };
+                return {};
+            }
+        });
+
+        this._menus.handle('tab', {
+            pick: function (id, o) {
+                if (id === 'close') { o.pane.removeTab(o.tab.id); return; }
+                if (id === 'detach' && panes.undockAt) {
+                    const r = o.anchor.getBoundingClientRect();
+                    panes.undockAt(o.pane, o.tab, { x: r.left + 60, y: r.bottom + 14 });
+                }
+            },
+            // DETACH IS HIDDEN, and it is the shim that hides it. The desk
+            // re-parents tab.widget.root when it takes a tab off a dock, which
+            // works when the widget is a real component and its root is its own.
+            // A workspace tab is still a plain descriptor with a render(el)
+            // callback, so the assembly hands the pane a made-up widget whose
+            // root is a host it created - and that host does not survive the
+            // take-out. The tab leaves the dock and nothing floats: the tab is
+            // LOST. Offering it would be worse than not having it, so it is
+            // hidden until a workspace widget is a component.
+            state: function (id, o) {
+                if (id === 'detach') return { hidden: true };
+                return { disabled: !!(o.tab && o.tab.pinned) };
+            }
+        });
     }
 
     /**

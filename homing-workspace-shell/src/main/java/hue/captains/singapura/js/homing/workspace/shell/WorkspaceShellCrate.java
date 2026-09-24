@@ -8,6 +8,7 @@ import hue.captains.singapura.js.homing.server.ServerCrate;
 import hue.captains.singapura.js.homing.site.mpa.MpaCrate;
 import hue.captains.singapura.js.homing.ui.dialog.UiDialogCrate;
 import hue.captains.singapura.js.homing.ui.docking.UiDockingCrate;
+import hue.captains.singapura.js.homing.ui.menu.UiMenuCrate;
 import hue.captains.singapura.js.homing.ui.panes.UiPanesCrate;
 import hue.captains.singapura.js.homing.ui.splitgrid.UiSplitGridCrate;
 import hue.captains.singapura.js.homing.studio.base.StudioBaseCrate;
@@ -48,6 +49,7 @@ public final class WorkspaceShellCrate implements Crate {
                 UiSplitGridCrate.INSTANCE,
                 UiPanesCrate.INSTANCE,
                 UiDockingCrate.INSTANCE,
+                UiMenuCrate.INSTANCE,
                 WorkspaceCrate.INSTANCE,
                 WorkspaceCodecsCrate.INSTANCE,
                 WorkspacePersistenceCrate.INSTANCE,
@@ -97,6 +99,9 @@ public final class WorkspaceShellCrate implements Crate {
                 // The two event vocabularies, joined: what a component reports,
                 // as what the workspace records.
                 CrateEntry.of(WorkspaceEventsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                // What a right-click offers: the tab's, which is the pane's own,
+                // and the room's, which only the workspace can know.
+                CrateEntry.of(WorkspaceMenus.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // The panes: the grid, a dock per cell, the desk over them.
                 CrateEntry.of(WorkspacePanesStyles.INSTANCE),
                 CrateEntry.of(WorkspacePanesModule.INSTANCE, StandardJsModuleType.CONSUMER),

@@ -287,6 +287,9 @@ class WorkspacePanes {
         return null;
     }
 
+    /** A tab off its dock and onto the desk, at a point: the float. */
+    undockAt(pane, tab, at) { this._docking.undockAt(pane, tab, at); return this; }
+
     /** A new, empty pane beside this one; the grid reports Subdivided. */
     split(slotId, side) { return this._grid.subdivide(slotId, side); }
 

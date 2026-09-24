@@ -61,6 +61,13 @@
             <artifactId>homing-design-core</artifactId>
             <version>${homing.core.version}</version>
         </dependency>
+        <!-- The context menus: the steward, the typed tree, the icons on it. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ui-menu</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+
         <!-- The three the workspace's panes are made of: the grid arranges,
              a dock holds tabs, the desk carries what floats. -->
         <dependency>

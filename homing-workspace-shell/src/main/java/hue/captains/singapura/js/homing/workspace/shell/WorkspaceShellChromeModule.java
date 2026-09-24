@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.shell;
 
+import hue.captains.singapura.js.homing.ui.menu.ContextMenuStewardModule;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.Exportable;
 import hue.captains.singapura.js.homing.core.ExportsOf;
@@ -78,6 +79,11 @@ public record WorkspaceShellChromeModule() implements DomModule<WorkspaceShellCh
                 .add(new ModuleImports<>(List.of(
                         new WorkspaceEventsModule.WorkspaceEvents()),
                         WorkspaceEventsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(
+                        new ContextMenuStewardModule.ContextMenuSteward()),
+                        ContextMenuStewardModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceMenus.MENUS()),
+                        WorkspaceMenus.INSTANCE))
                 // Phase 2 — PartyBootstrap walks spec.parties and constructs
                 // each Party + initial actors; result populates
                 // {parties, workspaceCtx} the orchestrator threads through.
