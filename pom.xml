@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- The ws sub-domain of homing.js: the workspace, on its own, as a thing
+         that can be released and run without the studio around it.
+
+         COPIED, NOT MOVED. The four modules below began as core's, and core
+         keeps its own copy running under the studio: nothing there points at
+         this repo, so nothing there breaks while this one changes. The two
+         copies carry the same Java packages on purpose — an existing
+         WorkspaceSpec or catalogue declaration compiles against this artifact
+         with no edit, only a coordinate change — which is also why no single
+         consumer may depend on both. One consumer, one copy, until core's is
+         retired.
+
+         The stage this repo is for: replace the workspace's UI layer with the
+         ui-components, give it a front door of its own, and end with a
+         standalone workspace application. -->
+    <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+    <artifactId>homing.js.ws</artifactId>
+    <version>LOCAL-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <!-- RFC 0025 — the widget contract, the registry and the picker. -->
+        <module>homing-workspace</module>
+        <!-- The arrangement's codecs: the state that crosses to JS. -->
+        <module>homing-workspace-codecs</module>
+        <!-- Where an arrangement is kept between visits. -->
+        <module>homing-workspace-persistence</module>
+        <!-- The shell: chrome, layout, the switcher, the spec and its guard. -->
+        <module>homing-workspace-shell</module>
+        <!-- The repo's own demos, nested: a workspace is a thing you run, and
+             a module that runs one is the only honest test of that. -->
+        <module>homing-workspace-demos</module>
+    </modules>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- The substrate, from the core repo. Its own version, not ours:
+             this repo releases on its own clock. -->
+        <homing.core.version>LOCAL-SNAPSHOT</homing.core.version>
+        <junit.version>5.11.3</junit.version>
+        <jacoco.version>0.8.14</jacoco.version>
+        <graalvm.version>24.1.1</graalvm.version>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+</project>

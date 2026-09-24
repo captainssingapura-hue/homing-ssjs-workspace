@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+        <artifactId>homing.js.ws</artifactId>
+        <version>LOCAL-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>homing-workspace-demos</artifactId>
+    <packaging>pom</packaging>
+
+    <description>
+        The repo's own demos, one module apiece.
+
+        A workspace is a thing you RUN, and until now there was nowhere to run
+        one from: the shell has no main and no server, and is mounted by the
+        studio's starter. A demo here is therefore not decoration — it is the
+        first front door the workspace has had, and the only honest test that
+        the stack stands up without the studio around it.
+
+        Nested rather than a repo of its own, because a demo that lags its
+        subject is worse than none: these build in the same reactor and break
+        in the same commit.
+    </description>
+
+    <modules>
+        <module>workspace-demo</module>
+    </modules>
+
+</project>

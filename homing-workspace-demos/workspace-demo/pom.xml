@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+        <artifactId>homing-workspace-demos</artifactId>
+        <version>LOCAL-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>workspace-demo</artifactId>
+
+    <description>
+        The workspace, standing up on its own: a site with one page, the
+        shell mounted on it, a spec to fill it, and a server to answer.
+
+        Empty of application for now, and deliberately so — the front door is
+        this stage's work, and the module exists first so that everything
+        after it has somewhere to land and something to fail in.
+    </description>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-shell</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+
+        <!-- The substrate a page and a server come from: Site, Router and
+             Navigable, and the host that serves one. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-site-base</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+
+        <!-- The gate, headless. NOT homing-conformance-studio: that one is
+             itself a workspace application, and taking it here would pull
+             core's copy of this very stack onto the classpath beside ours. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-conformance-rules</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>
