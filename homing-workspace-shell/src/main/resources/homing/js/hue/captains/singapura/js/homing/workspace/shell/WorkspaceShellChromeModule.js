@@ -109,9 +109,13 @@ class WorkspaceShellChrome {
         };
     }
 
-    mount(branch, parent) {
+    // keyboard: the page's steward, one per document, when the host made one.
+    // Components that take keys through the party need it handed to them; the
+    // shell has no business making a second.
+    mount(branch, parent, keyboard) {
         if (!branch) throw new Error('[WorkspaceShellChrome] branch is required');
         if (!parent) throw new Error('[WorkspaceShellChrome] parent is required');
+        this._keyboard = keyboard || null;
 
         const self = this;
 
@@ -874,7 +878,9 @@ class WorkspaceShellChrome {
             catalogueStore:  this._workspaceDirectory._catalogueStore,
             eventLog:        this._eventRecorder
                             ? this._eventRecorder.log() : null,
-            checkpointStore: cpStore
+            checkpointStore: cpStore,
+            keyboard:        this._keyboard,
+            keyboardId:      'workspace'
         });
         console.log('[WorkspaceShellChrome] WorkspaceSwitcher ready');
     }
@@ -909,8 +915,8 @@ class WorkspaceShellChrome {
 }
 
 /** Convenience entry-point — typical call shape. */
-function mountWorkspaceShell(branch, parent, spec) {
-    return new WorkspaceShellChrome(spec).mount(branch, parent);
+function mountWorkspaceShell(branch, parent, spec, keyboard) {
+    return new WorkspaceShellChrome(spec).mount(branch, parent, keyboard);
 }
 
 // =============================================================================

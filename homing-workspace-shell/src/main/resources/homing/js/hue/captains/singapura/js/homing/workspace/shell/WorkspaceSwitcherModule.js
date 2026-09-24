@@ -1,4 +1,4 @@
-// WorkspaceSwitcherModule.js — the workspace switcher, rebuilt on SystemDialog.
+// WorkspaceSwitcherModule.js — the workspace switcher, on the Dialog component.
 //
 // RFC 0057, Phase 3. A tree of KINDS on the left, the INSTANCES of the selected
 // kind on the right, and three verbs underneath: Cancel, Open in new tab, Open.
@@ -8,11 +8,29 @@
 //                           identity, catalogueStore, eventLog, checkpointStore })
 //     .open() .close() .toggle() .isOpen() .destroy()
 //
-// Same constructor and surface as the WorkspaceControlModal it replaces, so the
-// shell chrome swaps one symbol. Everything that made the old one a floating
-// panel rather than a dialog — no scrim, no inert, no keyboard, mouse-only rows
-// styled by cssText — is gone, because SystemDialog supplies the first three and
-// typed sheets supply the rest.
+// Same constructor and surface as the WorkspaceControlModal it replaced, so the
+// shell chrome swaps one symbol. Everything that made that one a floating panel
+// rather than a dialog — no scrim, no inert, no keyboard, mouse-only rows styled
+// by cssText — is gone, because the Dialog supplies the first three and typed
+// sheets supply the rest.
+//
+// ON THE COMPONENT, NOT THE STUDIO. openSystemDialog captured keys on the
+// document; Dialog goes inert around itself and takes the keys THROUGH THE
+// PARTY, claiming on open and giving them back on close — so it needs the page's
+// steward, which is why one is threaded down here from the app. Without one it
+// still opens and still closes by its Cancel, its X or its scrim; only Escape
+// and Enter are missing, which is the honest degradation for a host that made
+// no steward.
+//
+// AND IT OWNS THE BRANCH IT IS GIVEN. Dialog dissolves its branch on close,
+// where openSystemDialog made a child of its own to dissolve — so a child per
+// open is made here. The name frees with the dissolve; the sequence is for the
+// close that throws.
+//
+// THE PAIRING IS OURS NOW. mountMasterDetail was a split, a nav, a body and a
+// TreeRenderer over the nav — and TreeRenderer is core's, so what the studio
+// actually held was three divs and three classes. They are below, and the
+// classes are the switcher's own.
 //
 // THREE REGIONS, AND TAB CYCLES THEM: kind tree → instance list → the create
 // input → the action row → back to the tree. Arrows move WITHIN whichever has
@@ -32,6 +50,51 @@
 const _owner = Object.freeze({ toString: () => "workspaceSwitcher" });
 var _seq = 0;
 
+/**
+ * A tree on the LEFT, whatever the selected row is about on the RIGHT. What the
+ * detail DRAWS stays with the caller: onSelect gets the body element and the
+ * selection and does as it likes with both.
+ *
+ * opts: data (required), onSelect(bodyEl, sel), onActivate(sel).
+ * Returns { navEl, bodyEl, renderer } — the caller forwards keydown, because
+ * the host owns WHEN keys flow and the renderer owns what they mean.
+ */
+/** Enter belongs to a control that reads it: the name field creates, a button presses. */
+function _isFormControl(el) {
+    if (!el || !el.tagName) return false;
+    var t = el.tagName;
+    return t === "BUTTON" || t === "INPUT" || t === "TEXTAREA" || t === "SELECT" || el.isContentEditable === true;
+}
+
+function _pair(branch, host, opts) {
+    var n = ++_seq;
+    var split = branch.createElement("split" + n, "div");
+    css.addClass(split, ws_split);
+
+    // Nav first: a table of contents beside its content is the order a reader
+    // knows, and it is the reading order too.
+    var navEl = branch.createElement("nav" + n, "div");
+    css.addClass(navEl, ws_nav);
+    navEl.setAttribute("tabindex", "0");
+    split.appendChild(navEl);
+
+    var bodyEl = branch.createElement("body" + n, "div");
+    css.addClass(bodyEl, ws_body);
+    split.appendChild(bodyEl);
+    host.appendChild(split);
+
+    var onSelect   = opts.onSelect   || function () {};
+    var onActivate = opts.onActivate || function () {};
+    var renderer = new TreeRenderer({
+        branch: branch, container: navEl,
+        expandDepth: 1, showBadge: true, showNote: false, showRoot: false,
+        onSelect:   function (sel) { onSelect(bodyEl, sel); },
+        onActivate: function (sel) { onActivate(sel); }
+    });
+    renderer.setData(opts.data);
+    return { splitEl: split, navEl: navEl, bodyEl: bodyEl, renderer: renderer };
+}
+
 class WorkspaceSwitcher {
 
     constructor(opts) {
@@ -50,6 +113,8 @@ class WorkspaceSwitcher {
         this._store    = opts.catalogueStore  || null;
         this._eventLog = opts.eventLog        || null;
         this._cp       = opts.checkpointStore || null;
+        this._kb       = opts.keyboard   || null;   // the page's steward, when the host made one
+        this._kbId     = opts.keyboardId || null;
         this._root = domOpsParty.createBranch("wsSwitcher" + (++_seq));
         this._root.activate(_owner);
         this._dlg = null;   // SystemDialog handle, while open
@@ -67,16 +132,13 @@ class WorkspaceSwitcher {
         var c = this._c = { kind: this._kind, instance: this._identity.id || null, rows: [],
                             branch: null, pair: null, detail: null, list: null,
                             listEl: null, inputEl: null, delBtn: null, host: null };
-        this._dlg = openSystemDialog({
-            branch: this._root,
+        this._dlg = new Dialog(this._root.createBranch("dlg" + (++_seq)), {
             title:  "Workspace — " + this._title,
             modal:  true,
             content: function (branch, bodyEl) {
                 c.branch = branch;
-                c.pair = mountMasterDetail({
-                    branch: branch, host: bodyEl,
+                c.pair = _pair(branch, bodyEl, {
                     data: kindTreeData(self._kinds, self._kind),
-                    expandDepth: 1, showBadge: true, showNote: false, showRoot: false,
                     onSelect:   function (detailEl, s) { var k = kindOfSelection(s); if (k) self._showKind(k, detailEl); },
                     onActivate: function (s) { if (kindOfSelection(s)) self._go(false); }
                 });
@@ -91,8 +153,28 @@ class WorkspaceSwitcher {
                 { id: "newtab", label: "Open in new tab",              onClick: function () { self._go(true); } },
                 { id: "open",   label: "Open",         primary: true,  onClick: function () { self._go(false); } }
             ],
+            keyboard:   this._kb,
+            keyboardId: this._kbId ? this._kbId + "/switcher" : null,
             onClose: function () { self._dlg = null; self._c = null; }
         });
+
+        // RFC 0066 E3 §14, the two worlds. Focus rests on a REGION of this
+        // dialog - the tree, the list, the input, a button - and a key out of a
+        // focused element is the native world's: the steward declines it and the
+        // party never sees it. The regions are ours, so the keys are ours. One
+        // listener on the frame, with the dialog's own two verbs under what
+        // _keys already answers.
+        //
+        // The party path stays wired beside it and they cannot both fire: it
+        // runs only for a key whose target is the body, which is no region of
+        // ours. The studio's dialog needed neither, capturing on the document.
+        this._frameKeys = function (ev) {
+            if (self._keys(ev)) { ev.preventDefault(); ev.stopPropagation(); return; }
+            if (ev.altKey || ev.ctrlKey || ev.metaKey) return;
+            if (ev.key === "Escape") { ev.preventDefault(); self.close(); return; }
+            if (ev.key === "Enter" && !_isFormControl(ev.target)) { ev.preventDefault(); self._go(false); }
+        };
+        this._dlg.el.addEventListener("keydown", this._frameKeys);
         this._refreshActions();
     }
 

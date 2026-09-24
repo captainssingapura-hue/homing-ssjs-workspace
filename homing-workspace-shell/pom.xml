@@ -61,13 +61,21 @@
             <artifactId>homing-design-core</artifactId>
             <version>${homing.core.version}</version>
         </dependency>
+        <!-- The Dialog component the switcher opens: the first of the studio's
+             UI this stack swapped out. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ui-dialog</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+
         <!-- THE UI SWAP'S REMAINING DEBT, made visible. homing-workspace used
              to carry this and every module above it inherited it silently; it
              is declared here now because here is where it is used, and the
-             swap is done when this block goes. Four ties: the switcher's
-             SystemDialog + MasterDetail, the shell chrome's legacy
-             MultiTabPane, the focus coordinator's FocusManager, and the
-             studio mounting (WorkspaceMPA, DocWidget, Catalogue). -->
+             swap is done when this block goes. Three ties left: the shell
+             chrome's legacy MultiTabPane, the focus coordinator's
+             FocusManager, and the studio mounting (WorkspaceMPA, DocWidget,
+             Catalogue) - which stays, the catalogue contract being kept. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-studio-base</artifactId>

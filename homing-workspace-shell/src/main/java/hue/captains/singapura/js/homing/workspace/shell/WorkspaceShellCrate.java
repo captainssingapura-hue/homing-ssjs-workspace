@@ -6,6 +6,7 @@ import hue.captains.singapura.js.homing.core.StandardJsModuleType;
 import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
 import hue.captains.singapura.js.homing.site.mpa.MpaCrate;
+import hue.captains.singapura.js.homing.ui.dialog.UiDialogCrate;
 import hue.captains.singapura.js.homing.studio.base.StudioBaseCrate;
 import hue.captains.singapura.js.homing.theme.color.ThemeColorCrate;
 import hue.captains.singapura.js.homing.theme.type.ThemeTypeCrate;
@@ -37,6 +38,9 @@ public final class WorkspaceShellCrate implements Crate {
                 // The framework page model WorkspaceApp is a page of, for the one
                 // word it wears on the slot it is handed.
                 MpaCrate.INSTANCE,
+                // The Dialog the switcher opens. MpaCrate happens to require it
+                // too; an edge this crate depends on is this crate's to declare.
+                UiDialogCrate.INSTANCE,
                 WorkspaceCrate.INSTANCE,
                 WorkspaceCodecsCrate.INSTANCE,
                 WorkspacePersistenceCrate.INSTANCE,

@@ -30,5 +30,7 @@ function appMain(el, params) {
     css.addClass(el, mpa_main_full);
     var branch = domOpsParty.createBranch("workspace");
     branch.activate(_owner);
-    mountWorkspaceShell(branch, el, spec);
+    // The page made one keyboard steward for the document and handed it in the
+    // params; everything under here that takes keys takes THAT one.
+    mountWorkspaceShell(branch, el, spec, params && params.keyboard);
 }

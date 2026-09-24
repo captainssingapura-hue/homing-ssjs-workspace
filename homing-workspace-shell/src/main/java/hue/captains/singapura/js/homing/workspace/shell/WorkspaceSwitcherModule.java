@@ -9,15 +9,23 @@ import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
 import hue.captains.singapura.js.homing.core.js.domOpsParty;
 import hue.captains.singapura.js.homing.core.js.TreeRendererModule;
 import hue.captains.singapura.js.homing.server.HrefManager;
-import hue.captains.singapura.js.homing.studio.base.ui.MasterDetail;
-import hue.captains.singapura.js.homing.studio.base.ui.SystemDialog;
+import hue.captains.singapura.js.homing.ui.dialog.DialogModule;
 
 import java.util.List;
 
 /**
  * The workspace switcher — RFC 0057, Phase 3. A tree of kinds beside the
  * instances of the selected kind, with Cancel / Open in new tab / Open beneath,
- * built on {@link SystemDialog} and {@link MasterDetail}.
+ * built on the {@link DialogModule.Dialog} component.
+ *
+ * <p>It was built on the studio's {@code openSystemDialog} and
+ * {@code mountMasterDetail}. The dialog is a straight swap — same content
+ * contract, same three calls back on the handle — with one difference that is
+ * the point of the swap: the studio's captured keys on the document, and this
+ * one takes them through the keyboard party, so the page's steward is threaded
+ * down to it. The pairing was a split, a nav, a body and a {@code TreeRenderer}
+ * over the nav, and the renderer was always core's — so three divs and three
+ * classes came here and the studio import went.</p>
  *
  * <p><b>It replaces {@code WorkspaceControlModal}</b>, keeping its constructor
  * and its {@code open/close/toggle/isOpen/destroy} surface so the shell chrome
@@ -46,10 +54,8 @@ public record WorkspaceSwitcherModule() implements DomModule<WorkspaceSwitcherMo
     @Override
     public ImportsFor<WorkspaceSwitcherModule> imports() {
         return ImportsFor.<WorkspaceSwitcherModule>builder()
-                .add(new ModuleImports<>(List.of(new SystemDialog.openSystemDialog()),
-                        SystemDialog.INSTANCE))
-                .add(new ModuleImports<>(List.of(new MasterDetail.mountMasterDetail()),
-                        MasterDetail.INSTANCE))
+                .add(new ModuleImports<>(List.of(new DialogModule.Dialog()),
+                        DialogModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new TreeRendererModule.TreeRenderer()),
                         TreeRendererModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new domOpsParty()),
@@ -67,6 +73,9 @@ public record WorkspaceSwitcherModule() implements DomModule<WorkspaceSwitcherMo
                         new WorkspaceSwitcherModel.targetUrl()
                 ), WorkspaceSwitcherModel.INSTANCE))
                 .add(new ModuleImports<>(List.of(
+                        new WorkspaceSwitcherStyles.ws_split(),
+                        new WorkspaceSwitcherStyles.ws_nav(),
+                        new WorkspaceSwitcherStyles.ws_body(),
                         new WorkspaceSwitcherStyles.ws_detail(),
                         new WorkspaceSwitcherStyles.ws_head(),
                         new WorkspaceSwitcherStyles.ws_sub(),

@@ -26,6 +26,45 @@ import static hue.captains.singapura.js.homing.design.Text.*;
 public record WorkspaceSwitcherStyles() implements CssGroup<WorkspaceSwitcherStyles> {
     public static final WorkspaceSwitcherStyles INSTANCE = new WorkspaceSwitcherStyles();
 
+    /**
+     * The pairing the dialog body is: a tree on the left, what the selected row
+     * is about on the right. Three classes, because that is all the studio's
+     * MasterDetail was once the TreeRenderer it built on is core's - and the
+     * one thing it knew that a div does not is that a nav is sized by its
+     * CONTENT, which is what makes a list of kinds beside a pane workable.
+     */
+    public record ws_split() implements CssClass<WorkspaceSwitcherStyles> {
+        @Override public String body() { return """
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            flex: 1 1 auto;
+            min-height: 0;
+            height: 100%;
+            """; }
+    }
+    public record ws_nav() implements CssClass<WorkspaceSwitcherStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Rail.class, Color.Edge.class), of(Rail.class, Shape.Rule.class)); }
+        @Override public String body() { return """
+            flex: 0 0 auto;
+            width: max-content;
+            min-width: 190px;
+            max-width: 340px;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 8px 16px 8px 0;
+            outline: none;
+            """; }
+    }
+    public record ws_body() implements CssClass<WorkspaceSwitcherStyles> {
+        @Override public String body() { return """
+            flex: 1 1 0;
+            min-width: 0;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 8px 0 8px 16px;
+            """; }
+    }
     public record ws_detail() implements CssClass<WorkspaceSwitcherStyles> {
         @Override public String body() { return """
             display: flex;
@@ -106,6 +145,7 @@ public record WorkspaceSwitcherStyles() implements CssGroup<WorkspaceSwitcherSty
     @Override
     public List<CssClass<WorkspaceSwitcherStyles>> cssClasses() {
         return List.of(
+                new ws_split(), new ws_nav(), new ws_body(),
                 new ws_detail(), new ws_head(), new ws_sub(),
                 new ws_list(), new ws_list_focus(), new ws_note(),
                 new ws_row(), new ws_input(),
