@@ -104,6 +104,10 @@ public final class WorkspaceShellCrate implements Crate {
                 CrateEntry.of(WorkspaceMenus.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // The panes: the grid, a dock per cell, the desk over them.
                 CrateEntry.of(WorkspacePanesStyles.INSTANCE),
+                // The one layout in its two spellings, the panes' and the model's.
+                CrateEntry.of(WorkspaceGridModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                // The pane half of a tab-pane: the room a widget runs in.
+                CrateEntry.of(WidgetPaneModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(WorkspacePanesModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(WorkspaceStateModelModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WriteLockGuardModule.INSTANCE));

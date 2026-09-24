@@ -36,19 +36,29 @@ class PickerTabFlowTest extends JsModuleTestBase {
                     this.workspaceActiveTabId = null;
                     this._tabsBySlot     = new Map();
                 }
+                // A room: the pane half of a tab-pane. The flow puts a widget in
+                // it and the tab carries it; this one records what it was given.
+                roomFor(slotId) {
+                    const branch = new StubBranch('room');
+                    return {
+                        slotId, branch, widgets: [], said: [], active: null,
+                        root: { children: [] }, focus: { join() {} },
+                        branchFor(name) { return branch.createBranch(name); },
+                        setWidget(w) { this.widgets.push(w); return this; },
+                        say(t) { this.said.push(t); return this; },
+                        widget() { return this.widgets[this.widgets.length - 1] || null; },
+                        setActive(on) { this.active = on; }
+                    };
+                }
                 addTab(slotId, tab) {
-                    if (!this._tabsBySlot.has(slotId)) {
-                        this._tabsBySlot.set(slotId, { tabs: [] });
-                    }
+                    if (!tab.widget || !tab.widget.root) throw new Error('a tab carries a room');
+                    if (!this._tabsBySlot.has(slotId)) this._tabsBySlot.set(slotId, { tabs: [] });
                     this._tabsBySlot.get(slotId).tabs.push(tab);
-                    // Render synchronously so the picker tab's contentEl
-                    // exists when picker.mountInto is called.
-                    const el = { children: [], appendChild(c) { this.children.push(c); },
-                                 removeChild(c) { this.children = this.children.filter(x=>x!==c); },
-                                 get firstChild() { return this.children[0] || null; } };
-                    tab.render(el);
-                    tab._contentEl = el;
                     this.addedTabs.push({ slotId, tab });
+                }
+                tabOf(tabId) {
+                    for (const s of this._tabsBySlot.values()) for (const t of s.tabs) if (t.id === tabId) return t;
+                    return null;
                 }
                 removeTab(slotId, tabId) {
                     this.removedTabs.push({ slotId, tabId });
@@ -78,6 +88,7 @@ class PickerTabFlowTest extends JsModuleTestBase {
                 }
                 createBranch(name) { const c = new StubBranch(name); this.children.push(c); return c; }
                 activate() {}
+                createElement(name, tag) { return { name, tag, textContent: '', children: [], appendChild(c) { this.children.push(c); } }; }
                 dissolve() {}
             }
             globalThis.document = {
@@ -145,12 +156,12 @@ class PickerTabFlowTest extends JsModuleTestBase {
 
         Value tabId = flow.invokeMember("openInSlot", "tr");
 
-        assertEquals("picker:1", tabId.asString());
+        assertEquals("picker-1", tabId.asString());
         // Tab was added to slot 'tr'.
         Value addedTabs = mtp.getMember("addedTabs");
         assertEquals(1, addedTabs.getArraySize());
         assertEquals("tr", addedTabs.getArrayElement(0).getMember("slotId").asString());
-        assertEquals("picker:1",
+        assertEquals("picker-1",
                      addedTabs.getArrayElement(0).getMember("tab").getMember("id").asString());
         // The pane was told to rest the keys in the tab it is showing — what
         // the coordinator's deep-select used to mean, said by the party.
@@ -160,7 +171,7 @@ class PickerTabFlowTest extends JsModuleTestBase {
         // switchTab fired too.
         Value switched = mtp.getMember("switchedTo");
         assertEquals(1, switched.getArraySize());
-        assertEquals("picker:1", switched.getArrayElement(0).getMember("tabId").asString());
+        assertEquals("picker-1", switched.getArrayElement(0).getMember("tabId").asString());
     }
 
     @Test
@@ -195,7 +206,7 @@ class PickerTabFlowTest extends JsModuleTestBase {
         Value removed = setup.getMember("mtp").getMember("removedTabs");
         assertEquals(1, removed.getArraySize());
         assertEquals("br",      removed.getArrayElement(0).getMember("slotId").asString());
-        assertEquals("picker:1", removed.getArrayElement(0).getMember("tabId").asString());
+        assertEquals("picker-1", removed.getArrayElement(0).getMember("tabId").asString());
     }
 
     @Test

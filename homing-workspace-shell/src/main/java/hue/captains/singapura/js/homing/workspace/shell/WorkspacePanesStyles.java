@@ -6,25 +6,18 @@ import hue.captains.singapura.js.homing.core.CssGroup;
 import java.util.List;
 
 /**
- * Where a widget lives inside a tab.
+ * Where a widget lives inside a tab: the room ({@link WidgetPaneModule}).
  *
- * <p>The two panes hand the room over differently, and this is the one seam.
- * The studio's gave the caller a bare content element and let it mount into
- * that afterwards; the component takes a WIDGET at {@code addTab} and puts
- * {@code widget.root} in a panel of its own. The shell still works the first
- * way — add the tab, ask where it went, mount — so the assembly gives each tab
- * a host of its own to be that root, and hands the same element back when the
- * shell asks.</p>
- *
- * <p>Structure only, and only the structure that seam needs: a box that fills
- * the panel it is in and lays its widget out down the page, which is what the
- * studio's content element did with an inline style.</p>
+ * <p>Structure only: a box that fills whatever holds it — a dock's panel, or a
+ * floating pane's body on the desk — lays its widget out down the page, and
+ * scrolls a widget taller than the room rather than letting it spill over the
+ * pane beside it. How the widget looks inside is the widget's.</p>
  */
 public record WorkspacePanesStyles() implements CssGroup<WorkspacePanesStyles> {
 
     public static final WorkspacePanesStyles INSTANCE = new WorkspacePanesStyles();
 
-    /** A tab's room: fills the panel, lays the widget down the page. */
+    /** A tab's room: fills what holds it, lays the widget down the page, scrolls what does not fit. */
     public record wp_host() implements CssClass<WorkspacePanesStyles> {
         @Override public String body() { return """
             display: flex;
@@ -33,6 +26,7 @@ public record WorkspacePanesStyles() implements CssGroup<WorkspacePanesStyles> {
             min-width: 0;
             min-height: 0;
             height: 100%;
+            overflow: auto;
             """; }
     }
 

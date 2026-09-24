@@ -32,14 +32,14 @@ class WorkspaceDemoSiteTest {
     void bothKindsAreRegistered() {
         // The site's static block fills the registry; touching INSTANCE is what runs it.
         assertEquals(WorkspaceDemoSite.INSTANCE, WorkspaceDemoSite.INSTANCE);
-        assertTrue(WorkspaceSpecRegistry.INSTANCE.get("monitors").isPresent());
-        assertTrue(WorkspaceSpecRegistry.INSTANCE.get("graph").isPresent());
+        assertTrue(WorkspaceSpecRegistry.INSTANCE.get("demo").isPresent());
+        assertTrue(WorkspaceSpecRegistry.INSTANCE.get("notes").isPresent());
     }
 
     @Test
-    void theRootIsTheMonitorsWorkspace() {
+    void theRootIsTheDemoWorkspace() {
         String html = pageAt("/");
-        assertTrue(html.contains("\"ws_kind\":\"monitors\""), "the kind is stamped into the page");
+        assertTrue(html.contains("\"ws_kind\":\"demo\""), "the kind is stamped into the page");
         assertTrue(html.contains(WorkspaceApp.class.getCanonicalName()),
                 "the page imports the app's module and calls its appMain");
         assertTrue(html.contains("appMain(page.main"), "the app is handed the MPA's slot");
@@ -47,9 +47,9 @@ class WorkspaceDemoSiteTest {
 
     @Test
     void aSecondKindIsASecondRoute() {
-        String html = pageAt("/graph");
-        assertTrue(html.contains("\"ws_kind\":\"graph\""));
-        assertTrue(html.contains("Design graph"), "the router told the page its trail");
+        String html = pageAt("/notes");
+        assertTrue(html.contains("\"ws_kind\":\"notes\""));
+        assertTrue(html.contains("Notes"), "the router told the page its trail");
     }
 
     /**

@@ -4,73 +4,69 @@ import hue.captains.singapura.js.homing.workspace.WidgetEntry;
 import hue.captains.singapura.js.homing.workspace.WidgetGroup;
 import hue.captains.singapura.js.homing.workspace.WidgetIcon;
 import hue.captains.singapura.js.homing.workspace.WidgetLabel;
-import hue.captains.singapura.js.homing.workspace.shell.CssGraphWorkbenchWidget;
-import hue.captains.singapura.js.homing.workspace.shell.DomOpsPartyMonitorWidget;
 import hue.captains.singapura.js.homing.workspace.shell.WorkspaceSpec;
 import hue.captains.singapura.js.homing.workspace.shell.WorkspaceSpecRegistry;
 
 import java.util.List;
 
 /**
- * Two workspaces for the demo, and deliberately two.
+ * The demo's workspaces, built from the demo's own widgets only.
  *
- * <p>One would show that a workspace mounts. Two show what only the registry
- * knows: the catalogue of kinds the switcher offers and the address a change
- * of kind goes to — the part of {@code WorkspaceSpecsModule} that no single
- * spec could fill in. Switch from Monitors to Graph and back, and the flat
- * address the MPA serves is what carries you.</p>
+ * <p>Both widgets are written to the new contract — handed a branch, they give
+ * back {@code { root }} and touch nothing else — so everything this demo shows
+ * about panes, splitting, floating and docking is shown on widgets that know
+ * nothing about any of it. The workspace's older widgets are not here on
+ * purpose: they run through an adapter that comes later.</p>
  *
- * <p>Both are built from widgets the shell already ships, on purpose: a demo
- * that had to invent widgets would be testing the widgets. These test the
- * mounting.</p>
+ * <p>Two kinds, so switching between them is exercised rather than asserted.</p>
  */
 public final class WorkspaceDemoSpecs {
 
     private WorkspaceDemoSpecs() {}
 
-    /** The tree and the sheets side by side: what the party did, and what the design says. */
-    public static final WorkspaceSpec MONITORS = new Monitors();
+    /** A note and a counter: one widget with no keys, one with both worlds. */
+    public static final WorkspaceSpec DEMO = new Demo();
 
-    /** The design graph alone, filling the room. */
-    public static final WorkspaceSpec GRAPH = new Graph();
+    /** Notes only. */
+    public static final WorkspaceSpec NOTES = new Notes();
 
     private static boolean registered;
 
     /**
      * Register both, once. The registry is process-wide and populated at boot,
-     * so a site that is loaded twice in one JVM — a test and then a server —
-     * must not register twice: the second is a duplicate-kind error, correctly.
+     * so a site loaded twice in one JVM — a test and then a server — must not
+     * register twice: the second is a duplicate-kind error, correctly.
      */
     public static synchronized void register() {
         if (registered) return;
         registered = true;
-        WorkspaceSpecRegistry.INSTANCE.register(MONITORS);
-        WorkspaceSpecRegistry.INSTANCE.register(GRAPH);
+        WorkspaceSpecRegistry.INSTANCE.register(DEMO);
+        WorkspaceSpecRegistry.INSTANCE.register(NOTES);
     }
 
-    private static final WidgetGroup MONITOR_GROUP = WidgetGroup.of("Monitors");
+    private static final WidgetGroup DEMO_GROUP = WidgetGroup.of("Demo");
 
-    private static WidgetEntry party() {
-        return WidgetEntry.of(DomOpsPartyMonitorWidget.class, WidgetLabel.of("Party monitor"))
-                .withIcon(new WidgetIcon.Emoji("\uD83C\uDF3F"))
-                .withGroup(MONITOR_GROUP);
+    private static WidgetEntry note() {
+        return WidgetEntry.of(DemoNoteWidget.class, WidgetLabel.of("Note"))
+                .withIcon(new WidgetIcon.Emoji("📝"))
+                .withGroup(DEMO_GROUP);
     }
 
-    private static WidgetEntry graph() {
-        return WidgetEntry.of(CssGraphWorkbenchWidget.class, WidgetLabel.of("CSS graph"))
-                .withIcon(new WidgetIcon.Emoji("\uD83C\uDFA8"))
-                .withGroup(MONITOR_GROUP);
+    private static WidgetEntry counter() {
+        return WidgetEntry.of(DemoCounterWidget.class, WidgetLabel.of("Counter"))
+                .withIcon(new WidgetIcon.Emoji("🔢"))
+                .withGroup(DEMO_GROUP);
     }
 
-    private static final class Monitors implements WorkspaceSpec {
-        @Override public String kind()  { return "monitors"; }
-        @Override public String title() { return "Monitors"; }
-        @Override public List<WidgetEntry> widgetEntries() { return List.of(party(), graph()); }
+    private static final class Demo implements WorkspaceSpec {
+        @Override public String kind()  { return "demo"; }
+        @Override public String title() { return "Demo"; }
+        @Override public List<WidgetEntry> widgetEntries() { return List.of(note(), counter()); }
     }
 
-    private static final class Graph implements WorkspaceSpec {
-        @Override public String kind()  { return "graph"; }
-        @Override public String title() { return "Design graph"; }
-        @Override public List<WidgetEntry> widgetEntries() { return List.of(graph()); }
+    private static final class Notes implements WorkspaceSpec {
+        @Override public String kind()  { return "notes"; }
+        @Override public String title() { return "Notes"; }
+        @Override public List<WidgetEntry> widgetEntries() { return List.of(note()); }
     }
 }

@@ -65,7 +65,7 @@ class WorkspaceEventsTest extends JsModuleTestBase {
                 "({kind:'TabRemoved',   slotId:'p', tab:{id:'t', widgetInstanceUuid:'u', widgetKind:'K'}, fromIndex:0})",
                 "({kind:'TabMoved',     srcSlotId:'a', tab:{id:'t', widgetInstanceUuid:'u'}, srcIndex:0, destSlotId:'b', destIndex:1})",
                 "({kind:'TabAttached',  slotId:'p', tab:{id:'t', widgetInstanceUuid:'u'}, atIndex:0})",
-                "({kind:'TabActivated', slotId:'p', tabId:'u'})",
+                "({kind:'TabActivated', slotId:'p', tabId:'t', tab:{id:'t', widgetInstanceUuid:'u'}})",
                 "({kind:'Subdivided',   cellId:'p', newCellId:'q', side:'right'})",
                 "({kind:'Removed',      cellId:'p'})",
                 "({kind:'TracksChanged', path:'', ratios:[0.5, 0.5]})"}) {
@@ -185,12 +185,39 @@ class WorkspaceEventsTest extends JsModuleTestBase {
         assertEquals(0.5, payloadOf(out).getMember("ratios").getArrayElement(2).asDouble(), 1e-9);
     }
 
-    /** The one both languages already spelled the same; only the field names differ. */
+    /**
+     * An activation is recorded by the WIDGET the tab holds, never by the
+     * dock's id for the tab: the two differ (a chooser's tab keeps its id when
+     * it becomes a widget, and a tab id must be a branch name, which a widget's
+     * id is not), and only the widget's means anything on the next visit.
+     */
     @Test
-    void anActivationIsTheSameFactInBothLanguages() {
-        Value out = translate("({kind:'TabActivated', slotId:'right', tabId:'u7'})");
+    void anActivationIsRecordedByTheWidgetNotTheTabId() {
+        Value out = translate("({kind:'TabActivated', slotId:'right', tabId:'picker-3', tab:{id:'picker-3', widgetInstanceUuid:'Note:7'}})");
         assertEquals("TabActivated", nameOf(out));
-        assertEquals("right", payloadOf(out).getMember("paneId").asString());
-        assertEquals("u7",    payloadOf(out).getMember("widgetInstanceId").asString());
+        assertEquals("right",  payloadOf(out).getMember("paneId").asString());
+        assertEquals("Note:7", payloadOf(out).getMember("widgetInstanceId").asString());
+    }
+
+    /**
+     * A merge is one fact. The tabs a pane carries across as it goes, and what
+     * each dock shows after, are marked as part of it and not recorded: the
+     * merge is, and its replay moves the tabs the same way.
+     */
+    @Test
+    void whatAMergeCarriesAcrossIsPartOfTheMerge() {
+        assertNothing(translate("({kind:'TabAttached', slotId:'a', tab:{id:'t', widgetInstanceUuid:'u'}, atIndex:0, merging:'b'})"), "part of the merge");
+        assertNothing(translate("({kind:'TabActivated', slotId:'a', tabId:'t', tab:{id:'t', widgetInstanceUuid:'u'}, merging:'b'})"), "part of the merge");
+        Value merged = translate("({kind:'Removed', cellId:'b', toward:'a'})");
+        assertEquals("SplitMerged", nameOf(merged));
+        assertEquals("a", payloadOf(merged).getMember("toward").asString());
+    }
+
+    /** A pane showing a chooser, or a tab the holder never handed along, is showing nothing to come back to. */
+    @Test
+    void anActivationOfATabWithNoWidgetIsNotRecorded() {
+        assertNothing(translate("({kind:'TabActivated', slotId:'p', tabId:'picker-1', tab:{id:'picker-1'}})"), "a chooser");
+        assertNothing(translate("({kind:'TabActivated', slotId:'p', tabId:'t', tab:null})"), "no tab handed along");
+        assertNothing(translate("({kind:'TabActivated', slotId:'p', tabId:'t'})"), "no tab handed along");
     }
 }

@@ -39,27 +39,6 @@ const _ACROSS = Object.freeze({
     down:  { axis: "vertical",   side: "after"  }
 });
 
-/**
- * The same tree, in the two spellings it has. The workspace says leaf/slotId
- * and holds a sub-tree under `pane`; the grid says cell/id and holds one under
- * `node`. Neither is better and there is no case where both are right, so they
- * meet here, at the one place the two languages touch, rather than either side
- * learning the other's words.
- */
-function _toGrid(n) {
-    if (!n) return null;
-    if (n.kind === "leaf") return { kind: "cell", id: n.slotId };
-    return { kind: "split", orientation: n.orientation,
-             children: n.children.map(function (c) { return { node: _toGrid(c.pane), ratio: c.ratio }; }) };
-}
-
-function _fromGrid(n) {
-    if (!n) return null;
-    if (n.kind === "cell") return { kind: "leaf", slotId: n.id };
-    return { kind: "split", orientation: n.orientation,
-             children: n.children.map(function (c) { return { pane: _fromGrid(c.node), ratio: c.ratio }; }) };
-}
-
 class WorkspacePanes {
 
     constructor(branch, opts) {
@@ -71,12 +50,21 @@ class WorkspacePanes {
         this._opts = opts;
         this._sink = typeof opts.onEvent === "function" ? opts.onEvent : null;
         this._panes = new Map();       // cellId → MultiTabPane
-        this._hosts = new Map();       // tabId  → the element the widget mounts in
-        this._tabObjs = new Map();     // tabId  → the descriptor the holder gave us
+        this._tabObjs = new Map();     // tabId  → the tab the holder gave us
+        this._floated = new Map();     // tabId  → { slotId, index } it left
+        this._merging = null;          // { slotId, toward } while a merge carries its tabs across
+        this._roomSeq = 0;
+        this._cellSeq = 0;
+
+        var layout = WorkspaceGrid.toGrid(opts.layout) || { kind: "cell", id: "main" };
+        // Every cell id this assembly has known. A cell's name is taken for good
+        // once minted - the grid keeps its element's name after the cell goes -
+        // so a new pane is never given the id of one that went.
+        this._cellIds = new Set(SplitGridTree.cells(layout));
 
         this._grid = new SplitGrid(branch.createBranch("grid"), {
             host: opts.host,
-            layout: _toGrid(opts.layout) || { kind: "cell", id: "main" },
+            layout: layout,
             minCellPx: 160,
             onEvent: function (ev) { self._fire(ev); self._sync(); }
         });
@@ -93,7 +81,66 @@ class WorkspacePanes {
         this._sync();
     }
 
+    /**
+     * Every event from the grid, the docks and the desk, on to the holder -
+     * with what only the assembly knows filled in.
+     *
+     * The holder keeps its records by the tab it made, so every event names
+     * THAT tab. A dock names the one it activated only by id; and a tab that
+     * floated comes back from the desk as the desk's own { id, title, widget },
+     * which the dock it lands on keeps and reports from then on - the same tab,
+     * with nothing the holder wrote on it. A tab closed goes out of the table.
+     * And a tab floated off a dock and closed on the desk IS that tab closed:
+     * the desk only knows a pane went, so it is said here as the dock would
+     * have said it, from the place the tab left.
+     */
     _fire(ev) {
+        if (ev.tab && ev.tab !== this._tabObjs.get(ev.tab.id) && this._tabObjs.has(ev.tab.id)) {
+            ev = Object.freeze(Object.assign({}, ev, { tab: this._tabObjs.get(ev.tab.id) }));
+        }
+        // A merge is ONE fact. The tabs it carries across, and the tab each
+        // dock then shows, are part of it: marked, so the holder keeps its
+        // books by them but records only the merge, whose replay moves the
+        // tabs the same way.
+        if (this._merging && ev.slotId !== undefined && ev.kind !== "Removed") {
+            ev = Object.freeze(Object.assign({}, ev, { merging: this._merging.slotId }));
+        }
+        switch (ev.kind) {
+            case "TabActivated":
+                ev = Object.freeze(Object.assign({}, ev, { tab: this._tabObjs.get(ev.tabId) || null }));
+                break;
+            case "TabRemoved":
+                this._tabObjs.delete(ev.tab.id);
+                break;
+            case "Docked": {
+                this._floated.delete(ev.tabId);
+                // A tab dropped on a dock is the one it shows: the hand put it
+                // there to look at it, and a replay of the move shows it too.
+                var dock = this._panes.get(ev.slotId);
+                this._emit(ev);
+                if (dock && dock.activeTab() !== ev.tabId) dock.switchTab(ev.tabId);
+                return;
+            }
+            case "Removed":
+                if (this._merging && this._merging.slotId === ev.cellId) {
+                    ev = Object.freeze(Object.assign({}, ev, { toward: this._merging.toward }));
+                }
+                break;
+            case "Closed": {
+                var from = this._floated.get(ev.id);
+                var tab = this._tabObjs.get(ev.id);
+                if (!from || !tab) break;
+                this._floated.delete(ev.id);
+                this._tabObjs.delete(ev.id);
+                this._emit(ev);
+                ev = PaneEvents.TabRemoved(from.slotId, tab, from.index);
+                break;
+            }
+        }
+        this._emit(ev);
+    }
+
+    _emit(ev) {
         if (!this._sink) return;
         try { this._sink(ev); }
         catch (e) { console.error("[WorkspacePanes] onEvent threw on " + ev.kind + ":", e); }
@@ -143,71 +190,37 @@ class WorkspacePanes {
 
     paneAt(slotId) { return this._panes.get(slotId) || null; }
 
-    layout() { return _fromGrid(this._grid.layout()); }
+    layout() { return WorkspaceGrid.fromGrid(this._grid.layout()); }
 
     /**
-     * THE ONE SEAM BETWEEN THE TWO PANES. The component takes a WIDGET and
-     * puts widget.root in a panel of its own; the studio's gave out a bare
-     * content element and let the caller mount into it afterwards. The shell
-     * still works the second way - add the tab, ask where it went, mount - so
-     * a tab arrives here with no widget on it and this gives it one: a host of
-     * its own, which is the element contentElOf then hands back.
+     * A room for a tab in this pane: the PANE half of a tab-pane, a member of
+     * this dock's focus branch, on a branch of the assembly's own so it
+     * travels with its tab. The holder puts a widget in it and adds the tab.
+     */
+    roomFor(slotId) {
+        var pane = this._panes.get(slotId);
+        if (!pane) return null;
+        return new WidgetPane(this._branch.createBranch("room" + (++this._roomSeq)), { focus: pane.focus });
+    }
+
+    /**
+     * A tab carries its room as its widget, and the room keeps the dock's law
+     * - so the dock is handed exactly what it asks for, and nothing is made up
+     * here to get past its door.
      */
     addTab(slotId, tab) {
         var pane = this._panes.get(slotId);
-        return pane ? pane.addTab(this._withHost(pane, tab)) : -1;
-    }
-
-    _withHost(pane, tab) {
-        if (tab.widget && tab.widget.root) return tab;
-        var safe = String(tab.id).replace(/[^A-Za-z0-9_-]/g, "_");
-        var host = this._branch.createElement("host-" + safe, "div");
-        css.addClass(host, wp_host);
-        // -1: not in the Tab order, but able to take focus when the dock rests
-        // it here. A tab is reached by its chip or by the pane's keys, never by
-        // tabbing into the middle of a workspace.
-        host.setAttribute("tabindex", "-1");
-        this._hosts.set(tab.id, host);
-
-        // THE LAW AT THE DOOR: a dock takes a widget that joins its focus
-        // branch and answers activate(). The shell mounts a widget into this
-        // host afterwards and the dock never sees that one, so the membership
-        // is the host's - which is right, because the room is what the dock
-        // hands the keys to and what is in the room is the room's business.
-        //
-        // JOIN, not createBranch: a leaf is what this is. createBranch is for a
-        // container that will hold members of its own, and returns the BRANCH;
-        // join returns the MEMBERSHIP, which is what carries leave() and in.
-        var widget = { root: host };
-        widget.focus = pane.focus.join(safe, widget);
-        widget.activate = function () { if (host.focus) host.focus(); };
-        widget.dispose = function () { try { widget.focus.leave(); } catch (e) {} };
-
-        // AND THE OTHER HALF OF THE SAME SEAM. The studio's pane called
-        // tab.render(el) to let a tab fill the element it had been given; the
-        // component asks for a root and calls nothing. The shell still writes
-        // render, and everything it mounts afterwards goes where render was
-        // told - so the host is handed to it here, and the tab fills the room
-        // exactly as it always did.
-        if (typeof tab.render === "function") {
-            try { tab.render(host); }
-            catch (e) { console.error("[WorkspacePanes] tab '" + tab.id + "' render threw", e); }
+        if (!pane) return -1;
+        if (!tab.widget || !tab.widget.root || !tab.widget.focus) {
+            throw new Error("[WorkspacePanes] tab '" + tab.id + "' carries no room: roomFor(slot), setWidget, then addTab");
         }
-
-        // ONE object, not a copy. The holder keeps a reference and retitles it,
-        // reads its widgetInstanceUuid back, hangs an onClose on it - all of
-        // which the studio's pane allowed because it held the very object it
-        // was given. A copy here would be a second truth that drifts on the
-        // first retitle.
-        tab.widget = widget;
         this._tabObjs.set(tab.id, tab);
-        return tab;
+        return pane.addTab(tab);
     }
 
+    /** The tab goes out of the table when its dock reports it gone. */
     removeTab(slotId, tabId) {
         var pane = this._panes.get(slotId);
-        this._hosts.delete(tabId);
-        this._tabObjs.delete(tabId);
         return pane ? pane.removeTab(tabId) : null;
     }
 
@@ -222,21 +235,16 @@ class WorkspacePanes {
         return pane ? pane.tabIndexOf(tabId) : -1;
     }
 
-    /**
-     * By tab id alone, because the shell has one and not the pane it is in.
-     * The host this gave the tab, so the widget lands inside its own root
-     * rather than beside it in the panel.
-     */
+    /** Where a tab's widget lives: its room's root. */
     contentElOf(tabId) {
-        var host = this._hosts.get(tabId);
-        if (host) return host;
-        var found = null;
-        this._panes.forEach(function (pane) {
-            if (found) return;
-            var el = pane.contentElOf(tabId);
-            if (el) found = el;
-        });
-        return found;
+        var tab = this._tabObjs.get(tabId);
+        return tab && tab.widget ? tab.widget.root : null;
+    }
+
+    /** A tab's room, for a holder that changes what is in it. */
+    roomOf(tabId) {
+        var tab = this._tabObjs.get(tabId);
+        return tab ? tab.widget : null;
     }
 
     /**
@@ -264,7 +272,7 @@ class WorkspacePanes {
             tabs[id] = { tabs: s.tabs.map(function (t) { return { id: t.id, title: t.title }; }),
                          activeTabId: s.activeTabId };
         });
-        return { layout: _fromGrid(this._grid.layout()), tabs: tabs };
+        return { layout: WorkspaceGrid.fromGrid(this._grid.layout()), tabs: tabs };
     }
 
     setAddEnabled(on) {
@@ -288,13 +296,42 @@ class WorkspacePanes {
     }
 
     /** A tab off its dock and onto the desk, at a point: the float. */
-    undockAt(pane, tab, at) { this._docking.undockAt(pane, tab, at); return this; }
+    undockAt(pane, tab, at) {
+        var from = { slotId: pane.slotId, index: pane.tabIndexOf(tab.id) };
+        this._docking.undockAt(pane, tab, at);
+        this._floated.set(tab.id, from);
+        return this;
+    }
 
-    /** A new, empty pane beside this one; the grid reports Subdivided. */
-    split(slotId, side) { return this._grid.subdivide(slotId, side); }
+    /** A new, empty pane beside this one, under a name no pane has had; the grid reports Subdivided. */
+    split(slotId, side) {
+        var id;
+        do { id = "cell-" + (++this._cellSeq); } while (this._cellIds.has(id));
+        this._cellIds.add(id);
+        return this._grid.subdivide(slotId, side, id);
+    }
 
-    /** This pane goes, its room toward the pane named; the grid reports Removed. */
-    merge(slotId, toward) { return this._grid.remove(slotId, toward); }
+    /**
+     * This pane goes, and everything in it goes where its room goes: its tabs
+     * to the pane that gains the room - the one named, when it faces this one
+     * across a whole divider, else the one the grid leans to - appended in
+     * order, that pane still showing what it showed. Then the cell, which the
+     * grid reports Removed, carrying the pane named so a replay goes the same
+     * way. The last pane cannot go.
+     */
+    merge(slotId, toward) {
+        var heir = (this._grid.heirs(slotId, toward) || [])[0];
+        var from = this._panes.get(slotId), to = heir ? this._panes.get(heir) : null;
+        if (!from || !to) return null;
+        this._merging = { slotId: slotId, toward: toward || null };
+        try {
+            var ids = from.tabs();
+            for (var i = 0; i < ids.length; i++) to.attachTab(from.detachTab(ids[i]), null);
+            return this._grid.remove(slotId, toward);
+        } finally {
+            this._merging = null;
+        }
+    }
 
     /** The panes this one could merge with: across a whole divider, either side. */
     mergeableWith(slotId) { return this._grid.splitters(slotId) || []; }

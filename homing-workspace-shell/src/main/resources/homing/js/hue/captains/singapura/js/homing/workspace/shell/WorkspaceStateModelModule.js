@@ -333,33 +333,21 @@ class WorkspaceStateModel {
     }
 
     /**
-     * {@code paneId} goes; its room to {@code toward} when one was named and
-     * they share the same split, else to the neighbour holding it. Its tabs go
-     * wherever its room went. A split left with one track gives way to it, and
-     * the last pane in the workspace cannot go.
+     * {@code paneId} goes, by the GRID's rules and no copy of them: its room to
+     * {@code toward} when that pane faces it across a whole divider, else to
+     * the neighbour holding it, else to the one beside it; its tabs to the pane
+     * that gains the room. The grid did exactly this on the day, and a replay
+     * asks the same tree the same question, so the two cannot drift - which
+     * they did while this kept a simpler rule of its own. The last pane cannot go.
      */
     _merge(p) {
-        const found = this._findLeafBySlot(this._layout, String(p.paneId || ''));
-        if (!found || !found.parent) return;                 // the root leaf is the last pane
-        const kids = found.parent.children;
-        const share = kids[found.index].ratio;
-
-        let heir = -1;
-        if (p.toward) {
-            for (let i = 0; i < kids.length; i++) {
-                if (i !== found.index && kids[i].pane.kind === 'leaf' && kids[i].pane.slotId === p.toward) heir = i;
-            }
-        }
-        if (heir < 0) heir = found.index > 0 ? found.index - 1 : found.index + 1;
-
-        this._giveTabs(found.node.slotId, this._firstLeaf(kids[heir].pane).slotId);
-        kids[heir].ratio += share;
-        kids.splice(found.index, 1);
-        if (kids.length === 1) {
-            // A split with one track left is no split: it gives way to what it holds.
-            const holder = this._findSplitHolder(this._layout, found.parent, null, -1);
-            if (holder) holder(kids[0].pane); else this._layout = kids[0].pane;
-        }
+        const id = String(p.paneId || '');
+        const toward = p.toward || null;
+        const tree = WorkspaceGrid.toGrid(this._layout);
+        const hit = SplitGridTree.find(tree, id);
+        if (!hit || !hit.parent) return;                     // no such pane, or the last one
+        this._giveTabs(id, SplitGridTree.heirs(tree, id, toward)[0]);
+        this._layout = WorkspaceGrid.fromGrid(SplitGridTree.remove(tree, id, toward));
     }
 
     /** The tabs of a pane that is going, appended to the pane that gains its room. */
@@ -480,20 +468,6 @@ class WorkspaceStateModel {
             cur = cur.children[i].pane;
         }
         return (cur && cur.kind === 'split') ? cur : null;
-    }
-
-    /** How to replace `target` where it sits, or null when it is the root. */
-    _findSplitHolder(node, target, parent, index) {
-        if (!node || node.kind !== 'split') return null;
-        if (node === target) {
-            if (!parent) return null;
-            return function (n) { parent.children[index].pane = n; };
-        }
-        for (let i = 0; i < node.children.length; i++) {
-            const hit = this._findSplitHolder(node.children[i].pane, target, node, i);
-            if (hit) return hit;
-        }
-        return null;
     }
 
     _findNodeByPaneId(paneId) {

@@ -4,7 +4,7 @@
 // The '+' affordance on every pane strip lands here. Flow:
 //
 //   1. openInSlot(slotId)
-//        ├─ create empty 'picker:N' tab; mtp.addTab + switchTab +
+//        ├─ create empty 'picker-N' tab; mtp.addTab + switchTab +
 //        ├─ mount WidgetPicker into the tab's contentEl with
 //        │     entries     = spec.entries minus pinned
 //        │     disabledIds = current singletons (one per kind)
@@ -73,53 +73,44 @@ class PickerTabFlow {
     }
 
     /**
-     * Open a picker in a brand-new empty tab inside {@code slotId}.
-     * Returns the new tab's id so callers can correlate.
+     * Open a new tab in a pane, and put the chooser in it.
+     *
+     * The TAB-PANE owns this. The tab is the dock's and is called "New tab"
+     * until it is one; its room holds the picker now and the picked widget
+     * after, and the dock never learns the tenant changed. The picker is not
+     * handed the keyboard: the ROOM is the member of the party, the dock rests
+     * the keys in it, and it hands them on to whatever it is holding.
      */
     openInSlot(slotId) {
         const self  = this;
-        const tabId = 'picker:' + (++this._counter);
+        // A tab id names the tab's branch wherever it goes - the dock's, and
+        // the desk's when it floats - so it is spelled as a branch name is.
+        const tabId = 'picker-' + (++this._counter);
+        const room  = this._mtp.roomFor(slotId);
+        if (!room) return null;
 
-        const pickerHost = document.createElement('div');
-        const holder = { contentEl: null };
-        const tab = {
-            id:      tabId,
-            title:   'New tab',
-            render:  function (contentEl) {
-                holder.contentEl = contentEl;
-                contentEl.appendChild(pickerHost);
-            },
-            setActive: function () {},
-            onClose:   function () { /* empty picker tab — nothing to dispose */ }
-        };
-
-        this._mtp.addTab(slotId, tab);
-        if (this._mtp.switchTab) this._mtp.switchTab(slotId, tabId);
-        // Opening the picker gives the pane the keys. That was a deep-select
-        // through the coordinator; it is what it says now - the dock rests them
-        // in the tab it is showing.
-        if (this._mtp.land) this._mtp.land(slotId, tabId);
-        const pickerEntries = this._spec.entries || [];
-        const disabledIds = this._liveSingletons();
-
-        // Its own branch, and the page's steward: the picker takes the keys
-        // while it is up and gives them back when it picks or is cancelled.
-        const pickerBranch = this._widgetsBranch.createBranch('picker-' + tabId.replace(/[^A-Za-z0-9_-]/g, '_'));
-        const picker = new this._WidgetPickerCtor(pickerBranch, {
-            keyboard:    this._keyboard || null,
-            keyboardId:  tabId,
-            entries:     pickerEntries,
-            disabledIds: disabledIds,
+        const hostBranch = room.branchFor('chooser');
+        hostBranch.activate(Object.freeze({ toString: () => 'chooser:' + tabId }));
+        const host = hostBranch.createElement('host', 'div');
+        const picker = new this._WidgetPickerCtor(room.branchFor('picker'), {
+            entries:     this._spec.entries || [],
+            disabledIds: this._liveSingletons(),
             onPick:      function (entry, params) {
-                if (params === null) {
-                    self._focusExistingSingleton(entry, slotId, tabId);
-                } else {
-                    self._mutateIntoWidget(slotId, tabId, entry, params, holder);
-                }
+                if (params === null) self._focusExistingSingleton(entry, slotId, tabId);
+                else self._mutateIntoWidget(slotId, tabId, entry, params);
             },
             onCancel:    function () { self._mtp.removeTab(slotId, tabId); }
         });
-        picker.mountInto(pickerHost);
+        picker.mountInto(host);
+        room.setWidget({
+            root:    host,
+            keyDown: function (ev) { return picker.keyDown(ev); },
+            dispose: function () { picker.dispose(); try { hostBranch.dissolve(); } catch (e) {} }
+        });
+
+        this._mtp.addTab(slotId, { id: tabId, title: 'New tab', widget: room });
+        if (this._mtp.switchTab) this._mtp.switchTab(slotId, tabId);
+        if (this._mtp.land) this._mtp.land(slotId, tabId);
         return tabId;
     }
 
@@ -138,112 +129,84 @@ class PickerTabFlow {
     }
 
     /**
-     * Picker-tab → widget-tab in-place mutation. Same tab id, so
-     * workspace-active stays put — control never left the tab.
-     * Sync setup + one explicit .then() on the mounter's resolve.
+     * The chooser picked: the same tab, a new tenant. The room says it is
+     * loading, the chip takes the widget's name, and the widget arrives into
+     * the room when its module has. Chip, title and place stay the tab's.
      */
-    _mutateIntoWidget(slotId, tabId, entry, params, holder) {
-        const self  = this;
-        const tab   = this.findTabObj(tabId);
-        if (!tab) return;
+    _mutateIntoWidget(slotId, tabId, entry, params) {
+        const self = this;
+        const tab  = this.findTabObj(tabId);
+        if (!tab || !tab.widget) return;
+        const room = tab.widget;
 
         tab.widgetKind         = entry.simpleName;
-        tab.widgetInstanceUuid = entry.simpleName + ':' + (++this._counter);
-
-        const contentEl = holder.contentEl;
-        if (!contentEl) return;
-
-        // Sync: loading placeholder + retitle.
-        const loading = document.createElement('div');
-        loading.style.cssText = 'padding:20px;color:#666;font-family:sans-serif;';
-        loading.textContent   = 'Loading ' + entry.label + '…';
-        loading.setAttribute('tabindex', '0');   // focusable: keep focus in the pane + announce
-        loading.setAttribute('role', 'status');
-        while (contentEl.firstChild) contentEl.removeChild(contentEl.firstChild);
-        contentEl.appendChild(loading);
+        tab.widgetInstanceUuid = this._mintUuid(entry.simpleName);
+        const uuid = tab.widgetInstanceUuid;
+        room.say('Loading ' + entry.label + '…');
         tab.title = entry.label;
-        // A tab called "New tab" is only true until it is one. The strip drew
-        // its chip from the title it was given, so the pane is told rather than
-        // left to find out.
         if (this._mtp.retitle) this._mtp.retitle(slotId, tabId, entry.label);
         if (this._mtp.switchTab) this._mtp.switchTab(slotId, tabId);
 
-        // Sync: per-widget branch. Sanitise the uuid for branch-name
-        // safety — branch names allow only [A-Za-z0-9_-].
-        const branchName = 'w-' + tab.widgetInstanceUuid.replace(/[^A-Za-z0-9_-]/g, '_');
-        const wBranch = this._widgetsBranch.createBranch(branchName);
-        const owner   = Object.freeze({ toString: () => 'widget:' + tab.widgetInstanceUuid });
-        wBranch.activate(owner);
+        const wBranch = room.branchFor('w-' + uuid.replace(/[^A-Za-z0-9_-]/g, '_'));
+        // Handed UNACTIVATED: the widget activates its own branch, as every
+        // component does - it is the widget's, not the room's.
 
-        // The ONE async boundary in this whole flow — resolve, then
-        // synchronous mount + attach inside the .then().
+        // The ONE async boundary in this flow: resolve, then mount into the room.
         this._mounter.resolve(entry).then(function (mod) {
-            const controller = self._mounter.mount(mod, wBranch, entry,
-                                                   params, self._workspaceCtx);
-            self._mounter.attach(controller, tab, holder);
-            // Phase 12 — register so replay handlers (Phase 9) can find
-            // the live tab for TabClosed / TabMoved / ActiveChanged.
+            const controller = self._mounter.mount(mod, wBranch, entry, params, self._workspaceCtx);
+            room.setWidget(controller);
+            tab.controller = controller;
             if (self._tabRegistry) {
                 try {
                     self._tabRegistry.register({
-                        widgetInstanceUuid: tab.widgetInstanceUuid,
+                        widgetInstanceUuid: uuid,
                         tab:                tab,
                         slotId:             slotId,
                         widgetKind:         entry.simpleName,
                         controller:         controller
                     });
-                } catch (e) {
-                    console.error('[PickerTabFlow] tabRegistry.register threw:', e);
-                }
+                } catch (e) { console.error('[PickerTabFlow] tabRegistry.register threw:', e); }
             }
-            // Phase 6 — emit so Phase 9 replay can re-spawn this widget.
-            // ALSO apply to model (when supplied) so virtual-replay state
-            // stays in sync with the live MTP. Apply before emit so model
-            // is consistent before any onAfterEmit cadence fires.
-            // Record the REAL destination: the structural path of the pane the
-            // widget was spawned into (paneIdOf), and its live position in that
-            // pane's strip (tabIndexOf). Previously this hardcoded '_' / 0, so a
-            // widget opened in any pane but the first restored into the first pane
-            // (paneId '_' resolves to no leaf → the model falls back to pane one).
-            const toPaneId  = (self._mtp.paneIdOf && self._mtp.paneIdOf(slotId)) || '_';
-            const rawIdx    = self._mtp.tabIndexOf ? self._mtp.tabIndexOf(slotId, tabId) : -1;
+            // Record the real destination: the pane it was spawned into, and its
+            // live place in that pane's strip.
+            const toPaneId = (self._mtp.paneIdOf && self._mtp.paneIdOf(slotId)) || slotId;
+            const rawIdx   = self._mtp.tabIndexOf ? self._mtp.tabIndexOf(slotId, tabId) : -1;
             const spawnPayload = {
-                widgetInstanceId: tab.widgetInstanceUuid,
+                widgetInstanceId: uuid,
                 widgetKind:       entry.simpleName,
                 title:            entry.label,
                 params:           params,
                 to: { paneId: toPaneId, tabIndex: rawIdx < 0 ? 0 : rawIdx }
             };
             if (self._model && typeof self._model.apply === 'function') {
-                try { self._model.apply({ name: 'WidgetSpawnedFromPicker',
-                                          payload: spawnPayload }); }
-                catch (e) {
-                    console.error('[PickerTabFlow] model.apply threw:', e);
-                }
+                try { self._model.apply({ name: 'WidgetSpawnedFromPicker', payload: spawnPayload }); }
+                catch (e) { console.error('[PickerTabFlow] model.apply threw:', e); }
             }
             if (self._recorder && typeof self._recorder.emit === 'function') {
                 self._recorder.emit('WidgetSpawnedFromPicker', spawnPayload);
             }
-            tab.onClose = function () {
-                try { wBranch.dissolve(); } catch (e) {}
-                if (self._tabRegistry) {
-                    self._tabRegistry.unregister(tab.widgetInstanceUuid);
-                }
-            };
             // If the pane is STILL SHOWING this tab after the async mount, the
             // controller catches up: it did not exist when the tab was made
             // active, so nothing could tell it then.
-            if (self._mtp.activeTabOf && self._mtp.activeTabOf(slotId) === tabId) {
-                try { controller.setActive(true); } catch (e) {}
-            }
+            if (self._mtp.activeTabOf && self._mtp.activeTabOf(slotId) === tabId) room.setActive(true);
         }).catch(function (err) {
             console.error('[PickerTabFlow] mount failed for', entry.simpleName, ':', err);
-            loading.textContent = 'Failed to load ' + entry.label
-                                + ': ' + (err && err.message ? err.message : err);
+            room.say('Failed to load ' + entry.label + ': ' + (err && err.message ? err.message : err));
         });
     }
 
-    /** Finds the slot id that hosts the given tab. */
+    /**
+     * A widget id no live widget has. The counter starts again with every
+     * visit and the widgets restored from the last one keep their ids, so a
+     * count alone would hand a new widget the id of one already open.
+     */
+    _mintUuid(kind) {
+        let uuid;
+        do { uuid = kind + ':' + (++this._counter); }
+        while (this._tabRegistry && this._tabRegistry.lookup(uuid));
+        return uuid;
+    }
+
     /**
      * The SINGLETON kinds that are open right now, as kind -> the tab id
      * holding one.

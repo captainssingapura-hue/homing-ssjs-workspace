@@ -48,6 +48,10 @@ class WorkspaceEvents {
      */
     static of(ev) {
         if (!ev || typeof ev.kind !== "string") return null;
+        // Part of a merge: the tabs a pane carries across as it goes, and what
+        // each dock shows after. The merge is the fact, recorded as the grid
+        // reports it, and its replay moves the tabs the same way.
+        if (ev.merging) return null;
         switch (ev.kind) {
             case "TabRemoved":    return WorkspaceEvents._closed(ev);
             case "TabMoved":      return WorkspaceEvents._moved(ev);
@@ -97,11 +101,18 @@ class WorkspaceEvents {
         } };
     }
 
-    /** Which tab a pane is showing. The one event the two languages already agreed on. */
+    /**
+     * Which tab a pane is showing, by the widget in it. A dock names the tab by
+     * its id, which is the dock's and says nothing a log can keep; the holder
+     * hands the tab along, and the tab says which widget it is. A tab with no
+     * widget yet - a chooser - is showing nothing worth coming back to.
+     */
     static _activated(ev) {
+        const uuid = _uuid(ev.tab);
+        if (!uuid) return null;
         return { name: "TabActivated", payload: {
             paneId:           ev.slotId,
-            widgetInstanceId: ev.tabId
+            widgetInstanceId: uuid
         } };
     }
 

@@ -10,7 +10,6 @@ import hue.captains.singapura.js.homing.site.mpa.Brand;
 import hue.captains.singapura.js.homing.site.mpa.StandardMpa;
 import hue.captains.singapura.js.homing.studio.themes.StudioThemeRegistry;
 import hue.captains.singapura.js.homing.workspace.shell.WorkspaceApp;
-import hue.captains.singapura.js.homing.workspace.shell.WorkspaceShellCrate;
 
 import java.util.Optional;
 
@@ -42,21 +41,21 @@ public record WorkspaceDemoSite() implements Site {
 
     /** The one declaration this site makes: the brand, the designs, the crate it serves. */
     public static final StandardMpa MPA = StandardMpa.of(
-            Brand.of("Workspace"), StudioThemeRegistry.INSTANCE, WorkspaceShellCrate.INSTANCE);
+            Brand.of("Workspace"), StudioThemeRegistry.INSTANCE, WorkspaceDemoCrate.INSTANCE);
 
-    static final AppPage<?, ?> MONITORS =
-            MPA.page(WorkspaceApp.INSTANCE, new WorkspaceApp.Params(WorkspaceDemoSpecs.MONITORS.kind()));
+    static final AppPage<?, ?> DEMO =
+            MPA.page(WorkspaceApp.INSTANCE, new WorkspaceApp.Params(WorkspaceDemoSpecs.DEMO.kind()));
 
-    static final AppPage<?, ?> GRAPH =
-            MPA.page(WorkspaceApp.INSTANCE, new WorkspaceApp.Params(WorkspaceDemoSpecs.GRAPH.kind()));
+    static final AppPage<?, ?> NOTES =
+            MPA.page(WorkspaceApp.INSTANCE, new WorkspaceApp.Params(WorkspaceDemoSpecs.NOTES.kind()));
 
     @Override public String name() { return "workspace"; }
 
     @Override
     public Router router() {
         return path -> switch (path.head().orElse("")) {
-            case ""      -> path.isRoot() ? Optional.of(MONITORS) : Optional.empty();
-            case "graph" -> path.depth() == 1 ? Optional.of(placed(GRAPH, "Design graph", path)) : Optional.empty();
+            case ""      -> path.isRoot() ? Optional.of(DEMO) : Optional.empty();
+            case "notes" -> path.depth() == 1 ? Optional.of(placed(NOTES, "Notes", path)) : Optional.empty();
             default      -> Optional.empty();
         };
     }

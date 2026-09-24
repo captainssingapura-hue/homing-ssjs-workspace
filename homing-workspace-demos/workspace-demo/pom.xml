@@ -43,6 +43,13 @@
             <version>${homing.core.version}</version>
         </dependency>
 
+        <!-- The button the demo counter is built from. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ui-elements</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+
         <!-- The designs the chrome wears. A theme registry is a SITE's choice, and
              the studio's seven are the only ones that exist today; separating the
              themes from the components they dress is its own stage. -->

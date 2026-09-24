@@ -79,7 +79,11 @@ class WidgetMounter {
 
     /** Throws on bad controller shape. Returns the controller on success. */
     _validate(controller, simpleName) {
-        if (!controller || !controller.root || typeof controller.setActive !== 'function') {
+        // A widget gives back { root } and owes nothing else: it runs in a room,
+        // and the ROOM is what the dock asks for a focus membership and
+        // activate(). setActive, keyDown, activate and dispose are the widget's
+        // to offer if it has a use for them.
+        if (!controller || !controller.root) {
             throw new Error(
                 '[WidgetMounter] ' + (simpleName || 'widget')
               + '.construct must return { root: Element, setActive: (boolean) => void } — '

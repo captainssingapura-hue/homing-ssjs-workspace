@@ -4,6 +4,8 @@ import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.Exportable;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
+import hue.captains.singapura.js.homing.core.ModuleImports;
+import hue.captains.singapura.js.homing.ui.splitgrid.SplitGridTreeModule;
 
 import java.util.List;
 
@@ -61,7 +63,14 @@ public record WorkspaceStateModelModule()
 
     @Override
     public ImportsFor<WorkspaceStateModelModule> imports() {
-        return ImportsFor.noImports();
+        // A merge is replayed by the grid's own rules, on the grid's spelling
+        // of the layout: the same tree asked the same question as on the day.
+        return ImportsFor.<WorkspaceStateModelModule>builder()
+                .add(new ModuleImports<>(List.of(new SplitGridTreeModule.SplitGridTree()),
+                        SplitGridTreeModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceGridModule.WorkspaceGrid()),
+                        WorkspaceGridModule.INSTANCE))
+                .build();
     }
 
     @Override

@@ -23,6 +23,9 @@ class WorkspaceStateModelTest extends JsModuleTestBase {
     @BeforeEach
     void load() {
         js = buildContext();
+        // A merge is replayed by the grid's own tree, on the grid's spelling.
+        loadModule("/homing/js/hue/captains/singapura/js/homing/ui/splitgrid/SplitGridTreeModule.js");
+        loadModule("/homing/js/hue/captains/singapura/js/homing/workspace/shell/WorkspaceGridModule.js");
         loadModule(MODULE);
     }
 
@@ -491,6 +494,38 @@ class WorkspaceStateModelTest extends JsModuleTestBase {
         assertEquals(0.25, kids.getArrayElement(0).getMember("ratio").asDouble(), 1e-9, "tl keeps what it had");
         assertEquals(0.75, kids.getArrayElement(1).getMember("ratio").asDouble(), 1e-9, "tr gained mid's room");
         assertEquals(1, tabsAt(m, "tr").getArraySize(), "the tabs follow the room");
+    }
+
+    /**
+     * The case the model used to get wrong. {@code b} sits in a split nested on
+     * the SAME axis as its parent's, so the divider between {@code a} and the
+     * nested pair is {@code b}'s own: {@code a} faces it alone. The grid gives
+     * the whole of {@code b}'s room to {@code a} across it, and {@code c} keeps
+     * its size; the model's old rule honoured {@code toward} only between
+     * siblings, so it gave the room and the tabs to {@code c} - and a replay
+     * built a workspace the user never had.
+     */
+    @Test
+    void aMergeAcrossAWholeDividerIsReplayedAsTheGridDidIt() {
+        Value m = global("WorkspaceStateModel").newInstance(js.eval("js", """
+                ({ kind: 'split', orientation: 'horizontal', children: [
+                    { ratio: 0.5, pane: { kind: 'leaf', slotId: 'a' } },
+                    { ratio: 0.5, pane: { kind: 'split', orientation: 'horizontal', children: [
+                        { ratio: 0.5, pane: { kind: 'leaf', slotId: 'b' } },
+                        { ratio: 0.5, pane: { kind: 'leaf', slotId: 'c' } } ] } } ] })
+                """));
+        applyEvent(m, "WidgetSpawnedFromPicker", "({ widgetInstanceId: 'w', widgetKind: 'W', to: { paneId: 'b', tabIndex: 0 } })");
+
+        applyEvent(m, "SplitMerged", "({ paneId: 'b', toward: 'a' })");
+
+        Value kids = m.invokeMember("layout").getMember("children");
+        assertEquals(2, kids.getArraySize());
+        assertEquals("a", kids.getArrayElement(0).getMember("pane").getMember("slotId").asString());
+        assertEquals("c", kids.getArrayElement(1).getMember("pane").getMember("slotId").asString());
+        assertEquals(0.75, kids.getArrayElement(0).getMember("ratio").asDouble(), 1e-9, "a took the whole of b's room");
+        assertEquals(0.25, kids.getArrayElement(1).getMember("ratio").asDouble(), 1e-9, "c kept the size it had");
+        assertEquals(1, tabsAt(m, "a").getArraySize(), "b's tab went where b's room went");
+        assertEquals(0, tabsAt(m, "c").getArraySize());
     }
 
     @Test

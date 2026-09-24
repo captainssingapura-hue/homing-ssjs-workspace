@@ -583,19 +583,11 @@ class WorkspaceShellChrome {
                     panes.undockAt(o.pane, o.tab, { x: r.left + 60, y: r.bottom + 14 });
                 }
             },
-            // DETACH IS HIDDEN, and it is the shim that hides it. The desk
-            // re-parents tab.widget.root when it takes a tab off a dock, which
-            // works when the widget is a real component and its root is its own.
-            // A workspace tab is still a plain descriptor with a render(el)
-            // callback, so the assembly hands the pane a made-up widget whose
-            // root is a host it created - and that host does not survive the
-            // take-out. The tab leaves the dock and nothing floats: the tab is
-            // LOST. Offering it would be worse than not having it, so it is
-            // hidden until a workspace widget is a component.
-            state: function (id, o) {
-                if (id === 'detach') return { hidden: true };
-                return { disabled: !!(o.tab && o.tab.pinned) };
-            }
+            // Detach floats the tab where its chip was. It was hidden while a tab
+            // carried a made-up widget whose host did not survive the take-out;
+            // a tab carries its ROOM now, on a branch of its own, and the room -
+            // root, membership and widget - goes wherever the tab goes.
+            state: function (id, o) { return { disabled: !!(o.tab && o.tab.pinned) }; }
         });
     }
 
@@ -703,51 +695,47 @@ class WorkspaceShellChrome {
     }
 
     /**
-     * Mount one widget into MTP without emitting any event. Used during
-     * projection (post-fold, fence on). Mirrors the seed path /
-     * PickerTabFlow's mount path: branch, addTab, mounter.resolve→mount→
-     * attach, register.
+     * Mount one widget restored from the model, without emitting: projection,
+     * fence still on.
+     *
+     * A TAB-PANE: the dock's tab, and a room for the widget to run in. The
+     * room is made first and says it is loading, the tab is added carrying it,
+     * and the widget arrives into the room when its module has - the dock
+     * never sees the change of tenant. The widget is built on a branch under
+     * the room's, and touches neither the tab nor the dock.
      */
     _silentSpawn(slotId, descriptor) {
         const self  = this;
         const uuid  = descriptor.widgetInstanceUuid;
         const kind  = descriptor.widgetKind;
-        const entry = (this._spec.entries || []).find(
-                e => e.simpleName === kind);
+        const entry = (this._spec.entries || []).find(e => e.simpleName === kind);
         if (!entry) {
             console.warn('[WorkspaceShellChrome] projection: unknown kind', kind);
             return Promise.resolve();
         }
-        // Tab object — matches the shape the seed path / PickerTabFlow create.
-        const branchName = 'w-' + uuid.replace(/[^A-Za-z0-9_-]/g, '_');
-        const wBranch    = this._widgetsBranch.createBranch(branchName);
-        wBranch.activate(Object.freeze({ toString: () => 'projection:' + uuid }));
-        const holder  = { contentEl: null };
-        const loading = document.createElement('div');
-        loading.textContent = 'Loading ' + (descriptor.title || entry.label) + '…';
-        loading.setAttribute('tabindex', '0');   // focusable: keep focus in the pane + announce
-        loading.setAttribute('role', 'status');
+        const title = descriptor.title || entry.label;
+        const room  = this._mtp.roomFor(slotId);
+        if (!room) {
+            console.warn('[WorkspaceShellChrome] projection: no pane', slotId);
+            return Promise.resolve();
+        }
+        room.say('Loading ' + title + '…');
+        // The tab's id is spelled as a branch name, which the widget's id is
+        // not: the dock and the desk each name a branch after it.
         const tab = {
-            id:                 uuid,
-            title:              descriptor.title || entry.label,
+            id:                 uuid.replace(/[^A-Za-z0-9_-]/g, '_'),
+            title:              title,
             pinned:             !!descriptor.pinned,
             widgetKind:         kind,
             widgetInstanceUuid: uuid,
-            render:    function (el) { holder.contentEl = el; el.appendChild(loading); },
-            setActive: function () {},
-            onClose:   function () {
-                try { wBranch.dissolve(); } catch (e) {}
-                if (self._tabRegistry) self._tabRegistry.unregister(uuid);
-            }
+            widget:             room
         };
         try { this._mtp.addTab(slotId, tab); }
         catch (e) {
-            console.error('[WorkspaceShellChrome] projection addTab failed:',
-                          slotId, uuid, e);
+            console.error('[WorkspaceShellChrome] projection addTab failed:', slotId, uuid, e);
+            room.dispose();
             return Promise.resolve();
         }
-        // Register synchronously so subsequent project steps + post-mount
-        // callbacks can find the entry.
         this._tabRegistry.register({
             widgetInstanceUuid: uuid,
             tab:                tab,
@@ -758,17 +746,17 @@ class WorkspaceShellChrome {
         const params = descriptor.params || entry.defaults || {};
         return this._widgetMounter.resolve(entry).then(function (mod) {
             if (!self._tabRegistry.lookup(uuid)) return;   // closed mid-flight
-            const ctrl = self._widgetMounter.mount(mod, wBranch, entry,
-                                                   params, self._workspaceCtx);
-            self._widgetMounter.attach(ctrl, tab, holder);
+            const wBranch = room.branchFor('w-' + uuid.replace(/[^A-Za-z0-9_-]/g, '_'));
+            // Handed UNACTIVATED: the widget activates its own branch, as every
+            // component does - it is the widget's, not the room's.
+            const ctrl = self._widgetMounter.mount(mod, wBranch, entry, params, self._workspaceCtx);
+            room.setWidget(ctrl);
+            tab.controller = ctrl;
             const existing = self._tabRegistry.lookup(uuid);
             if (existing) existing.controller = ctrl;
         }).catch(function (err) {
-            console.error('[WorkspaceShellChrome] projection mount failed for',
-                          kind, ':', err);
-            if (holder.contentEl) {
-                loading.textContent = 'Failed to restore ' + (descriptor.title || entry.label);
-            }
+            console.error('[WorkspaceShellChrome] projection mount failed for', kind, ':', err);
+            if (self._tabRegistry.lookup(uuid)) room.say('Failed to restore ' + title);
         });
     }
 
