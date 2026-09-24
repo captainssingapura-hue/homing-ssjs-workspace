@@ -71,7 +71,7 @@ class WorkspaceShellChrome {
         this._replayEngine        = deps.replayEngine        || ReplayEngine.INSTANCE;
         this._widgetMounter       = deps.widgetMounter       || WidgetMounter.INSTANCE;
         this._WorkspaceLayoutCtor = deps.WorkspaceLayoutCtor || WorkspaceLayout;
-        this._MultiTabPaneCtor    = deps.MultiTabPaneCtor    || MultiTabPane;
+        this._WorkspacePanesCtor  = deps.WorkspacePanesCtor  || WorkspacePanes;
         this._FocusCoordinatorCtor = deps.FocusCoordinatorCtor || WorkspaceFocusCoordinator;   // RFC 0049
         this._PickerTabFlowCtor   = deps.PickerTabFlowCtor   || PickerTabFlow;
         this._TabRegistryCtor     = deps.TabRegistryCtor     || TabRegistry;
@@ -142,6 +142,9 @@ class WorkspaceShellChrome {
             onAction:    function (actionId, value) { self._dispatchAction(actionId, value); }
         });
 
+        // The panes are built later in the boot, after replay, so the branch
+        // they hang from is kept rather than passed along a chain of steps.
+        this._branch = branch;
         this._widgetsBranch = branch.createBranch('widgets');
         this._widgetsBranch.activate(Object.freeze({
             toString: function () { return 'workspaceShell:widgets'; }
@@ -486,122 +489,20 @@ class WorkspaceShellChrome {
     _buildMtp() {
         const self = this;
         const initialLayout = this._model.layout();
-        this._mtp = new this._MultiTabPaneCtor({
-            container:     this._layout.contentEl,
-            // RFC 0047 — the global tab budget comes from the WorkspaceSpec
-            // (WorkspaceSpec.maxTabs(), serialized into the spec JSON), so a
-            // dense workspace can raise it and a focused one lower it. Falls
-            // back to the substrate default 16 for a spec that predates the knob.
-            budget:        this._spec.maxTabs || 16,
-            initialLayout: initialLayout,
-            onAddTab: function (slotId) {
-                if (!self._pickerFlow) {
-                    console.warn('[WorkspaceShellChrome] picker not ready '
-                               + '(boot still racing) — slot:', slotId);
-                    return;
-                }
-                self._pickerFlow.openInSlot(slotId);
-            },
-            // RFC 0049 fan-out — MTP's typed callbacks are single-consumer; the
-            // chrome distributes each to its consumers (recorder/model + the
-            // focus coordinator).
-            onTabAdded: function (slotId, tab, _idx) {
-                if (self._focusCoordinator) self._focusCoordinator.onTabAdded(slotId, tab);
-            },
-            onTabActivated: function (slotId, tabId) {
-                if (self._focusCoordinator) self._focusCoordinator.onTabActivated(slotId, tabId);
-                // WHICH TAB THIS PANE IS SHOWING, recorded. The pane has always
-                // reported it and it went only to the focus coordinator, which is
-                // live state - so a workspace came back with every pane showing
-                // whichever tab it picked. That is one wrong tab per pane, every
-                // reload, and the state has had somewhere to put it all along
-                // (WidgetLocation.InPane.isActive) with no event to fill it.
-                const hit = self._tabRegistry && self._tabRegistry.findByTabId(tabId);
-                if (!hit) return;
-                const payload = { paneId: slotId, widgetInstanceId: hit.widgetInstanceUuid };
-                self._applyToModel('TabActivated', payload);
-                if (self._eventRecorder) self._eventRecorder.emit('TabActivated', payload);
-            },
-            onChromeInteract: function (ev) {
-                if (self._focusCoordinator) self._focusCoordinator.onChromeInteract(ev);
-            },
-            onTabMoved: function (srcSlot, destSlot, tab, _fromIdx, toIdx) {
-                if (self._focusCoordinator) self._focusCoordinator.onTabMoved(srcSlot, destSlot, tab);
-                if (!tab || !tab.widgetInstanceUuid) return;
-                const uuid = tab.widgetInstanceUuid;
-                if (self._tabRegistry) self._tabRegistry.updateSlot(uuid, destSlot);
-                const payload = {
-                    widgetInstanceId: uuid,
-                    widgetKind:       tab.widgetKind,
-                    from: { paneId: self._mtp.paneIdOf(srcSlot)  || '_' },
-                    to:   { paneId: self._mtp.paneIdOf(destSlot) || '_',
-                            tabIndex: toIdx }
-                };
-                self._applyToModel('TabMoved', payload);
-                if (self._eventRecorder) self._eventRecorder.emit('TabMoved', payload);
-            },
-            onTabRemoved: function (slotId, tab, _fromIdx) {
-                if (self._focusCoordinator) self._focusCoordinator.onTabRemoved(slotId, tab);
-                if (!tab || !tab.widgetInstanceUuid) return;
-                const uuid = tab.widgetInstanceUuid;
-                if (self._tabRegistry) self._tabRegistry.unregister(uuid);
-                const payload = {
-                    widgetInstanceId: uuid,
-                    widgetKind:       tab.widgetKind,
-                    from: { paneId: self._mtp.paneIdOf(slotId) || '_' }
-                };
-                self._applyToModel('TabClosed', payload);
-                if (self._eventRecorder) self._eventRecorder.emit('TabClosed', payload);
-            },
-            onTabAttached: function (destSlot, tab, toIdx) {
-                if (self._focusCoordinator) self._focusCoordinator.onTabAttached(destSlot, tab);
-                if (!tab || !tab.widgetInstanceUuid) return;
-                const uuid     = tab.widgetInstanceUuid;
-                const prior    = self._tabRegistry && self._tabRegistry.lookup(uuid);
-                const fromSlot = prior ? prior.slotId : null;
-                if (self._tabRegistry) self._tabRegistry.updateSlot(uuid, destSlot);
-                if (fromSlot === destSlot) return;
-                const payload = {
-                    widgetInstanceId: uuid,
-                    widgetKind:       tab.widgetKind,
-                    from: { paneId: fromSlot
-                                  ? (self._mtp.paneIdOf(fromSlot) || '_')
-                                  : '_' },
-                    to:   { paneId: self._mtp.paneIdOf(destSlot) || '_',
-                            tabIndex: toIdx }
-                };
-                self._applyToModel('TabMoved', payload);
-                if (self._eventRecorder) self._eventRecorder.emit('TabMoved', payload);
-            },
-            onSplit: function (srcSlot, orientation, _newSlot) {
-                if (self._focusCoordinator) self._focusCoordinator.onSplit(srcSlot, orientation, _newSlot);
-                const childPath  = self._mtp.paneIdOf(srcSlot) || '_';
-                const parentPath = childPath.replace(/_[12]$/, '') || '_';
-                const payload = { paneId: parentPath, orientation: orientation };
-                self._applyToModel('SplitCreated', payload);
-                if (self._eventRecorder) self._eventRecorder.emit('SplitCreated', payload);
-            },
-            onMerge: function (keptSlot, _removedSlot) {
-                if (self._focusCoordinator) self._focusCoordinator.onMerge(keptSlot, _removedSlot);
-                const parentPath = self._mtp.paneIdOf(keptSlot) || '_';
-                const payload = { paneId: parentPath };
-                self._applyToModel('SplitMerged', payload);
-                if (self._eventRecorder) self._eventRecorder.emit('SplitMerged', payload);
-            },
-            // Divider-drag stop — diff new layout vs model and emit one
-            // SplitRatioChanged per changed split. Most drags only touch
-            // a single split; the diff handles nested splits too if a
-            // single gesture somehow cascades.
-            onRatioChanged: function (newLayout) {
-                if (!newLayout) return;
-                const oldLayout = self._model && self._model.layout();
-                if (!oldLayout) return;
-                const diffs = self._diffSplitRatios(oldLayout, newLayout, '_');
-                for (const d of diffs) {
-                    self._applyToModel('SplitRatioChanged', d);
-                    if (self._eventRecorder) self._eventRecorder.emit('SplitRatioChanged', d);
-                }
-            }
+        // THE PANES: a grid of cells, a dock in each, a desk over them. Where
+        // this was one object that split itself and reported on ten callbacks,
+        // it is three components reporting on ONE sink as frozen data, and
+        // WorkspaceEvents says which of those the workspace writes down.
+        this._mtp = new this._WorkspacePanesCtor(this._branch.createBranch('panes'), {
+            host:   this._layout.contentEl,
+            layout: initialLayout,
+            // RFC 0047 - the tab budget is the WorkspaceSpec's, so a dense
+            // workspace can raise it and a focused one lower it. 16 for a spec
+            // that predates the knob.
+            budget: this._spec.maxTabs || 16,
+            keyboard:   this._keyboard,
+            keyboardId: 'workspace',
+            onEvent: function (ev) { self._onPaneEvent(ev); }
         });
         console.log('[WorkspaceShellChrome] MTP constructed with',
                     Object.keys(this._model.tabsBySlot ? {} : {}).length,
@@ -656,6 +557,67 @@ class WorkspaceShellChrome {
             for (const d of sub) out.push(d);
         }
         return out;
+    }
+
+    /**
+     * One sink for the panes, the grid and the desk.
+     *
+     * Three things happen to an event, in this order and for different
+     * reasons: the bookkeeping that must happen whether or not the workspace
+     * records it (the tab registry's idea of where a tab lives); the live
+     * state that is nobody's log (the focus coordinator, while it lasts); and
+     * the record, which WorkspaceEvents decides and this does not second-guess.
+     */
+    _onPaneEvent(ev) {
+        this._bookkeep(ev);
+        this._tellCoordinator(ev);
+        const out = WorkspaceEvents.of(ev);
+        if (!out) return;
+        this._applyToModel(out.name, out.payload);
+        if (this._eventRecorder) this._eventRecorder.emit(out.name, out.payload);
+    }
+
+    /** Where a tab lives, and the one event that is a question rather than a fact. */
+    _bookkeep(ev) {
+        const uuid = ev.tab && ev.tab.widgetInstanceUuid;
+        switch (ev.kind) {
+            case 'AddRequested':
+                if (!this._pickerFlow) {
+                    console.warn('[WorkspaceShellChrome] picker not ready (boot still racing) - slot:', ev.slotId);
+                    return;
+                }
+                this._pickerFlow.openInSlot(ev.slotId);
+                return;
+            case 'TabMoved':
+                if (uuid && this._tabRegistry) this._tabRegistry.updateSlot(uuid, ev.destSlotId);
+                return;
+            case 'TabAttached':
+                if (uuid && this._tabRegistry) this._tabRegistry.updateSlot(uuid, ev.slotId);
+                return;
+            case 'TabRemoved':
+                if (uuid && this._tabRegistry) this._tabRegistry.unregister(uuid);
+                return;
+            default:
+                return;
+        }
+    }
+
+    /** The coordinator's own vocabulary, while the coordinator lasts. */
+    _tellCoordinator(ev) {
+        const fc = this._focusCoordinator;
+        if (!fc) return;
+        try {
+            switch (ev.kind) {
+                case 'TabAdded':     fc.onTabAdded(ev.slotId, ev.tab); return;
+                case 'TabActivated': fc.onTabActivated(ev.slotId, ev.tabId); return;
+                case 'TabRemoved':   fc.onTabRemoved(ev.slotId, ev.tab); return;
+                case 'TabMoved':     fc.onTabMoved(ev.srcSlotId, ev.destSlotId, ev.tab); return;
+                case 'TabAttached':  fc.onTabAttached(ev.slotId, ev.tab); return;
+                case 'Subdivided':   fc.onSplit(ev.cellId, ev.side, ev.newCellId); return;
+                case 'Removed':      fc.onMerge(ev.cellId); return;
+                default:             return;
+            }
+        } catch (e) { console.warn('[WorkspaceShellChrome] focus coordinator threw on ' + ev.kind + ':', e); }
     }
 
     /** Wrapper: apply a (name, payload) event to the model. */

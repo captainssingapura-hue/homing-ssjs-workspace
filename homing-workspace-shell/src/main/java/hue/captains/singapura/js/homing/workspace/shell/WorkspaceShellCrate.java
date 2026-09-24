@@ -7,6 +7,9 @@ import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
 import hue.captains.singapura.js.homing.site.mpa.MpaCrate;
 import hue.captains.singapura.js.homing.ui.dialog.UiDialogCrate;
+import hue.captains.singapura.js.homing.ui.docking.UiDockingCrate;
+import hue.captains.singapura.js.homing.ui.panes.UiPanesCrate;
+import hue.captains.singapura.js.homing.ui.splitgrid.UiSplitGridCrate;
 import hue.captains.singapura.js.homing.studio.base.StudioBaseCrate;
 import hue.captains.singapura.js.homing.theme.color.ThemeColorCrate;
 import hue.captains.singapura.js.homing.theme.type.ThemeTypeCrate;
@@ -41,6 +44,10 @@ public final class WorkspaceShellCrate implements Crate {
                 // The Dialog the switcher opens. MpaCrate happens to require it
                 // too; an edge this crate depends on is this crate's to declare.
                 UiDialogCrate.INSTANCE,
+                // The three the workspace's panes are made of.
+                UiSplitGridCrate.INSTANCE,
+                UiPanesCrate.INSTANCE,
+                UiDockingCrate.INSTANCE,
                 WorkspaceCrate.INSTANCE,
                 WorkspaceCodecsCrate.INSTANCE,
                 WorkspacePersistenceCrate.INSTANCE,
@@ -96,6 +103,9 @@ public final class WorkspaceShellCrate implements Crate {
                 // The two event vocabularies, joined: what a component reports,
                 // as what the workspace records.
                 CrateEntry.of(WorkspaceEventsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                // The panes: the grid, a dock per cell, the desk over them.
+                CrateEntry.of(WorkspacePanesStyles.INSTANCE),
+                CrateEntry.of(WorkspacePanesModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(WorkspaceStateModelModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WriteLockGuardModule.INSTANCE));
     }

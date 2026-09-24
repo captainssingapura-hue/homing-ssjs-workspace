@@ -5,7 +5,6 @@ import hue.captains.singapura.js.homing.core.Exportable;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
-import hue.captains.singapura.js.homing.studio.base.ui.layout.MultiTabPaneModule;
 import hue.captains.singapura.js.homing.workspace.WorkspaceLayoutModule;
 
 import java.util.List;
@@ -74,8 +73,11 @@ public record WorkspaceShellChromeModule() implements DomModule<WorkspaceShellCh
                 // MTP is universal substrate, not a spec-driven phase —
                 // every workspace gets one in its content area.
                 .add(new ModuleImports<>(List.of(
-                        new MultiTabPaneModule.MultiTabPane()),
-                        MultiTabPaneModule.INSTANCE))
+                        new WorkspacePanesModule.WorkspacePanes()),
+                        WorkspacePanesModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(
+                        new WorkspaceEventsModule.WorkspaceEvents()),
+                        WorkspaceEventsModule.INSTANCE))
                 // RFC 0049 — the workspace focus coordinator (generalises RFC
                 // 0048's PaneFocusNav): owns the deep/shallow selection, the
                 // per-tab FocusManagers, click routing, and the shallow
