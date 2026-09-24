@@ -32,6 +32,7 @@ class PickerTabFlowTest extends JsModuleTestBase {
                     this.addedTabs       = [];
                     this.removedTabs     = [];
                     this.switchedTo      = [];
+                    this.landed          = [];
                     this.workspaceActiveTabId = null;
                     this._tabsBySlot     = new Map();
                 }
@@ -55,6 +56,11 @@ class PickerTabFlowTest extends JsModuleTestBase {
                     if (s) s.tabs = s.tabs.filter(t => t.id !== tabId);
                 }
                 switchTab(slotId, tabId) { this.switchedTo.push({ slotId, tabId }); }
+                land(slotId, tabId) { this.landed.push({ slotId, tabId }); }
+                activeTabOf(slotId) {
+                    const s = this._tabsBySlot.get(slotId);
+                    return s && s.tabs.length ? s.tabs[s.tabs.length - 1].id : null;
+                }
                 getWorkspaceActiveTab() { return this.workspaceActiveTabId; }
                 setWorkspaceActiveTab(id) { this.workspaceActiveTabId = id; }
                 getState() {
@@ -142,10 +148,11 @@ class PickerTabFlowTest extends JsModuleTestBase {
         assertEquals("tr", addedTabs.getArrayElement(0).getMember("slotId").asString());
         assertEquals("picker:1",
                      addedTabs.getArrayElement(0).getMember("tab").getMember("id").asString());
-        // RFC 0049 — the deep-select went through the focus coordinator.
-        Value entered = setup.getMember("focus").getMember("enteredDeep");
-        assertEquals(1, entered.getArraySize());
-        assertEquals("tr", entered.getArrayElement(0).asString());
+        // The pane was told to rest the keys in the tab it is showing — what
+        // the coordinator's deep-select used to mean, said by the party.
+        Value landed = mtp.getMember("landed");
+        assertEquals(1, landed.getArraySize());
+        assertEquals("tr", landed.getArrayElement(0).getMember("slotId").asString());
         // switchTab fired too.
         Value switched = mtp.getMember("switchedTo");
         assertEquals(1, switched.getArraySize());
@@ -218,18 +225,13 @@ class PickerTabFlowTest extends JsModuleTestBase {
                         mount:   function (mod, b, e) { return mod.construct(b, {}, {}); },
                         attach:  function (c, tab) { tab.controller = c; }
                     };
-                    // RFC 0049 — deep-selects go through the focus coordinator;
+                    // The pane rests the keys itself now; nothing sits above it.
                     // a spy stands in for it.
-                    const focus = {
-                        enteredDeep: [],
-                        enterDeep: function (slotId) { this.enteredDeep.push(slotId); },
-                        deepTabId: function () { return null; }
-                    };
                     const flow = new PickerTabFlow({
-                        mtp, focus, widgetsBranch: wB, spec,
+                        mtp, widgetsBranch: wB, spec,
                         workspaceCtx: {}, WidgetPickerCtor: StubPicker, mounter: stubMounter
                     });
-                    return { mtp, wB, spec, flow, focus };
+                    return { mtp, wB, spec, flow };
                 })()""");
     }
 }

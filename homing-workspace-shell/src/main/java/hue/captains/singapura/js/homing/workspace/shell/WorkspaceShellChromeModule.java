@@ -78,13 +78,6 @@ public record WorkspaceShellChromeModule() implements DomModule<WorkspaceShellCh
                 .add(new ModuleImports<>(List.of(
                         new WorkspaceEventsModule.WorkspaceEvents()),
                         WorkspaceEventsModule.INSTANCE))
-                // RFC 0049 — the workspace focus coordinator (generalises RFC
-                // 0048's PaneFocusNav): owns the deep/shallow selection, the
-                // per-tab FocusManagers, click routing, and the shallow
-                // keyboard. Composed over the MTP, disposed on teardown.
-                .add(new ModuleImports<>(List.of(
-                        new WorkspaceFocusCoordinatorModule.WorkspaceFocusCoordinator()),
-                        WorkspaceFocusCoordinatorModule.INSTANCE))
                 // Phase 2 — PartyBootstrap walks spec.parties and constructs
                 // each Party + initial actors; result populates
                 // {parties, workspaceCtx} the orchestrator threads through.

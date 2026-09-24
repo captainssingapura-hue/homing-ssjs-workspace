@@ -72,7 +72,6 @@ class WorkspaceShellChrome {
         this._widgetMounter       = deps.widgetMounter       || WidgetMounter.INSTANCE;
         this._WorkspaceLayoutCtor = deps.WorkspaceLayoutCtor || WorkspaceLayout;
         this._WorkspacePanesCtor  = deps.WorkspacePanesCtor  || WorkspacePanes;
-        this._FocusCoordinatorCtor = deps.FocusCoordinatorCtor || WorkspaceFocusCoordinator;   // RFC 0049
         this._PickerTabFlowCtor   = deps.PickerTabFlowCtor   || PickerTabFlow;
         this._TabRegistryCtor     = deps.TabRegistryCtor     || TabRegistry;
         this._WorkspaceStateModelCtor =
@@ -507,59 +506,18 @@ class WorkspaceShellChrome {
         console.log('[WorkspaceShellChrome] MTP constructed with',
                     Object.keys(this._model.tabsBySlot ? {} : {}).length,
                     'replayed slot(s)');
-        // NO FOCUS COORDINATOR. It was built to give the STUDIO's pane a focus
-        // model, because that pane had none: one selection recomputed and
-        // painted, a FocusManager per tab inerting the content of every tab but
-        // the deep one, a shallow keyboard walking between strips.
+        // NO WORKSPACE-LEVEL KEYBOARD. There was one: a coordinator that kept
+        // a deep/shallow selection and painted it, a FocusManager per tab that
+        // inerted every tab but the deep one, a shallow keyboard that walked
+        // between strips, and a scope watcher that asked whether the workspace
+        // had the keys at all. Eight hundred lines, above the panes, deciding
+        // for them.
         //
-        // The components have their own, and the two do not compose - they
-        // fight. The coordinator inerted the very element the dock had just put
-        // a widget in, so the widget was dead to the pointer; its reconcile
-        // repainted over what the strip had drawn, so no chip looked selected;
-        // and its Enter went deep on a pane that answers Enter itself. Three
-        // symptoms, one cause: two focus systems on one pane.
-        //
-        // What it did, the components do. Who holds the keys is the party's and
-        // is worn as a design state from data-keys (RFC 0066 E3 §16), so nobody
-        // paints it. Which tab is showing is the dock's, and the panel it hides
-        // is the firewall the FocusManagers were imitating. Walking between
-        // panes is the pane's own key scheme.
-        //
-        // What goes with it is WorkspaceActiveChanged, which the coordinator
-        // emitted from its deep transition. It is recorded below instead, off
-        // the activation itself: choosing a tab is how a user says where they
-        // are, which is the same fact the deep change was reporting.
-        this._focusCoordinator = null;
-    }
-
-    /**
-     * Walk old + new layouts in parallel, finding split nodes whose
-     * first-child ratio changed by > 0.5%. Returns
-     * [{paneId, ratio}, …] suitable for SplitRatioChanged payloads.
-     * Stops descending where the topology diverges (split↔leaf) —
-     * structural changes are journaled separately as SplitCreated/Merged.
-     */
-    _diffSplitRatios(oldNode, newNode, path) {
-        if (!oldNode || !newNode) return [];
-        if (oldNode.kind !== newNode.kind) return [];
-        if (oldNode.kind !== 'split') return [];
-        const out = [];
-        const oldRatio = oldNode.children[0].ratio;
-        const newRatio = newNode.children[0].ratio;
-        if (Math.abs(oldRatio - newRatio) > 0.005) {
-            out.push({ paneId: path, ratio: newRatio });
-        }
-        for (let i = 0; i < 2; i++) {
-            const childPath = (path === '_')
-                            ? ('_' + (i + 1))
-                            : (path + '_' + (i + 1));
-            const sub = this._diffSplitRatios(
-                    oldNode.children[i].pane,
-                    newNode.children[i].pane,
-                    childPath);
-            for (const d of sub) out.push(d);
-        }
-        return out;
+        // The party decides now, and it decides lower down: a component takes
+        // its own keys, a container hands them on, and who holds them is worn
+        // as a design state rather than painted by anybody. A workspace is not
+        // a special case of that - it is several docks in a grid, and each dock
+        // already knows what a dock knows.
     }
 
     /**
@@ -573,7 +531,6 @@ class WorkspaceShellChrome {
      */
     _onPaneEvent(ev) {
         this._bookkeep(ev);
-        this._tellCoordinator(ev);
         const out = WorkspaceEvents.of(ev);
         if (!out) return;
         this._applyToModel(out.name, out.payload);
@@ -619,24 +576,6 @@ class WorkspaceShellChrome {
             default:
                 return;
         }
-    }
-
-    /** The coordinator's own vocabulary, while the coordinator lasts. */
-    _tellCoordinator(ev) {
-        const fc = this._focusCoordinator;
-        if (!fc) return;
-        try {
-            switch (ev.kind) {
-                case 'TabAdded':     fc.onTabAdded(ev.slotId, ev.tab); return;
-                case 'TabActivated': fc.onTabActivated(ev.slotId, ev.tabId); return;
-                case 'TabRemoved':   fc.onTabRemoved(ev.slotId, ev.tab); return;
-                case 'TabMoved':     fc.onTabMoved(ev.srcSlotId, ev.destSlotId, ev.tab); return;
-                case 'TabAttached':  fc.onTabAttached(ev.slotId, ev.tab); return;
-                case 'Subdivided':   fc.onSplit(ev.cellId, ev.side, ev.newCellId); return;
-                case 'Removed':      fc.onMerge(ev.cellId); return;
-                default:             return;
-            }
-        } catch (e) { console.warn('[WorkspaceShellChrome] focus coordinator threw on ' + ev.kind + ':', e); }
     }
 
     /** Wrapper: apply a (name, payload) event to the model. */
@@ -766,11 +705,11 @@ class WorkspaceShellChrome {
      * activeUuid instead of forcing null.</p>
      */
     _restoreWorkspaceActive() {
-        // RFC 0049 — selection lives in the focus coordinator, which boots
-        // shallow; after projection just make sure nothing is left entered.
-        if (this._focusCoordinator) {
-            try { this._focusCoordinator.releaseToShallow(); } catch (e) {}
-        }
+        // Nothing to undo. This released the coordinator's selection back to
+        // shallow after projection, because that selection was kept ABOVE the
+        // panes and could be left entered. Nobody keeps one now: a dock shows a
+        // tab, the party knows who holds the keys, and a boot that has just
+        // mounted has neither to put back.
     }
 
     /**
@@ -858,7 +797,6 @@ class WorkspaceShellChrome {
     _buildPickerFlow() {
         this._pickerFlow = new this._PickerTabFlowCtor({
             mtp:           this._mtp,
-            focus:         this._focusCoordinator,   // RFC 0049 — deep-select via the coordinator
             widgetsBranch: this._widgetsBranch,
             spec:          this._spec,
             workspaceCtx:  this._workspaceCtx,

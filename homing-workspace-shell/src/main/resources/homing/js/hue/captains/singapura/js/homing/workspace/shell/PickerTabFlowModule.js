@@ -5,7 +5,6 @@
 //
 //   1. openInSlot(slotId)
 //        ├─ create empty 'picker:N' tab; mtp.addTab + switchTab +
-//        │  focus.enterDeep (RFC 0049 — via the workspace focus coordinator)
 //        ├─ mount WidgetPicker into the tab's contentEl with
 //        │     entries     = spec.entries minus pinned
 //        │     disabledIds = current singletons (one per kind)
@@ -42,10 +41,8 @@ class PickerTabFlow {
         if (!opts.widgetsBranch)          throw new Error('[PickerTabFlow] opts.widgetsBranch required');
         if (!opts.spec)                   throw new Error('[PickerTabFlow] opts.spec required');
         this._mtp              = opts.mtp;
-        // RFC 0049 — the workspace focus coordinator: deep-selects go through it
         // (MTP is focus-agnostic). Optional so unit tests can exercise the spawn
         // flow without focus side effects.
-        this._focus            = opts.focus || null;
         this._widgetsBranch    = opts.widgetsBranch;
         this._spec             = opts.spec;
         this._workspaceCtx     = opts.workspaceCtx || {};
@@ -98,12 +95,10 @@ class PickerTabFlow {
 
         this._mtp.addTab(slotId, tab);
         if (this._mtp.switchTab) this._mtp.switchTab(slotId, tabId);
-        // RFC 0049 — opening the picker ENTERS the pane (a deep-select), routed
-        // through the focus coordinator: it releases any prior selection,
-        // un-inerts the picker tab, and gives it the keyboard (Escape releases
-        // via the tab's FocusManager).
-        if (this._focus) this._focus.enterDeep(slotId);
-
+        // Opening the picker gives the pane the keys. That was a deep-select
+        // through the coordinator; it is what it says now - the dock rests them
+        // in the tab it is showing.
+        if (this._mtp.land) this._mtp.land(slotId, tabId);
         const pickerEntries = this._spec.entries || [];
         const disabledIds = Object.assign({}, this._singletonsByKind);
 
@@ -131,9 +126,7 @@ class PickerTabFlow {
             const liveSlot = this.findSlotForTab(existingId);
             if (liveSlot && this._mtp.switchTab) {
                 this._mtp.switchTab(liveSlot, existingId);
-                // RFC 0049 — deep-select the existing instance's pane via the
-                // focus coordinator.
-                if (this._focus) this._focus.enterDeep(liveSlot);
+                if (this._mtp.land) this._mtp.land(liveSlot, existingId);
             }
         }
         this._mtp.removeTab(slotId, tabId);
@@ -234,10 +227,10 @@ class PickerTabFlow {
             if (entry.lifecycleHint === 'SINGLETON') {
                 self._singletonsByKind[entry.simpleName] = tabId;
             }
-            // RFC 0049 — if this tab is still the deep selection after the async
-            // mount, fire its lifecycle activation (the FM entered before the
-            // controller existed, so the live controller catches up here).
-            if (self._focus && self._focus.deepTabId && self._focus.deepTabId() === tabId) {
+            // If the pane is STILL SHOWING this tab after the async mount, the
+            // controller catches up: it did not exist when the tab was made
+            // active, so nothing could tell it then.
+            if (self._mtp.activeTabOf && self._mtp.activeTabOf(slotId) === tabId) {
                 try { controller.setActive(true); } catch (e) {}
             }
         }).catch(function (err) {

@@ -286,13 +286,24 @@ class WorkspacePanes {
 
     seam(on) { this._grid.seam(on); return this; }
 
-    // ── Kept while the focus coordinator still calls them ───────────────────
-    //
-    // Keys are design states the component wears; a holder does not paint who
-    // has them. These go when the coordinator does.
-    paintSelection() { return this; }
-    paintKeyboardScope() { return this; }
-    paintHover() { return this; }
+    /** The tab a pane is showing, or null. */
+    activeTabOf(slotId) {
+        var pane = this._panes.get(slotId);
+        return pane ? pane.activeTab() : null;
+    }
+
+    /**
+     * Rest the keys in a pane's showing tab. What the coordinator called
+     * entering deep, said by the party: the dock blurs whatever had native
+     * focus and activates the widget it is showing.
+     */
+    land(slotId, tabId) {
+        var pane = this._panes.get(slotId);
+        if (!pane) return this;
+        if (tabId != null && pane.tabIndexOf(tabId) >= 0) pane.switchTab(tabId);
+        if (typeof pane.land === "function") pane.land(pane.activeTab());
+        return this;
+    }
 
     dispose() {
         this._panes.forEach(function (pane) { try { pane.dispose(); } catch (e) {} });
