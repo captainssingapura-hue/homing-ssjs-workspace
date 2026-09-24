@@ -93,6 +93,9 @@ public final class WorkspaceShellCrate implements Crate {
                 CrateEntry.of(CssGraphWorkbenchWidget.INSTANCE),
                 CrateEntry.of(WorkspaceDirectoryModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WorkspaceShellChromeModule.INSTANCE),
+                // The two event vocabularies, joined: what a component reports,
+                // as what the workspace records.
+                CrateEntry.of(WorkspaceEventsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WorkspaceStateModelModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WriteLockGuardModule.INSTANCE));
     }
