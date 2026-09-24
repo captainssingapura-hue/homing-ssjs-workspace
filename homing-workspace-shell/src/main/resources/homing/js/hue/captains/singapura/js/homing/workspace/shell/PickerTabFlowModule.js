@@ -53,6 +53,7 @@ class PickerTabFlow {
         // to exercise the spawn flow without registry/recorder side
         // effects.
         this._tabRegistry      = opts.tabRegistry || null;
+        this._keyboard         = opts.keyboard    || null;
         this._recorder         = opts.recorder    || null;
         // Optional model — when supplied, every spawn from this picker
         // also applies a WidgetSpawnedFromPicker event to it so the
@@ -102,7 +103,12 @@ class PickerTabFlow {
         const pickerEntries = this._spec.entries || [];
         const disabledIds = Object.assign({}, this._singletonsByKind);
 
-        const picker = new this._WidgetPickerCtor({
+        // Its own branch, and the page's steward: the picker takes the keys
+        // while it is up and gives them back when it picks or is cancelled.
+        const pickerBranch = this._widgetsBranch.createBranch('picker-' + tabId.replace(/[^A-Za-z0-9_-]/g, '_'));
+        const picker = new this._WidgetPickerCtor(pickerBranch, {
+            keyboard:    this._keyboard || null,
+            keyboardId:  tabId,
             entries:     pickerEntries,
             disabledIds: disabledIds,
             onPick:      function (entry, params) {
@@ -256,15 +262,8 @@ class PickerTabFlow {
     /** Finds the live tab descriptor by id. Reaches through MTP's
      *  _tabsBySlot internal map (public getState returns a flattened
      *  copy missing render/setActive). */
+    /** The descriptor a tab was made from - the pane's to hand back, not ours to go looking for. */
     findTabObj(tabId) {
-        if (!this._mtp._tabsBySlot) return null;
-        let found = null;
-        this._mtp._tabsBySlot.forEach(function (s) {
-            if (found) return;
-            for (const t of s.tabs) {
-                if (t.id === tabId) { found = t; return; }
-            }
-        });
-        return found;
+        return this._mtp.tabOf ? this._mtp.tabOf(tabId) : null;
     }
 }

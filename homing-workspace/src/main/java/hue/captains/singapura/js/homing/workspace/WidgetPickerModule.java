@@ -72,7 +72,7 @@ import java.util.List;
 public record WidgetPickerModule() implements DomModule<WidgetPickerModule> {
 
     /** The single export — the {@code WidgetPicker} JS class. */
-    public record WidgetPicker() implements Exportable._Constant<WidgetPickerModule> {}
+    public record WidgetPicker() implements Exportable._Class<WidgetPickerModule> {}
 
     public static final WidgetPickerModule INSTANCE = new WidgetPickerModule();
 
@@ -84,6 +84,7 @@ public record WidgetPickerModule() implements DomModule<WidgetPickerModule> {
                                 new WidgetPickerStyles.hwp_grid(),
                                 new WidgetPickerStyles.hwp_group_label(),
                                 new WidgetPickerStyles.hwp_tile(),
+                                new WidgetPickerStyles.hwp_tile_cursor(),
                                 new WidgetPickerStyles.hwp_tile_disabled(),
                                 new WidgetPickerStyles.hwp_tile_icon(),
                                 new WidgetPickerStyles.hwp_tile_label(),

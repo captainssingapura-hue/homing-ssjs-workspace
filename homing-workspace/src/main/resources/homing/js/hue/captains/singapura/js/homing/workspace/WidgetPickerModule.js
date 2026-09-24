@@ -1,195 +1,275 @@
 // =============================================================================
-// WidgetPickerModule — RFC 0025 Ext1b Mechanism 2.
+// WidgetPickerModule — the widget picker: a grid of tiles, then a params form.
 //
-// Ephemeral picker UI. One instance per "add widget" action; once the user
-// picks (or cancels), the picker goes out of scope. The picker holds NO
-// state, owns NO branches, knows NOTHING about lifecycle, and renders into
-// a caller-supplied host element — caller decides the container (a tab
-// content area, a modal body, a sidebar, …).
+//   new WidgetPicker(branch, { entries, disabledIds?, onPick, onCancel?,
+//                              keyboard?, keyboardId? })
+//     .mountInto(hostEl)   .dispose()
 //
-//   var picker = new WidgetPicker({
-//       entries     : WidgetEntryJson[],            // already filtered by caller
-//       disabledIds : { "MyWidget": true },         // optional — greys those tiles
-//       onPick      : function(entry, params) {},   // fired exactly once on commit
-//       onCancel    : function() {}                 // optional — fired on form Cancel
-//   });
-//   picker.mountInto(hostEl);
+//   onPick(entry, params)   params {} for a tile with no fields, the filled
+//                           object for one with, and NULL for a tile that is
+//                           disabled because its widget is already open —
+//                           "I want that one" rather than "make another".
 //
-// The orchestration of branch creation, tab placement, dynamic import, and
-// tab-close cleanup lives in the workspace's chrome widget. The picker is
-// intentionally dumb.
+// A TILE IS A DESIGN WORD. Box.Control.Tile: one BOX of a grid, picked, where
+// an Option is one ROW of a list. The word carries the box — extent and
+// proportion, so every tile is the same size however long its label; inset,
+// gap, corner, rule — and the grid's own columns are minmax'd off the tile's
+// extent, so the DESIGN decides how many fit across and this file cannot
+// disagree with it.
+//
+// BOTH DIRECTIONS, AND BY GEOMETRY. Left and right step along the row; up and
+// down move a row, and the row is MEASURED rather than assumed: the tiles wrap
+// at whatever width the pane happens to be, so the columns are read back from
+// where the boxes actually landed (offsetTop groups a row) and the cursor keeps
+// its column when it changes row. A grid that guessed four across would jump
+// sideways the moment a pane were narrowed. Home and End go to the ends of the
+// grid, Enter or Space picks, Escape cancels.
+//
+// The cursor is a design STATE — data-cursor="on", answered on the tile's own
+// word — so the keyboard and the pointer land on the same mark, and neither
+// this file nor its stylesheet picks a colour for it.
+//
+// The keys come THROUGH THE PARTY: the picker joins the page's steward while it
+// is up and leaves when it goes. Without a steward it still picks by pointer;
+// only the keys are missing, which is the honest degradation for a host that
+// made none.
 // =============================================================================
 
-// Picker styles live in WidgetPickerStyles (CssGroup) — imported by the
-// Java module declaration so the css.* identifiers are in scope here.
+const _pickerOwner = Object.freeze({ toString: () => "widgetPicker" });
+var _pickerSeq = 0;
 
 class WidgetPicker {
 
-    constructor(opts) {
-        if (!opts || !Array.isArray(opts.entries)) {
-            throw new Error("WidgetPicker: entries[] required");
-        }
-        if (typeof opts.onPick !== "function") {
-            throw new Error("WidgetPicker: onPick(entry, params) required");
-        }
+    constructor(branch, opts) {
+        if (!branch) throw new Error("[WidgetPicker] a branch of its own is required");
+        opts = opts || {};
+        if (!Array.isArray(opts.entries)) throw new Error("[WidgetPicker] opts.entries must be an array");
+        if (typeof opts.onPick !== "function") throw new Error("[WidgetPicker] opts.onPick must be a function");
+        branch.activate(_pickerOwner);
+        this._branch      = branch;
+        this._seq         = ++_pickerSeq;
         this._entries     = opts.entries;
         this._disabledIds = opts.disabledIds || {};
         this._onPick      = opts.onPick;
         this._onCancel    = opts.onCancel || null;
-        this._host        = null;
-        this._delivered   = false;     // ensures onPick fires at most once
+        this._kb          = opts.keyboard || null;
+        this._kbId        = null;
+        this._tiles       = [];      // { el, entry, disabled }
+        this._at          = -1;      // the cursor
+        this._delivered   = false;
+        this._gridEl      = null;
+
+        if (this._kb) {
+            var self = this;
+            var id = (opts.keyboardId ? String(opts.keyboardId) : branch.name) + "/picker";
+            this._kbId = this._kb.join(id, { keyDown: function (ev) { return self.keyDown(ev); } });
+            this._kb.claim(this._kbId);
+        }
     }
 
-    /**
-     * Render the tile grid into hostEl. Caller chooses the container —
-     * empty tab body, modal body, sidebar, anywhere. Picker takes over
-     * the host's content (replaceChildren) but doesn't own the host
-     * lifecycle. On pick or cancel the picker's content is replaced by
-     * the caller (typically with the widget root or by removing the
-     * tab entirely).
-     */
+    // ── Building ────────────────────────────────────────────────────────────
+
     mountInto(hostEl) {
+        if (!hostEl) throw new Error("[WidgetPicker] mountInto needs a host");
         this._host = hostEl;
-        hostEl.replaceChildren(this._buildGrid());
+        hostEl.appendChild(this._buildGrid());
+        if (this._tiles.length) this._moveTo(this._firstEnabled());
+        return this;
     }
-
-    // ─── Grid + tiles ──────────────────────────────────────────────────────
 
     _buildGrid() {
-        var root = document.createElement("div");
-        css.setClass(root, hwp_grid);
-
-        // Group entries by entry.group, preserving registration order.
-        var groups = [];
-        var idx = {};
-        for (var i = 0; i < this._entries.length; i++) {
-            var e = this._entries[i];
-            if (!(e.group in idx)) { idx[e.group] = groups.length; groups.push({ name: e.group, items: [] }); }
-            groups[idx[e.group]].items.push(e);
-        }
-
-        for (var g = 0; g < groups.length; g++) {
-            var label = document.createElement("div");
-            css.setClass(label, hwp_group_label);
-            label.textContent = groups[g].name;
-            root.appendChild(label);
-            for (var k = 0; k < groups[g].items.length; k++) {
-                root.appendChild(this._buildTile(groups[g].items[k]));
-            }
-        }
-        return root;
+        var grid = this._branch.createElement("grid" + this._seq, "div");
+        css.addClass(grid, hwp_grid);
+        grid.setAttribute("role", "listbox");
+        for (var i = 0; i < this._entries.length; i++) grid.appendChild(this._buildTile(this._entries[i], i));
+        this._gridEl = grid;
+        return grid;
     }
 
-    _buildTile(entry) {
-        var tile = document.createElement("div");
-        css.setClass(tile, hwp_tile);
-        // Focusable so a click lands focus INSIDE the pane (not on <body>), which
-        // keeps the RFC 0048 give-up wrapper working via the pane, and makes tiles
-        // keyboard-reachable. (Full arrow/Enter keyboard nav is Wish 0002 piece 4.)
-        tile.setAttribute("tabindex", "0");
-        tile.setAttribute("role", "button");
+    _buildTile(entry, i) {
+        var self = this;
         var disabled = !!this._disabledIds[entry.simpleName];
-        if (disabled) {
-            css.addClass(tile, hwp_tile_disabled);
-            tile.setAttribute("aria-disabled", "true");
-            tile.title = "Already open";
-        }
+        var tile = this._branch.createElement("tile" + this._seq + "_" + i, "div");
+        css.addClass(tile, hwp_tile, hwp_tile_cursor);
+        if (disabled) css.addClass(tile, hwp_tile_disabled);
+        tile.setAttribute("role", "option");
+        tile.setAttribute("aria-selected", "false");
+        if (disabled) tile.setAttribute("aria-disabled", "true");
 
-        var icon = document.createElement("div");
-        css.setClass(icon, hwp_tile_icon);
+        var icon = this._branch.createElement("icon" + this._seq + "_" + i, "div");
+        css.addClass(icon, hwp_tile_icon);
         icon.textContent = entry.icon && entry.icon.kind === "emoji" ? entry.icon.value : "📦";
         tile.appendChild(icon);
 
-        var label = document.createElement("div");
-        css.setClass(label, hwp_tile_label);
+        var label = this._branch.createElement("label" + this._seq + "_" + i, "div");
+        css.addClass(label, hwp_tile_label);
         label.textContent = entry.label;
         tile.appendChild(label);
 
-        if (entry.description) {
-            var desc = document.createElement("div");
-            css.setClass(desc, hwp_tile_desc);
-            desc.textContent = entry.description;
-            tile.appendChild(desc);
-        }
-
-        var self = this;
-        tile.addEventListener("click", function () {
-            if (disabled) {
-                // Disabled-tile click means "I want this one but it's open" —
-                // signal the caller via params=null so it can focus the
-                // existing instance.
-                if (self._delivered) return;
-                self._delivered = true;
-                self._onPick(entry, null);
-                return;
-            }
-            self._onTilePick(entry);
-        });
+        var at = this._tiles.length;
+        tile.addEventListener("mouseenter", function () { self._moveTo(at); });
+        tile.addEventListener("click", function () { self._moveTo(at); self._pickAt(at); });
+        this._tiles.push({ el: tile, entry: entry, disabled: disabled });
         return tile;
     }
 
-    // ─── Pick handling ─────────────────────────────────────────────────────
+    // ── The cursor ──────────────────────────────────────────────────────────
 
-    _onTilePick(entry) {
-        var hasParams = entry.paramsFields && entry.paramsFields.length > 0;
-        if (!hasParams) {
-            this._deliver(entry, {});
-        } else {
-            this._showForm(entry);
+    _moveTo(i) {
+        if (i < 0 || i >= this._tiles.length || i === this._at) return;
+        if (this._at >= 0) {
+            this._tiles[this._at].el.removeAttribute("data-cursor");
+            this._tiles[this._at].el.setAttribute("aria-selected", "false");
+        }
+        this._at = i;
+        this._tiles[i].el.setAttribute("data-cursor", "on");
+        this._tiles[i].el.setAttribute("aria-selected", "true");
+        if (this._tiles[i].el.scrollIntoView) {
+            this._tiles[i].el.scrollIntoView({ block: "nearest", inline: "nearest" });
         }
     }
 
-    _showForm(entry) {
-        var self = this;
-        var defs = entry.defaults || {};
-        var form = document.createElement("div");
-        css.setClass(form, hwp_form);
-        var inputs = {};
-        for (var i = 0; i < entry.paramsFields.length; i++) {
-            var f = entry.paramsFields[i];
-            var row = document.createElement("div");
-            css.setClass(row, hwp_form_row);
-            var lab = document.createElement("label");
-            css.setClass(lab, hwp_form_label);
-            lab.textContent = f.name + (f.type ? " (" + f.type + ")" : "");
-            var inp = document.createElement("input");
-            css.setClass(inp, hwp_form_input);
-            inp.value = defs[f.name] != null ? defs[f.name] : "";
-            row.appendChild(lab); row.appendChild(inp);
-            form.appendChild(row);
-            inputs[f.name] = inp;
+    _firstEnabled() {
+        for (var i = 0; i < this._tiles.length; i++) if (!this._tiles[i].disabled) return i;
+        return this._tiles.length ? 0 : -1;
+    }
+
+    /**
+     * The rows as they actually laid out: tiles grouped by the top they landed
+     * on. Measured on every move, because the pane can be resized under the
+     * picker and a remembered column count would be wrong the moment it was.
+     */
+    _rows() {
+        var rows = [], last = null, cur = null;
+        for (var i = 0; i < this._tiles.length; i++) {
+            var top = this._tiles[i].el.offsetTop;
+            if (last === null || Math.abs(top - last) > 1) { cur = []; rows.push(cur); last = top; }
+            cur.push(i);
         }
-        var actions = document.createElement("div");
-        css.setClass(actions, hwp_form_actions);
-        var cancelBtn = document.createElement("button");
-        css.setClass(cancelBtn, hwp_form_btn);
-        cancelBtn.textContent = "Cancel";
-        var okBtn = document.createElement("button");
-        css.setClass(okBtn, hwp_form_btn);
-        css.addClass(okBtn, hwp_form_btn_primary);
-        okBtn.textContent = "Open";
-        actions.appendChild(cancelBtn); actions.appendChild(okBtn);
-        form.appendChild(actions);
+        return rows;
+    }
 
-        if (this._host) this._host.replaceChildren(form);
+    /** Where the cursor is, as a row and a place in it. */
+    _where(rows) {
+        for (var r = 0; r < rows.length; r++) {
+            var c = rows[r].indexOf(this._at);
+            if (c >= 0) return { row: r, col: c };
+        }
+        return { row: 0, col: 0 };
+    }
 
-        cancelBtn.addEventListener("click", function () {
-            if (self._delivered) return;
-            self._delivered = true;
-            if (self._onCancel) self._onCancel();
-        });
-        okBtn.addEventListener("click", function () {
-            var params = {};
-            for (var k in inputs) {
-                if (inputs.hasOwnProperty(k)) params[k] = inputs[k].value;
-            }
-            self._deliver(entry, params);
-        });
+    _step(by) { this._moveTo(Math.max(0, Math.min(this._tiles.length - 1, this._at + by))); }
+
+    /** A row up or down, keeping the column — or the end of a shorter row. */
+    _rowStep(by) {
+        var rows = this._rows();
+        var at = this._where(rows);
+        var r = at.row + by;
+        if (r < 0 || r >= rows.length) return;
+        var row = rows[r];
+        this._moveTo(row[Math.min(at.col, row.length - 1)]);
+    }
+
+    // ── Keys ────────────────────────────────────────────────────────────────
+
+    /** The member's door: the steward routed a key here while the picker holds them. */
+    keyDown(ev) {
+        if (ev.altKey || ev.ctrlKey || ev.metaKey) return false;   // a chord is somebody else's
+        switch (ev.key) {
+            case "ArrowRight": this._step(1);      return true;
+            case "ArrowLeft":  this._step(-1);     return true;
+            case "ArrowDown":  this._rowStep(1);   return true;
+            case "ArrowUp":    this._rowStep(-1);  return true;
+            case "Home":       this._moveTo(0);    return true;
+            case "End":        this._moveTo(this._tiles.length - 1); return true;
+            case "Enter":
+            case " ":          this._pickAt(this._at); return true;
+            case "Escape":     if (this._onCancel) this._onCancel(); return true;
+            default:           return false;
+        }
+    }
+
+    // ── Picking ─────────────────────────────────────────────────────────────
+
+    _pickAt(i) {
+        if (i < 0 || i >= this._tiles.length) return;
+        var t = this._tiles[i];
+        // A disabled tile means "that one is already open": the caller focuses
+        // the live instance rather than making a second.
+        if (t.disabled) { this._deliver(t.entry, null); return; }
+        var fields = t.entry.paramsFields;
+        if (fields && fields.length) this._showForm(t.entry);
+        else this._deliver(t.entry, {});
     }
 
     _deliver(entry, params) {
         if (this._delivered) return;
         this._delivered = true;
+        this._release();
         this._onPick(entry, params);
+    }
+
+    /** The keys go back to whoever had them; the picker is done with them either way. */
+    _release() {
+        if (!this._kb || !this._kbId) return;
+        try { this._kb.leave(this._kbId); } catch (e) {}
+        this._kb = null;
+        this._kbId = null;
+    }
+
+    dispose() {
+        this._release();
+        try { this._branch.dissolve(); } catch (e) {}
+    }
+
+    // ── The params form ─────────────────────────────────────────────────────
+
+    _showForm(entry) {
+        var self = this;
+        var host = this._host;
+        while (host.firstChild) host.removeChild(host.firstChild);
+
+        var form = this._branch.createElement("form" + this._seq, "div");
+        css.addClass(form, hwp_form);
+        var inputs = {};
+
+        for (var i = 0; i < entry.paramsFields.length; i++) {
+            var f = entry.paramsFields[i];
+            var row = this._branch.createElement("row" + this._seq + "_" + i, "div");
+            css.addClass(row, hwp_form_row);
+            var label = this._branch.createElement("flab" + this._seq + "_" + i, "label");
+            css.addClass(label, hwp_form_label);
+            label.textContent = f.name;
+            var input = this._branch.createElement("fin" + this._seq + "_" + i, "input");
+            css.addClass(input, hwp_form_input);
+            input.type = "text";
+            input.value = (entry.defaults && entry.defaults[f.name]) || "";
+            inputs[f.name] = input;
+            row.appendChild(label);
+            row.appendChild(input);
+            form.appendChild(row);
+        }
+
+        var actions = this._branch.createElement("acts" + this._seq, "div");
+        css.addClass(actions, hwp_form_actions);
+        var cancel = this._branch.createElement("cancel" + this._seq, "button");
+        css.addClass(cancel, hwp_form_btn);
+        cancel.textContent = "Cancel";
+        cancel.addEventListener("click", function () { if (self._onCancel) self._onCancel(); });
+        var ok = this._branch.createElement("ok" + this._seq, "button");
+        css.addClass(ok, hwp_form_btn, hwp_form_btn_primary);
+        ok.textContent = "Add";
+        ok.addEventListener("click", function () {
+            var params = {};
+            for (var k in inputs) if (Object.prototype.hasOwnProperty.call(inputs, k)) params[k] = inputs[k].value;
+            self._deliver(entry, params);
+        });
+        actions.appendChild(cancel);
+        actions.appendChild(ok);
+        form.appendChild(actions);
+        host.appendChild(form);
+
+        var first = entry.paramsFields[0];
+        if (first && inputs[first.name] && inputs[first.name].focus) inputs[first.name].focus();
     }
 }

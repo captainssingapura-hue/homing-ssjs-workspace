@@ -72,6 +72,7 @@ class WorkspacePanes {
         this._sink = typeof opts.onEvent === "function" ? opts.onEvent : null;
         this._panes = new Map();       // cellId → MultiTabPane
         this._hosts = new Map();       // tabId  → the element the widget mounts in
+        this._tabObjs = new Map();     // tabId  → the descriptor the holder gave us
 
         this._grid = new SplitGrid(branch.createBranch("grid"), {
             host: opts.host,
@@ -193,15 +194,20 @@ class WorkspacePanes {
             catch (e) { console.error("[WorkspacePanes] tab '" + tab.id + "' render threw", e); }
         }
 
-        var out = {};
-        for (var k in tab) if (Object.prototype.hasOwnProperty.call(tab, k)) out[k] = tab[k];
-        out.widget = widget;
-        return out;
+        // ONE object, not a copy. The holder keeps a reference and retitles it,
+        // reads its widgetInstanceUuid back, hangs an onClose on it - all of
+        // which the studio's pane allowed because it held the very object it
+        // was given. A copy here would be a second truth that drifts on the
+        // first retitle.
+        tab.widget = widget;
+        this._tabObjs.set(tab.id, tab);
+        return tab;
     }
 
     removeTab(slotId, tabId) {
         var pane = this._panes.get(slotId);
         this._hosts.delete(tabId);
+        this._tabObjs.delete(tabId);
         return pane ? pane.removeTab(tabId) : null;
     }
 
@@ -232,6 +238,14 @@ class WorkspacePanes {
         });
         return found;
     }
+
+    /**
+     * The descriptor a tab was made from. The holder needs it back to retitle,
+     * to hang an onClose, to read the widget id it put there. It used to reach
+     * into the pane's own _tabsBySlot for this, which is why picking a widget
+     * stopped working the moment the pane behind it changed.
+     */
+    tabOf(tabId) { return this._tabObjs.get(tabId) || null; }
 
     /** Which pane holds this tab, or null. */
     slotOf(tabId) {

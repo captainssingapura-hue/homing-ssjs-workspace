@@ -802,6 +802,7 @@ class WorkspaceShellChrome {
             workspaceCtx:  this._workspaceCtx,
             mounter:       this._widgetMounter,
             tabRegistry:   this._tabRegistry,
+            keyboard:      this._keyboard,
             recorder:      this._eventRecorder,
             model:         this._model
         });

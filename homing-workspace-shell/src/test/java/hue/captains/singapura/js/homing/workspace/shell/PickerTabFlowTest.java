@@ -89,13 +89,17 @@ class PickerTabFlowTest extends JsModuleTestBase {
             // Stub WidgetPicker that records its constructor opts so tests
             // can verify entries / disabledIds + invoke onPick/onCancel.
             globalThis._lastPicker = null;
+            // The picker is a branch component now: its own branch first, its
+            // options second, as every component in this stack takes them.
             class StubPicker {
-                constructor(opts) {
+                constructor(branch, opts) {
+                    this.branch = branch;
                     this.opts = opts;
                     this.mountedInto = null;
                     globalThis._lastPicker = this;
                 }
                 mountInto(host) { this.mountedInto = host; }
+                dispose() {}
             }
             globalThis.StubPicker = StubPicker;
             """;

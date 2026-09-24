@@ -2,8 +2,10 @@ package hue.captains.singapura.js.homing.workspace;
 
 import hue.captains.singapura.js.homing.core.CssClass;
 import hue.captains.singapura.js.homing.core.CssGroup;
+import hue.captains.singapura.js.homing.core.CssVar;
 import hue.captains.singapura.js.homing.core.Wearable;
 
+import java.util.Set;
 import java.util.List;
 
 import static hue.captains.singapura.js.homing.design.DesignClass.of;
@@ -17,19 +19,36 @@ import static hue.captains.singapura.js.homing.design.Text.*;
 
 
 /**
- * The widget picker: a grid of tiles, then a params form. Structure only;
- * a tile is an edged control on the base layer, the primary action is on
- * the primary surface, a disabled tile is inert.
+ * The widget picker: a grid of tiles, then a params form.
+ *
+ * <p>A tile wears {@link Box.Control#Tile} — one BOX of a grid, picked, where
+ * an Option is one row of a list. The word carries the box: its extent and
+ * proportion make every tile in the grid the same size however long the label,
+ * its inset the air inside, its gap between the mark and the label, its corner
+ * and rule the face it presents. Structure only here; the measures are each
+ * design's.</p>
+ *
+ * <p>The cursor is a design STATE, not a colour this file picks: a tile reads
+ * {@code data-cursor} and answers on its own word, as a pane answers
+ * {@code data-keys}. Keyboard and pointer land on the same mark.</p>
  */
 public record WidgetPickerStyles() implements CssGroup<WidgetPickerStyles> {
     public static final WidgetPickerStyles INSTANCE = new WidgetPickerStyles();
 
+    /**
+     * The grid the tiles sit in. Its columns come from the TILE'S OWN measure,
+     * so the design decides how many fit and the grid only says they wrap: a
+     * reader of this file cannot set a width the design disagrees with.
+     */
     public record hwp_grid() implements CssClass<WidgetPickerStyles> {
+        @Override public Set<CssVar> runtimeVars() { return Set.of(new CssVar("--control-tile-size-extent")); }
+        @Override public List<? extends Wearable> reads() { return List.of(of(Control.Tile.class, Size.Extent.class), of(Control.Tile.class, Size.Gap.class)); }
         @Override public String body() { return """
                 display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-                gap: 8px;
-                padding: 8px;
+                grid-template-columns: repeat(auto-fill, minmax(var(--control-tile-size-extent, 128px), 1fr));
+                gap: var(--control-tile-size-gap, 8px);
+                padding: var(--control-tile-size-gap, 8px);
+                align-content: start;
                 """; }
     }
     public record hwp_group_label() implements CssClass<WidgetPickerStyles> {
@@ -39,15 +58,38 @@ public record WidgetPickerStyles() implements CssGroup<WidgetPickerStyles> {
                 padding: 6px 2px 2px;
                 """; }
     }
+    /** One box of the grid: a mark over a label, on the tile's own word. */
     public record hwp_tile() implements CssClass<WidgetPickerStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Base.class, Color.Surface.class), of(Raised.class, Color.Edge.class), of(Raised.class, Shape.Rule.class), of(Raised.class, Shape.Corner.class), of(Body.class, Color.Ink.class), of(Interactive.class, Affordance.Cursor.class), of(Interactive.class, Motion.Ease.class)); }
+        @Override public List<? extends Wearable> wears() { return List.of(
+                of(Control.Tile.class, Shape.Corner.class), of(Control.Tile.class, Shape.Rule.class),
+                of(Control.Tile.class, Size.Inset.class), of(Control.Tile.class, Size.Gap.class),
+                of(Control.Tile.class, Size.Proportion.class),
+                of(Base.class, Color.Surface.class), of(Control.class, Color.Edge.class),
+                of(Selectable.class, Color.Surface.class), of(Selectable.class, Color.Ink.class),
+                of(Selectable.class, Motion.Ease.class), of(Selectable.class, Affordance.Cursor.class)); }
         @Override public String body() { return """
                 display: flex;
                 flex-direction: column;
                 align-items: center;
-                gap: 4px;
-                padding: 10px 6px;
+                justify-content: center;
+                text-align: center;
+                min-width: 0;
+                overflow: hidden;
                 """; }
+    }
+
+    /**
+     * The tile the keys are on. The SAME mark the pointer gets, because a
+     * reader should not have to learn two ways of being shown where they are;
+     * geometry is the design's and colour is the palette's, so this says only
+     * that the state exists and the word answers it.
+     */
+    public record hwp_tile_cursor() implements CssClass<WidgetPickerStyles> {
+        @Override public String selector() { return "&[data-cursor=\"on\"]"; }
+        @Override public List<? extends Wearable> wears() { return List.of(
+                of(Selected.class, Color.Surface.class), of(Selected.class, Color.Ink.class),
+                of(Focus.class, Color.Edge.class), of(Focus.class, Shape.Shadow.class)); }
+        @Override public String body() { return ""; }
     }
     public record hwp_tile_disabled() implements CssClass<WidgetPickerStyles> {
         @Override public List<? extends Wearable> wears() { return List.of(of(Inert.class, Effect.Opacity.class), of(Inert.class, Affordance.Cursor.class)); }
@@ -120,6 +162,7 @@ public record WidgetPickerStyles() implements CssGroup<WidgetPickerStyles> {
                 new hwp_grid(),
                 new hwp_group_label(),
                 new hwp_tile(),
+                new hwp_tile_cursor(),
                 new hwp_tile_disabled(),
                 new hwp_tile_icon(),
                 new hwp_tile_label(),
