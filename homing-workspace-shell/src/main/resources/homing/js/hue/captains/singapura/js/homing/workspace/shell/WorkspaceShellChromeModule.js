@@ -507,26 +507,29 @@ class WorkspaceShellChrome {
         console.log('[WorkspaceShellChrome] MTP constructed with',
                     Object.keys(this._model.tabsBySlot ? {} : {}).length,
                     'replayed slot(s)');
-
-        // RFC 0049 — the workspace focus coordinator, composed over the MTP.
-        // Owns the deep/shallow selection, the per-tab FocusManagers, click
-        // routing, and the shallow keyboard; MTP is driven via its renderer
-        // facet only. onDeepChanged carries what onWorkspaceActiveChanged used
-        // to (the entered-tab transition) into replay/persistence.
-        this._focusCoordinator = new this._FocusCoordinatorCtor({
-            mtp:  this._mtp,
-            host: this._layout.contentEl,
-            onDeepChanged: function (prevTabId, nextTabId) {
-                const prevHit = prevTabId && self._tabRegistry && self._tabRegistry.findByTabId(prevTabId);
-                const nextHit = nextTabId && self._tabRegistry && self._tabRegistry.findByTabId(nextTabId);
-                const payload = {
-                    from: prevHit ? { widgetInstanceId: prevHit.widgetInstanceUuid } : null,
-                    to:   nextHit ? { widgetInstanceId: nextHit.widgetInstanceUuid } : null
-                };
-                self._applyToModel('WorkspaceActiveChanged', payload);
-                if (self._eventRecorder) self._eventRecorder.emit('WorkspaceActiveChanged', payload);
-            }
-        }).attach();
+        // NO FOCUS COORDINATOR. It was built to give the STUDIO's pane a focus
+        // model, because that pane had none: one selection recomputed and
+        // painted, a FocusManager per tab inerting the content of every tab but
+        // the deep one, a shallow keyboard walking between strips.
+        //
+        // The components have their own, and the two do not compose - they
+        // fight. The coordinator inerted the very element the dock had just put
+        // a widget in, so the widget was dead to the pointer; its reconcile
+        // repainted over what the strip had drawn, so no chip looked selected;
+        // and its Enter went deep on a pane that answers Enter itself. Three
+        // symptoms, one cause: two focus systems on one pane.
+        //
+        // What it did, the components do. Who holds the keys is the party's and
+        // is worn as a design state from data-keys (RFC 0066 E3 §16), so nobody
+        // paints it. Which tab is showing is the dock's, and the panel it hides
+        // is the firewall the FocusManagers were imitating. Walking between
+        // panes is the pane's own key scheme.
+        //
+        // What goes with it is WorkspaceActiveChanged, which the coordinator
+        // emitted from its deep transition. It is recorded below instead, off
+        // the activation itself: choosing a tab is how a user says where they
+        // are, which is the same fact the deep change was reporting.
+        this._focusCoordinator = null;
     }
 
     /**
@@ -575,6 +578,22 @@ class WorkspaceShellChrome {
         if (!out) return;
         this._applyToModel(out.name, out.payload);
         if (this._eventRecorder) this._eventRecorder.emit(out.name, out.payload);
+        if (out.name === 'TabActivated') this._workspaceActive(out.payload.widgetInstanceId);
+    }
+
+    /**
+     * Which tab the WORKSPACE is in, as against which tab each pane is showing.
+     * Off the activation, because choosing a tab is how a user says where they
+     * are - the same fact the focus coordinator reported from its deep change.
+     */
+    _workspaceActive(uuid) {
+        const from = this._activeUuid || null;
+        if (from === uuid) return;
+        this._activeUuid = uuid;
+        const payload = { from: from ? { widgetInstanceId: from } : null,
+                          to:   uuid ? { widgetInstanceId: uuid } : null };
+        this._applyToModel('WorkspaceActiveChanged', payload);
+        if (this._eventRecorder) this._eventRecorder.emit('WorkspaceActiveChanged', payload);
     }
 
     /** Where a tab lives, and the one event that is a question rather than a fact. */

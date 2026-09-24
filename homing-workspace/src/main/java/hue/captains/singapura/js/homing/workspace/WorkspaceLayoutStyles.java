@@ -100,12 +100,15 @@ public record WorkspaceLayoutStyles() implements CssGroup<WorkspaceLayoutStyles>
                 line-height: 1;
                 """; }
     }
+    /** Where the panes go: a flex box, because what fills it is a flex item. */
     public record wl_content() implements CssClass<WorkspaceLayoutStyles> {
         @Override public String body() { return """
                 flex: 1;
                 min-height: 0;
                 position: relative;
                 overflow: hidden;
+                display: flex;
+                flex-direction: column;
                 """; }
     }
     public record wl_footer() implements CssClass<WorkspaceLayoutStyles> {
