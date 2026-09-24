@@ -1,10 +1,12 @@
 package hue.captains.singapura.js.homing.workspace.shell;
 
+import hue.captains.singapura.js.homing.workspace.state.PaneDirection;
+
 import java.util.List;
 
-import static hue.captains.singapura.js.homing.workspace.shell.PaneDirection.DOWN;
-import static hue.captains.singapura.js.homing.workspace.shell.PaneDirection.LEFT;
-import static hue.captains.singapura.js.homing.workspace.shell.PaneDirection.RIGHT;
+import static hue.captains.singapura.js.homing.workspace.state.PaneDirection.DOWN;
+import static hue.captains.singapura.js.homing.workspace.state.PaneDirection.LEFT;
+import static hue.captains.singapura.js.homing.workspace.state.PaneDirection.RIGHT;
 
 /**
  * RFC 0060 D7 — the pane SHAPES that ship with the framework.

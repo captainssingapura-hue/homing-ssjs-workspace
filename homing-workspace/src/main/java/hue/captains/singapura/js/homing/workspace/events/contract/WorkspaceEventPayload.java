@@ -1,7 +1,8 @@
 package hue.captains.singapura.js.homing.workspace.events.contract;
 
-import hue.captains.singapura.js.homing.workspace.state.Orientation;
 import hue.captains.singapura.js.homing.workspace.state.ArrangementSource;
+import hue.captains.singapura.js.homing.workspace.state.PaneDirection;
+import hue.captains.singapura.js.homing.workspace.state.SplitPath;
 import hue.captains.singapura.js.homing.workspace.state.PaneId;
 import hue.captains.singapura.js.homing.workspace.state.WidgetInstanceId;
 import hue.captains.singapura.js.homing.workspace.state.WidgetKind;
@@ -9,6 +10,7 @@ import hue.captains.singapura.js.homing.workspace.state.WidgetTitle;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -154,28 +156,106 @@ public sealed interface WorkspaceEventPayload {
         @Override public EventName name() { return NAME; }
     }
 
-    /** A pane split into two. {@code paneId} is the parent's path post-split. */
+    /**
+     * A new, empty pane carved off an existing one, on the side named.
+     *
+     * <p>Schema 2. It used to say {@code (paneId, orientation, newRatio)} where
+     * {@code paneId} was the parent split's PATH after the split — so the event
+     * named neither the pane that was split nor the pane that appeared, and the
+     * reader had to work both out. It names both now.</p>
+     *
+     * <p>A DIRECTION, never an orientation: the axis follows from the side, and
+     * is derived in {@link PaneDirection} and nowhere else, which is what makes
+     * it impossible to write down backwards. Where the new pane LANDS in the tree
+     * is not this event's to say — a row already running this way takes it as a
+     * sibling, anything else becomes a split of the two — because that is the
+     * grid's rule and it must be applied by whoever holds the tree, not recorded
+     * twice and allowed to disagree.</p>
+     *
+     * <p>No ratio: a fresh pane halves the one it came from, and any share other
+     * than that is a drag, which is {@link TracksChanged}.</p>
+     */
     record SplitCreated(
-            PaneId      paneId,
-            Orientation orientation,
-            double      newRatio
+            PaneId        paneId,
+            PaneId        newPaneId,
+            PaneDirection side
     ) implements WorkspaceEventPayload {
         public static final EventName NAME = EventName.of("SplitCreated");
         public SplitCreated {
-            Objects.requireNonNull(paneId,      "SplitCreated.paneId");
-            Objects.requireNonNull(orientation, "SplitCreated.orientation");
-            if (newRatio <= 0.0 || newRatio >= 1.0) {
-                throw new IllegalArgumentException("SplitCreated.newRatio: must be in (0, 1), got " + newRatio);
+            Objects.requireNonNull(paneId,    "SplitCreated.paneId");
+            Objects.requireNonNull(newPaneId, "SplitCreated.newPaneId");
+            Objects.requireNonNull(side,      "SplitCreated.side");
+            if (paneId.equals(newPaneId)) {
+                throw new IllegalArgumentException("SplitCreated: a pane cannot be carved off itself (" + paneId + ")");
             }
         }
         @Override public EventName name() { return NAME; }
     }
 
-    /** Two child panes merged back into one. {@code paneId} is the surviving leaf. */
-    record SplitMerged(PaneId paneId) implements WorkspaceEventPayload {
+    /**
+     * A pane is gone and its room went to another.
+     *
+     * <p>Schema 2, and inverted. It used to name the SURVIVING leaf, which said
+     * nothing about which pane left or where its space went — and with more than
+     * two panes in a row those are different questions. It names the pane that
+     * GOES, as the grid does, and where its room went.</p>
+     *
+     * <p>{@code toward} is the pane that gains the room when one was chosen —
+     * they must share a whole divider, one pane alone on each side, which is the
+     * only pair a merge is offered between. Empty means the room went to the
+     * neighbour holding it, which is what happens when nothing was named.</p>
+     */
+    record SplitMerged(
+            PaneId           paneId,
+            Optional<PaneId> toward
+    ) implements WorkspaceEventPayload {
         public static final EventName NAME = EventName.of("SplitMerged");
         public SplitMerged {
             Objects.requireNonNull(paneId, "SplitMerged.paneId");
+            if (toward == null) toward = Optional.empty();
+            if (toward.isPresent() && toward.get().equals(paneId)) {
+                throw new IllegalArgumentException("SplitMerged: a pane cannot inherit its own room (" + paneId + ")");
+            }
+        }
+        @Override public EventName name() { return NAME; }
+    }
+
+    /**
+     * A split re-shared: a divider was dragged, and these are its tracks now.
+     *
+     * <p>Schema 2, and NEW to this sum although not to the runtime — the JS has
+     * emitted {@code SplitRatioChanged} and the model has folded it since RFC
+     * 0029, with no variant here to answer for it. The vocabulary said it was
+     * centralised and typo-safe; it was one name short of both.</p>
+     *
+     * <p>All the shares, not one of them, because a split has two or more tracks
+     * and a drag moves the pair either side of the divider. The {@link SplitPath}
+     * is the only path in this sum: a split has no id to name it by.</p>
+     */
+    record TracksChanged(
+            SplitPath    path,
+            List<Double> ratios
+    ) implements WorkspaceEventPayload {
+        public static final EventName NAME = EventName.of("TracksChanged");
+        public TracksChanged {
+            Objects.requireNonNull(path,   "TracksChanged.path");
+            Objects.requireNonNull(ratios, "TracksChanged.ratios");
+            if (ratios.size() < 2) {
+                throw new IllegalArgumentException(
+                        "TracksChanged.ratios: a split has two or more tracks (got " + ratios.size() + ")");
+            }
+            double sum = 0.0;
+            for (Double r : ratios) {
+                Objects.requireNonNull(r, "TracksChanged.ratios element");
+                if (!(r > 0.0)) {
+                    throw new IllegalArgumentException("TracksChanged.ratios: every share must be positive, got " + r);
+                }
+                sum += r;
+            }
+            if (Math.abs(sum - 1.0) > 1e-6) {
+                throw new IllegalArgumentException("TracksChanged.ratios: the shares must sum to one, got " + sum);
+            }
+            ratios = List.copyOf(ratios);
         }
         @Override public EventName name() { return NAME; }
     }

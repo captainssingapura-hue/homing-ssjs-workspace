@@ -52,7 +52,7 @@ class WorkspaceCaptureTest {
 
     @Test
     void captureLayoutPassesThroughTheLiveTree() {
-        var split = new LayoutNode.Split(Orientation.HORIZONTAL, 0.5,
+        var split = LayoutNode.Split.of(Orientation.HORIZONTAL, 0.5,
                 new LayoutNode.Leaf(PaneId.of("a")),
                 new LayoutNode.Leaf(PaneId.of("b")));
         var live = new TestLiveWorkspace(

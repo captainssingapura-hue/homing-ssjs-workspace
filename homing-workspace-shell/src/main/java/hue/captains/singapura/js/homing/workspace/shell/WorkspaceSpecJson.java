@@ -101,7 +101,14 @@ public final class WorkspaceSpecJson {
         return sb.append("}}").toString();
     }
 
-    /** One node in MTP's native layout shape. Binary throughout (RFC 0060 D1). */
+    /**
+     * One node in the pane layout's wire shape. A split writes its tracks in
+     * order, each with its share — two or more of them, as the grid arranges.
+     *
+     * <p>The key names here are the LEGACY pane's: {@code leaf}/{@code slotId}
+     * and {@code pane} where the grid says {@code cell}/{@code id} and
+     * {@code node}. They travel with the pane, so they change when it does.</p>
+     */
     private static void layoutNode(StringBuilder sb, LayoutNode node) {
         switch (node) {
             case LayoutNode.Leaf leaf ->
@@ -111,11 +118,15 @@ public final class WorkspaceSpecJson {
                 sb.append("{\"kind\":\"split\",\"orientation\":")
                   .append(WorkspaceLayoutJson.quoteString(
                           s.orientation() == Orientation.VERTICAL ? "vertical" : "horizontal"))
-                  .append(",\"children\":[{\"pane\":");
-                layoutNode(sb, s.first());
-                sb.append(",\"ratio\":").append(s.ratio()).append("},{\"pane\":");
-                layoutNode(sb, s.second());
-                sb.append(",\"ratio\":").append(1.0 - s.ratio()).append("}]}");
+                  .append(",\"children\":[");
+                var kids = s.children();
+                for (int i = 0; i < kids.size(); i++) {
+                    if (i > 0) sb.append(',');
+                    sb.append("{\"pane\":");
+                    layoutNode(sb, kids.get(i).node());
+                    sb.append(",\"ratio\":").append(kids.get(i).ratio()).append('}');
+                }
+                sb.append("]}");
             }
         }
     }

@@ -1,6 +1,4 @@
-package hue.captains.singapura.js.homing.workspace.shell;
-
-import hue.captains.singapura.js.homing.workspace.state.Orientation;
+package hue.captains.singapura.js.homing.workspace.state;
 
 /**
  * RFC 0060 D6 — which way a new pane is carved off an existing one.
@@ -10,7 +8,9 @@ import hue.captains.singapura.js.homing.workspace.state.Orientation;
  * which factor counts rows, and an author who guesses wrong gets a layout rotated
  * ninety degrees with nothing to say so. {@code RIGHT} cannot be misread.</p>
  *
- * <p>The axis follows from the direction, so {@link Orientation} is never
+ * <p>It sits beside {@link Orientation} rather than in the shell because the
+ * split EVENTS name a direction, and they are declared here; the axis follows
+ * from the direction, so {@link Orientation} is never
  * authored — it is derived here and nowhere else, which is what makes it
  * impossible to write down backwards.</p>
  *

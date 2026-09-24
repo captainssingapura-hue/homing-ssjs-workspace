@@ -135,12 +135,12 @@ class WorkspaceStateTest {
         var a = new LayoutNode.Leaf(PaneId.of("a"));
         var b = new LayoutNode.Leaf(PaneId.of("b"));
         assertThrows(IllegalArgumentException.class,
-                () -> new LayoutNode.Split(Orientation.HORIZONTAL, 0.0, a, b));
+                () -> LayoutNode.Split.of(Orientation.HORIZONTAL, 0.0, a, b));
         assertThrows(IllegalArgumentException.class,
-                () -> new LayoutNode.Split(Orientation.HORIZONTAL, 1.0, a, b));
+                () -> LayoutNode.Split.of(Orientation.HORIZONTAL, 1.0, a, b));
         assertThrows(NullPointerException.class,
-                () -> new LayoutNode.Split(null, 0.5, a, b));
-        assertDoesNotThrow(() -> new LayoutNode.Split(Orientation.HORIZONTAL, 0.5, a, b));
+                () -> LayoutNode.Split.of(null, 0.5, a, b));
+        assertDoesNotThrow(() -> LayoutNode.Split.of(Orientation.HORIZONTAL, 0.5, a, b));
     }
 
     // ── WorkspaceState envelope ─────────────────────────────────────────────

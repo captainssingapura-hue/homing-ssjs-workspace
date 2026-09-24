@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.shell;
 
+import hue.captains.singapura.js.homing.workspace.state.PaneDirection;
 import hue.captains.singapura.js.homing.workspace.state.LayoutNode;
 import hue.captains.singapura.js.homing.workspace.state.PaneId;
 import hue.captains.singapura.tao.ontology.ValueObject;
@@ -45,10 +46,9 @@ import java.util.Objects;
  * and exactly as a person experiences dragging a divider, which means these
  * numbers read as absolute and are not.</p>
  *
- * <p>{@link LayoutNode.Split} stores the <i>first</i> child's share, so a
- * {@link PaneDirection#LEFT} or {@link PaneDirection#UP} split is recorded as
- * {@code 1 - keep}. The author never sees that; absorbing it is why this type
- * exists rather than a raw tree.</p>
+ * <p>A split holds its tracks with their shares, so the ratio an author writes
+ * is the share the split pane KEEPS of its own track; the new pane takes the
+ * rest of that track, and every other track is left alone.</p>
  *
  * @param name   identifies the shape; shared ones are referenced by it
  * @param layout the pane tree, binary throughout (D1)
@@ -112,7 +112,7 @@ public record PaneArrangement(String name, LayoutNode layout) implements ValueOb
     private static void collect(LayoutNode n, List<PaneId> out) {
         switch (n) {
             case LayoutNode.Leaf leaf -> out.add(leaf.paneId());
-            case LayoutNode.Split s   -> { collect(s.first(), out); collect(s.second(), out); }
+            case LayoutNode.Split s   -> { for (var c : s.children()) collect(c.node(), out); }
         }
     }
 
@@ -181,30 +181,71 @@ public record PaneArrangement(String name, LayoutNode layout) implements ValueOb
 
         public PaneArrangement build() { return new PaneArrangement(name, layout); }
 
-        // The target leaf becomes a split holding it and the new pane.
-        // LayoutNode.Split stores the FIRST child's share, so LEFT/UP records 1 - keep.
+        /**
+         * Carve a new pane off {@code target}, by the same rule the live grid
+         * subdivides with: a SIBLING in the row or column already there when its
+         * orientation matches the direction, and only otherwise a new split of the
+         * two. Authoring a shape and dragging one out must land on the same tree,
+         * or the arrangement a kind ships could not be reached by hand — and the
+         * two shapes are not interchangeable: a flat row has a divider per pair,
+         * where a nested one has an outer divider that moves two panes at once and
+         * denies the merge across it.
+         */
         private static LayoutNode replace(LayoutNode n, PaneId target,
                                           PaneDirection dir, PaneId added, double keep) {
             return switch (n) {
-                case LayoutNode.Leaf leaf -> {
-                    if (!leaf.paneId().equals(target)) yield leaf;
-                    var kept  = new LayoutNode.Leaf(target);
-                    var fresh = new LayoutNode.Leaf(added);
-                    yield dir.targetIsFirst()
-                            ? new LayoutNode.Split(dir.orientation(), keep, kept, fresh)
-                            : new LayoutNode.Split(dir.orientation(), 1.0 - keep, fresh, kept);
+                case LayoutNode.Leaf leaf -> leaf.paneId().equals(target) ? carve(leaf, dir, added, keep) : leaf;
+                case LayoutNode.Split s -> {
+                    int at = s.orientation() == dir.orientation() ? trackOf(s, target) : -1;
+                    if (at >= 0) yield beside(s, at, dir, added, keep);
+                    var kids = new ArrayList<LayoutNode.Child>(s.children().size());
+                    for (var c : s.children()) {
+                        kids.add(new LayoutNode.Child(replace(c.node(), target, dir, added, keep), c.ratio()));
+                    }
+                    yield new LayoutNode.Split(s.orientation(), kids);
                 }
-                case LayoutNode.Split s -> new LayoutNode.Split(
-                        s.orientation(), s.ratio(),
-                        replace(s.first(),  target, dir, added, keep),
-                        replace(s.second(), target, dir, added, keep));
             };
+        }
+
+        /** No row to join: the pane becomes a split of itself and the new one. */
+        private static LayoutNode carve(LayoutNode.Leaf leaf, PaneDirection dir, PaneId added, double keep) {
+            var kept  = new LayoutNode.Leaf(leaf.paneId());
+            var fresh = new LayoutNode.Leaf(added);
+            return dir.targetIsFirst()
+                    ? LayoutNode.Split.of(dir.orientation(), keep, kept, fresh)
+                    : LayoutNode.Split.of(dir.orientation(), 1.0 - keep, fresh, kept);
+        }
+
+        /**
+         * A row or column already runs this way: the new pane joins it beside the
+         * target, and the two share the TARGET'S track between them. Every other
+         * track keeps what it had, which is what a reader means by "split that one".
+         */
+        private static LayoutNode beside(LayoutNode.Split s, int at,
+                                         PaneDirection dir, PaneId added, double keep) {
+            double share = s.ratio(at);
+            var kids = new ArrayList<>(s.children());
+            kids.set(at, new LayoutNode.Child(kids.get(at).node(), share * keep));
+            kids.add(dir.targetIsFirst() ? at + 1 : at,
+                     new LayoutNode.Child(new LayoutNode.Leaf(added), share * (1.0 - keep)));
+            return new LayoutNode.Split(s.orientation(), kids);
+        }
+
+        /** Which track of this split IS the target pane, or -1 when none is. */
+        private static int trackOf(LayoutNode.Split s, PaneId target) {
+            for (int i = 0; i < s.children().size(); i++) {
+                if (s.child(i) instanceof LayoutNode.Leaf leaf && leaf.paneId().equals(target)) return i;
+            }
+            return -1;
         }
 
         private static boolean find(LayoutNode n, PaneId id) {
             return switch (n) {
                 case LayoutNode.Leaf leaf -> leaf.paneId().equals(id);
-                case LayoutNode.Split s   -> find(s.first(), id) || find(s.second(), id);
+                case LayoutNode.Split s   -> {
+                    for (var c : s.children()) if (find(c.node(), id)) yield true;
+                    yield false;
+                }
             };
         }
     }

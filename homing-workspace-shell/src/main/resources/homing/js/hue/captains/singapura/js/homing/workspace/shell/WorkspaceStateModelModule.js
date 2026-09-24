@@ -20,8 +20,9 @@
 //   WidgetSpawnedFromPicker   — add a picker-spawned widget
 //   TabMoved                  — relocate by widgetInstanceId
 //   TabClosed                 — remove by widgetInstanceId
-//   SplitCreated              — split a leaf into two leaves (parent path)
-//   SplitMerged               — collapse a split back to a single leaf
+//   SplitCreated              — a new empty pane beside one, on a side
+//   SplitMerged               — a pane goes, its room to the heir
+//   TracksChanged             — a split re-shared, all its tracks
 //   WorkspaceActiveChanged    — set active widget UUID
 // Any other event name is silently ignored.
 //
@@ -30,6 +31,11 @@
 //   - No external collaborators (no MTP ref, no recorder, no DOM).
 //   - All mutations idempotent where it makes sense.
 // =============================================================================
+
+// A side names where a pane lands; the AXIS follows from it and is derived
+// here and nowhere else, which is what makes it impossible to write down
+// backwards. Same table as PaneDirection's, in the other language.
+var _SIDES = Object.freeze({ left: 'horizontal', right: 'horizontal', top: 'vertical', bottom: 'vertical' });
 
 class WorkspaceStateModel {
 
@@ -79,7 +85,7 @@ class WorkspaceStateModel {
             case 'TabClosed':               this._close(p);        break;
             case 'SplitCreated':            this._split(p);        break;
             case 'SplitMerged':             this._merge(p);        break;
-            case 'SplitRatioChanged':       this._setRatio(p);     break;
+            case 'TracksChanged':           this._tracks(p);       break;
             case 'WorkspaceActiveChanged':  this._setActive(p);    break;
             default: /* unknown event — ignore */                  break;
         }
@@ -230,53 +236,93 @@ class WorkspaceStateModel {
     }
 
     /**
-     * Split a leaf into two leaves. Payload.paneId is the parent path
-     * AFTER the split (matches orchestrator's emit which strips the
-     * trailing '_1' / '_2' from the post-split first-child path). For
-     * an empty paneId or '_' we split the root leaf if there is one;
-     * otherwise traverse to the target leaf and replace it.
+     * A new, empty pane beside {@code paneId} on {@code side}.
+     *
+     * The grid's own rule, and the reason this is not just "wrap the leaf in a
+     * split": when the row or column the pane already sits in runs the same way,
+     * the new pane JOINS it as a sibling and the two share the target's track
+     * between them. Only a pane with no such row around it becomes a split of
+     * the two. Authoring a shape, dragging one out and replaying a log all land
+     * on the same tree because all three apply this here.
      */
     _split(p) {
-        const parentPath = p.paneId || '_';
-        const found = this._findNodeByPaneId(parentPath);
-        if (!found || !found.node || found.node.kind !== 'leaf') return;
-        const orig = found.node;
-        const newSlotId = 'sp_' + (this._nextSplitId++);
-        const splitNode = {
-            kind: 'split',
-            orientation: (p.orientation === 'vertical') ? 'vertical' : 'horizontal',
-            children: [
-                { ratio: 0.5, pane: { kind: 'leaf', slotId: orig.slotId } },
-                { ratio: 0.5, pane: { kind: 'leaf', slotId: newSlotId } }
-            ]
-        };
-        found.replaceWith(splitNode);
+        const side = _SIDES[p.side] ? p.side : 'right';
+        const axis = _SIDES[side];
+        const after = (side === 'right' || side === 'bottom');
+        const newSlotId = p.newPaneId || ('sp_' + (this._nextSplitId++));
+        const found = this._findLeafBySlot(this._layout, String(p.paneId || ''));
+        if (!found) return;
+        const fresh = { kind: 'leaf', slotId: newSlotId };
+
+        if (found.parent && found.parent.orientation === axis) {
+            const kids = found.parent.children;
+            const share = kids[found.index].ratio;
+            kids[found.index].ratio = share / 2;
+            kids.splice(after ? found.index + 1 : found.index, 0, { ratio: share / 2, pane: fresh });
+        } else {
+            const kept = { kind: 'leaf', slotId: found.node.slotId };
+            found.replaceWith({
+                kind: 'split', orientation: axis,
+                children: after
+                    ? [{ ratio: 0.5, pane: kept }, { ratio: 0.5, pane: fresh }]
+                    : [{ ratio: 0.5, pane: fresh }, { ratio: 0.5, pane: kept }]
+            });
+        }
         if (!this._tabsBySlot.has(newSlotId)) this._tabsBySlot.set(newSlotId, []);
     }
 
     /**
-     * Merge a split node back into a single leaf. Payload.paneId is the
-     * parent split path. Keeps the first child (matches V1 / orchestrator
-     * convention); sibling's tabs are appended to kept slot's list.
+     * {@code paneId} goes; its room to {@code toward} when one was named and
+     * they share the same split, else to the neighbour holding it. Its tabs go
+     * wherever its room went. A split left with one track gives way to it, and
+     * the last pane in the workspace cannot go.
      */
     _merge(p) {
-        const parentPath = p.paneId || '_';
-        const found = this._findNodeByPaneId(parentPath);
-        if (!found || !found.node || found.node.kind !== 'split') return;
-        const kids = found.node.children;
-        // We support merge only when both children are leaves; nested
-        // merges are out of scope (mirrors mtp.merge contract).
-        if (!kids || kids.length !== 2
-            || kids[0].pane.kind !== 'leaf'
-            || kids[1].pane.kind !== 'leaf') return;
-        const keepSlot   = kids[0].pane.slotId;
-        const removeSlot = kids[1].pane.slotId;
-        const kept       = this._tabsBySlot.get(keepSlot)   || [];
-        const removed    = this._tabsBySlot.get(removeSlot) || [];
-        for (const t of removed) kept.push(t);
-        this._tabsBySlot.set(keepSlot, kept);
-        this._tabsBySlot.delete(removeSlot);
-        found.replaceWith({ kind: 'leaf', slotId: keepSlot });
+        const found = this._findLeafBySlot(this._layout, String(p.paneId || ''));
+        if (!found || !found.parent) return;                 // the root leaf is the last pane
+        const kids = found.parent.children;
+        const share = kids[found.index].ratio;
+
+        let heir = -1;
+        if (p.toward) {
+            for (let i = 0; i < kids.length; i++) {
+                if (i !== found.index && kids[i].pane.kind === 'leaf' && kids[i].pane.slotId === p.toward) heir = i;
+            }
+        }
+        if (heir < 0) heir = found.index > 0 ? found.index - 1 : found.index + 1;
+
+        this._giveTabs(found.node.slotId, this._firstLeaf(kids[heir].pane).slotId);
+        kids[heir].ratio += share;
+        kids.splice(found.index, 1);
+        if (kids.length === 1) {
+            // A split with one track left is no split: it gives way to what it holds.
+            const holder = this._findSplitHolder(this._layout, found.parent, null, -1);
+            if (holder) holder(kids[0].pane); else this._layout = kids[0].pane;
+        }
+    }
+
+    /** The tabs of a pane that is going, appended to the pane that gains its room. */
+    _giveTabs(fromSlot, toSlot) {
+        const kept = this._tabsBySlot.get(toSlot) || [];
+        for (const t of (this._tabsBySlot.get(fromSlot) || [])) kept.push(t);
+        this._tabsBySlot.set(toSlot, kept);
+        this._tabsBySlot.delete(fromSlot);
+    }
+
+    /**
+     * The split at {@code path} was re-shared: these are its tracks now. All of
+     * them, because a drag moves the pair either side of one divider and a split
+     * has two or more. A path is child indexes from the root joined by '/', the
+     * root split's being empty — a split has no id to be named by.
+     */
+    _tracks(p) {
+        const node = this._findSplitByPath(String(p.path == null ? '' : p.path));
+        if (!node) return;
+        const rs = p.ratios;
+        if (!Array.isArray(rs) || rs.length !== node.children.length) return;
+        let sum = 0;
+        for (const r of rs) { if (typeof r !== 'number' || !(r > 0) || !isFinite(r)) return; sum += r; }
+        for (let i = 0; i < rs.length; i++) node.children[i].ratio = rs[i] / sum;
     }
 
     _setActive(p) {
@@ -324,6 +370,65 @@ class WorkspaceStateModel {
      * first child of root) and return a handle:
      *   { node, replaceWith(newNode), parent, indexInParent }
      */
+    /**
+     * The leaf whose slotId is `slot`, with the split holding it and which track
+     * of it that is:  { node, parent, index, replaceWith(newNode) }
+     *
+     * By IDENTITY, not by position. _findNodeByPaneId reads its argument as a
+     * PATH — '_1_2' means the second child of the first — which is a different
+     * question and stays for the callers that ask it. A pane has an id, so the
+     * split events name it and this answers by it.
+     */
+    _findLeafBySlot(node, slot, parent, index) {
+        const self = this;
+        if (!node) return null;
+        if (node.kind === 'leaf') {
+            if (node.slotId !== slot) return null;
+            return {
+                node: node, parent: parent || null, index: (index == null ? -1 : index),
+                replaceWith: parent
+                    ? function (n) { parent.children[index].pane = n; }
+                    : function (n) { self._layout = n; }
+            };
+        }
+        for (let i = 0; i < node.children.length; i++) {
+            const hit = this._findLeafBySlot(node.children[i].pane, slot, node, i);
+            if (hit) return hit;
+        }
+        return null;
+    }
+
+    /**
+     * The split at `path` — child indexes from the root joined by '/', the root
+     * split's path being empty. The grid's spelling, so a path crosses between
+     * them unchanged.
+     */
+    _findSplitByPath(path) {
+        let cur = this._layout;
+        const parts = path.length ? path.split('/') : [];
+        for (const part of parts) {
+            if (!cur || cur.kind !== 'split') return null;
+            const i = parseInt(part, 10);
+            if (!(i >= 0) || i >= cur.children.length) return null;
+            cur = cur.children[i].pane;
+        }
+        return (cur && cur.kind === 'split') ? cur : null;
+    }
+
+    /** How to replace `target` where it sits, or null when it is the root. */
+    _findSplitHolder(node, target, parent, index) {
+        if (!node || node.kind !== 'split') return null;
+        if (node === target) {
+            if (!parent) return null;
+            return function (n) { parent.children[index].pane = n; };
+        }
+        for (let i = 0; i < node.children.length; i++) {
+            const hit = this._findSplitHolder(node.children[i].pane, target, node, i);
+            if (hit) return hit;
+        }
+        return null;
+    }
+
     _findNodeByPaneId(paneId) {
         // Walk segments. Root case handled outside the loop.
         const parts = String(paneId || '_').split('_').filter(s => s.length > 0);

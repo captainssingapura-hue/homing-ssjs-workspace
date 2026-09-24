@@ -59,8 +59,14 @@ public record WorkspaceState(
         ChromeState                            chrome
 ) {
 
-    /** Current envelope schema version. */
-    public static final int CURRENT_SCHEMA_VERSION = 1;
+    /**
+     * Current envelope schema version.
+     *
+     * <p>2 since a split became its tracks rather than two named halves; see
+     * {@link SplitsBecameNary}, which is the first migration this framework has
+     * had to run and cannot fail.</p>
+     */
+    public static final int CURRENT_SCHEMA_VERSION = 2;
 
     public WorkspaceState {
         Objects.requireNonNull(workspaceKind, "WorkspaceState.workspaceKind");
@@ -130,7 +136,7 @@ public record WorkspaceState(
     private static void collectInto(LayoutNode node, Set<PaneId> out) {
         switch (node) {
             case LayoutNode.Leaf  l -> out.add(l.paneId());
-            case LayoutNode.Split s -> { collectInto(s.first(), out); collectInto(s.second(), out); }
+            case LayoutNode.Split s -> { for (var c : s.children()) collectInto(c.node(), out); }
         }
     }
 }

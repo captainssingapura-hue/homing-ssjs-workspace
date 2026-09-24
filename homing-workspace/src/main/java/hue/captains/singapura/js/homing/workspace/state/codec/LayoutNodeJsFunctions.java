@@ -35,12 +35,17 @@ public final class LayoutNodeJsFunctions implements FunctionsCodeGen {
                         };
                     }
                     if (node instanceof LayoutNode.Split) {
+                        var children = [];
+                        for (var i = 0; i < node.children.length; i++) {
+                            children.push({
+                                node:  LayoutNodeCodec.transformTo(node.children[i].node),
+                                ratio: node.children[i].ratio
+                            });
+                        }
                         return {
                             kind:        'Split',
                             orientation: OrientationCodec.transformTo(node.orientation),
-                            ratio:       node.ratio,
-                            first:       LayoutNodeCodec.transformTo(node.first),
-                            second:      LayoutNodeCodec.transformTo(node.second)
+                            children:    children
                         };
                     }
                     throw new TypeError("LayoutNodeCodec.transformTo: not a LayoutNode variant");
@@ -52,12 +57,29 @@ public final class LayoutNodeJsFunctions implements FunctionsCodeGen {
                     switch (wire.kind) {
                         case 'Leaf':
                             return new LayoutNode.Leaf(PaneIdCodec.transformFrom(wire.paneId));
-                        case 'Split':
+                        case 'Split': {
+                            // Schema 1 wrote a binary split as orientation + ratio + first + second.
+                            // It reads as a two-child split with shares [ratio, 1 - ratio], which is
+                            // the whole of the migration and the reason it cannot fail.
+                            if (wire.children === undefined && wire.first !== undefined) {
+                                return LayoutNode.Split.of(
+                                    OrientationCodec.transformFrom(wire.orientation),
+                                    wire.ratio,
+                                    LayoutNodeCodec.transformFrom(wire.first),
+                                    LayoutNodeCodec.transformFrom(wire.second));
+                            }
+                            if (!Array.isArray(wire.children)) {
+                                throw new TypeError("LayoutNodeCodec.transformFrom: Split wire needs children");
+                            }
+                            var children = [];
+                            for (var i = 0; i < wire.children.length; i++) {
+                                children.push(new LayoutNode.Child(
+                                    LayoutNodeCodec.transformFrom(wire.children[i].node),
+                                    wire.children[i].ratio));
+                            }
                             return new LayoutNode.Split(
-                                OrientationCodec.transformFrom(wire.orientation),
-                                wire.ratio,
-                                LayoutNodeCodec.transformFrom(wire.first),
-                                LayoutNodeCodec.transformFrom(wire.second));
+                                OrientationCodec.transformFrom(wire.orientation), children);
+                        }
                         default:
                             throw new TypeError(
                                 "LayoutNodeCodec.transformFrom: unknown kind '" + wire.kind + "'");

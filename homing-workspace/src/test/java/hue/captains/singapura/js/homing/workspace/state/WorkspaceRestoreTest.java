@@ -118,7 +118,7 @@ class WorkspaceRestoreTest {
 
         // Construct widgets out of order; expect them to come out sorted.
         var s = build(
-                new LayoutNode.Split(Orientation.HORIZONTAL, 0.5,
+                LayoutNode.Split.of(Orientation.HORIZONTAL, 0.5,
                         new LayoutNode.Leaf(pA), new LayoutNode.Leaf(pB)),
                 List.of(
                         widgetIn(id3, pB, 1, false),
@@ -213,7 +213,7 @@ class WorkspaceRestoreTest {
         var id2 = WidgetInstanceId.fresh();
         var idM = WidgetInstanceId.fresh();
         var original = build(
-                new LayoutNode.Split(Orientation.HORIZONTAL, 0.4,
+                LayoutNode.Split.of(Orientation.HORIZONTAL, 0.4,
                         new LayoutNode.Leaf(pA), new LayoutNode.Leaf(pB)),
                 List.of(widgetIn(id1, pA, 0, true),
                         widgetIn(id2, pB, 0, true),

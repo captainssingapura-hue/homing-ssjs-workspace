@@ -1,6 +1,7 @@
 package hue.captains.singapura.js.homing.workspace.shell;
 
 import hue.captains.singapura.js.homing.workspace.WorkspaceWidget;
+import hue.captains.singapura.js.homing.workspace.state.PaneDirection;
 import hue.captains.singapura.js.homing.workspace.state.LayoutNode;
 import hue.captains.singapura.js.homing.workspace.state.Orientation;
 import hue.captains.singapura.js.homing.workspace.state.PaneId;
@@ -39,11 +40,13 @@ class ArrangementTest {
             case LayoutNode.Leaf leaf -> out.put(leaf.paneId().value(), new double[]{x, y, w, h});
             case LayoutNode.Split s -> {
                 boolean horiz = s.orientation() == Orientation.HORIZONTAL;
-                double firstW = horiz ? w * s.ratio() : w;
-                double firstH = horiz ? h : h * s.ratio();
-                walk(s.first(), x, y, firstW, firstH, out);
-                walk(s.second(), horiz ? x + firstW : x, horiz ? y : y + firstH,
-                     horiz ? w - firstW : w, horiz ? h : h - firstH, out);
+                double at = horiz ? x : y;
+                for (var c : s.children()) {
+                    double cw = horiz ? w * c.ratio() : w;
+                    double ch = horiz ? h : h * c.ratio();
+                    walk(c.node(), horiz ? at : x, horiz ? y : at, cw, ch, out);
+                    at += horiz ? cw : ch;
+                }
             }
         }
     }

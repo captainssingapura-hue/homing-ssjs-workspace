@@ -3,13 +3,21 @@
 // the typed LayoutNode record tree (RFC 0029). Both directions round-trip
 // losslessly.
 //
-//   MultiTabPane native shape :  { kind: 'leaf', slotId }
-//                              | { kind: 'split',
-//                                  orientation: 'horizontal' | 'vertical',
-//                                  children: [{ pane, ratio }, { pane, ratio }] }
+//   Pane native shape :  { kind: 'leaf', slotId }
+//                     | { kind: 'split',
+//                         orientation: 'horizontal' | 'vertical',
+//                         children: [{ pane, ratio }, …] }        two or more
 //
-//   Typed LayoutNode (RFC 0029):  LayoutNode.Leaf(PaneId)
-//                              |  LayoutNode.Split(Orientation, ratio, first, second)
+//   Typed LayoutNode   :  LayoutNode.Leaf(PaneId)
+//                      |  LayoutNode.Split(Orientation, [LayoutNode.Child(node, ratio), …])
+//
+// Schema 2: both sides are N-ary now. The native shape always carried a
+// children ARRAY and only ever put two in it; the typed side carried one
+// ratio and two named halves, so a row of three arrived here as a split
+// inside a split and went back out the same way. That is a different
+// arrangement, not a different spelling - a flat row has a divider per pair,
+// where the nested one has an outer divider that moves two panes together and
+// refuses the merge across it. So nothing is folded in either direction now.
 //
 // Explicit Substrate doctrine: instance methods on a canonical INSTANCE
 // singleton — never static. Mirrors Java Functional Objects faithfully:
@@ -31,18 +39,17 @@ class LayoutCodec {
         const orient = (node.orientation === 'vertical')
             ? Orientation.VERTICAL
             : Orientation.HORIZONTAL;
-        // Typed Split carries the FIRST child's ratio only (second is 1 - r).
-        let r = (node.children && node.children[0]
-                 && typeof node.children[0].ratio === 'number')
-              ? node.children[0].ratio
-              : 0.5;
-        // Clamp to (0, 1) strictly — typed record's compact ctor rejects 0/1.
-        if (r <= 0.001) r = 0.001;
-        if (r >= 0.999) r = 0.999;
-        return new LayoutNode.Split(
-            orient, r,
-            this.mtToTyped(node.children[0].pane),
-            this.mtToTyped(node.children[1].pane));
+        const kids = [];
+        for (let i = 0; i < node.children.length; i++) {
+            // A track with no share of its own takes an even one; the typed
+            // record normalises the lot, so an even share is whatever is left
+            // over the tracks that named theirs.
+            const r = (typeof node.children[i].ratio === 'number' && node.children[i].ratio > 0)
+                    ? node.children[i].ratio
+                    : 1 / node.children.length;
+            kids.push(new LayoutNode.Child(this.mtToTyped(node.children[i].pane), r));
+        }
+        return new LayoutNode.Split(orient, kids);
     }
 
     /** Typed LayoutNode tree → MultiTabPane native shape. */
@@ -54,15 +61,14 @@ class LayoutCodec {
         // LayoutNode.Split
         const orientStr = (typed.orientation === Orientation.VERTICAL)
             ? 'vertical' : 'horizontal';
-        const r = typed.ratio;
-        return {
-            kind: 'split',
-            orientation: orientStr,
-            children: [
-                { pane: this.typedToMt(typed.first),  ratio: r       },
-                { pane: this.typedToMt(typed.second), ratio: 1.0 - r }
-            ]
-        };
+        const children = [];
+        for (let i = 0; i < typed.children.length; i++) {
+            children.push({
+                pane:  this.typedToMt(typed.children[i].node),
+                ratio: typed.children[i].ratio
+            });
+        }
+        return { kind: 'split', orientation: orientStr, children: children };
     }
 }
 

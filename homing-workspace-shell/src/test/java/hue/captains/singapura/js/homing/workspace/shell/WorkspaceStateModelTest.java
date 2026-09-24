@@ -210,97 +210,178 @@ class WorkspaceStateModelTest extends JsModuleTestBase {
 
     // ── Splits + merges ────────────────────────────────────────────────
 
+    // ── The split events, schema 2 ──────────────────────────────────────────
+    //
+    // A pane is named by its ID now, not by where it sits. The old events said
+    // paneId and meant a PATH — '_1_1' for the first child of the first child —
+    // so the one field named neither the pane split nor the pane that appeared.
+
     @Test
-    void splitOnLeafReplacesItWithASplitNode() {
-        // Start with a fresh model where root is already a 2x2 split. To
-        // exercise split on a leaf, target one of the leaves at '_1_1'.
+    void splitWithNoRowAroundItMakesASplitOfTheTwo() {
         Value m = freshModel();
-        applyEvent(m, "SplitCreated", "({ paneId: '_1_1', orientation: 'horizontal' })");
-        // After the split, the tl leaf becomes a split with two leaves;
-        // one keeps slotId 'tl', one is a fresh 'sp_1'.
-        Value snap = m.invokeMember("inspect");
-        Value layout = snap.getMember("layout");
-        // Walk down: layout (split) → children[0].pane (split) → children[0].pane (split since we split _1_1)
-        Value top = layout.getMember("children").getArrayElement(0).getMember("pane");
+        // tl sits in a HORIZONTAL row; splitting it downward crosses the axis, so
+        // there is no row to join and the pane becomes a split of itself and the new one.
+        applyEvent(m, "SplitCreated", "({ paneId: 'tl', newPaneId: 'fresh', side: 'bottom' })");
+        Value top  = m.invokeMember("layout").getMember("children").getArrayElement(0).getMember("pane");
         Value tlNow = top.getMember("children").getArrayElement(0).getMember("pane");
         assertEquals("split", tlNow.getMember("kind").asString());
-        // New slot id minted: sp_1
-        Value newChild = tlNow.getMember("children").getArrayElement(1).getMember("pane");
-        assertEquals("leaf", newChild.getMember("kind").asString());
-        assertEquals("sp_1", newChild.getMember("slotId").asString());
-        // Tabs for sp_1 initialised empty
-        assertEquals(0, tabsAt(m, "sp_1").getArraySize());
+        assertEquals("vertical", tlNow.getMember("orientation").asString(), "the axis follows from the side");
+        assertEquals(2, tlNow.getMember("children").getArraySize());
+        assertEquals("tl",    tlNow.getMember("children").getArrayElement(0).getMember("pane").getMember("slotId").asString());
+        assertEquals("fresh", tlNow.getMember("children").getArrayElement(1).getMember("pane").getMember("slotId").asString());
+        assertEquals(0, tabsAt(m, "fresh").getArraySize());
+    }
+
+    /**
+     * The rule the whole schema change is for. tl and tr are a horizontal row;
+     * splitting tl to the RIGHT runs the same way, so the new pane JOINS the row
+     * as a third track rather than nesting inside tl.
+     *
+     * <p>The nested shape would render the same and be a different arrangement:
+     * three tracks have a divider per pair, where a nested pair has an outer
+     * divider that moves two panes together and denies the merge across it.</p>
+     */
+    @Test
+    void splitAlongTheRowJoinsItRatherThanNesting() {
+        Value m = freshModel();
+        applyEvent(m, "SplitCreated", "({ paneId: 'tl', newPaneId: 'mid', side: 'right' })");
+        Value top = m.invokeMember("layout").getMember("children").getArrayElement(0).getMember("pane");
+        assertEquals("split", top.getMember("kind").asString());
+        assertEquals(3, top.getMember("children").getArraySize(), "a third track, not a nested pair");
+        Value kids = top.getMember("children");
+        assertEquals("tl",  kids.getArrayElement(0).getMember("pane").getMember("slotId").asString());
+        assertEquals("mid", kids.getArrayElement(1).getMember("pane").getMember("slotId").asString());
+        assertEquals("tr",  kids.getArrayElement(2).getMember("pane").getMember("slotId").asString());
+        // The new pane takes half of the TARGET'S track; tr is left alone.
+        assertEquals(0.25, kids.getArrayElement(0).getMember("ratio").asDouble(), 1e-9);
+        assertEquals(0.25, kids.getArrayElement(1).getMember("ratio").asDouble(), 1e-9);
+        assertEquals(0.5,  kids.getArrayElement(2).getMember("ratio").asDouble(), 1e-9);
     }
 
     @Test
-    void splitMintsStableIdsAcrossSplits() {
+    void splitToTheLeftPutsTheNewPaneBefore() {
         Value m = freshModel();
-        applyEvent(m, "SplitCreated", "({ paneId: '_1_1', orientation: 'horizontal' })");
-        applyEvent(m, "SplitCreated", "({ paneId: '_1_2', orientation: 'horizontal' })");
+        applyEvent(m, "SplitCreated", "({ paneId: 'tr', newPaneId: 'mid', side: 'left' })");
+        Value kids = m.invokeMember("layout").getMember("children").getArrayElement(0)
+                      .getMember("pane").getMember("children");
+        assertEquals("mid", kids.getArrayElement(1).getMember("pane").getMember("slotId").asString());
+        assertEquals("tr",  kids.getArrayElement(2).getMember("pane").getMember("slotId").asString());
+    }
+
+    @Test
+    void splitMintsAnIdWhenTheEventNamesNone() {
+        Value m = freshModel();
+        applyEvent(m, "SplitCreated", "({ paneId: 'tl', side: 'right' })");
+        applyEvent(m, "SplitCreated", "({ paneId: 'tr', side: 'right' })");
         assertNotNull(m.invokeMember("tabsBySlot").invokeMember("get", "sp_1"));
         assertNotNull(m.invokeMember("tabsBySlot").invokeMember("get", "sp_2"));
     }
 
     @Test
-    void splitRatioChangedUpdatesFirstChildRatio() {
+    void splitOnAnUnknownPaneIsANoOp() {
         Value m = freshModel();
-        // Default 2x2 — root is split with two children at ratio 0.5/0.5.
-        applyEvent(m, "SplitRatioChanged", "({ paneId: '_', ratio: 0.3 })");
-        Value layout = m.invokeMember("layout");
-        Value kids = layout.getMember("children");
-        assertEquals(0.3, kids.getArrayElement(0).getMember("ratio").asDouble(), 0.001);
-        assertEquals(0.7, kids.getArrayElement(1).getMember("ratio").asDouble(), 0.001);
+        applyEvent(m, "SplitCreated", "({ paneId: 'nobody', newPaneId: 'x', side: 'right' })");
+        Value kids = m.invokeMember("layout").getMember("children").getArrayElement(0)
+                      .getMember("pane").getMember("children");
+        assertEquals(2, kids.getArraySize());
+    }
+
+    // ── TracksChanged: all the shares, by path ─────────────────────────────
+
+    @Test
+    void tracksChangedReSharesTheSplitAtThatPath() {
+        Value m = freshModel();
+        applyEvent(m, "TracksChanged", "({ path: '', ratios: [0.3, 0.7] })");
+        Value kids = m.invokeMember("layout").getMember("children");
+        assertEquals(0.3, kids.getArrayElement(0).getMember("ratio").asDouble(), 1e-9);
+        assertEquals(0.7, kids.getArrayElement(1).getMember("ratio").asDouble(), 1e-9);
     }
 
     @Test
-    void splitRatioChangedClampsOutOfBoundsValues() {
+    void tracksChangedReachesANestedSplitByItsPath() {
         Value m = freshModel();
-        applyEvent(m, "SplitRatioChanged", "({ paneId: '_', ratio: 0 })");
+        applyEvent(m, "TracksChanged", "({ path: '0', ratios: [0.8, 0.2] })");
+        Value top = m.invokeMember("layout").getMember("children").getArrayElement(0).getMember("pane");
+        assertEquals(0.8, top.getMember("children").getArrayElement(0).getMember("ratio").asDouble(), 1e-9);
+        // the root is untouched
         assertEquals(0.5, m.invokeMember("layout").getMember("children")
-                            .getArrayElement(0).getMember("ratio").asDouble(), 0.001);
-        applyEvent(m, "SplitRatioChanged", "({ paneId: '_', ratio: 1.0 })");
-        assertEquals(0.5, m.invokeMember("layout").getMember("children")
-                            .getArrayElement(0).getMember("ratio").asDouble(), 0.001);
-        applyEvent(m, "SplitRatioChanged", "({ paneId: '_', ratio: 'bad' })");
-        assertEquals(0.5, m.invokeMember("layout").getMember("children")
-                            .getArrayElement(0).getMember("ratio").asDouble(), 0.001);
+                            .getArrayElement(0).getMember("ratio").asDouble(), 1e-9);
     }
 
     @Test
-    void splitRatioChangedOnLeafPaneIsNoOp() {
+    void tracksChangedNormalisesWhatItIsGiven() {
         Value m = freshModel();
-        // _1_1 is a leaf (tl); SplitRatioChanged should ignore.
-        applyEvent(m, "SplitRatioChanged", "({ paneId: '_1_1', ratio: 0.4 })");
-        // Layout unchanged.
-        Value layout = m.invokeMember("layout");
-        assertEquals(0.5, layout.getMember("children")
-                            .getArrayElement(0).getMember("ratio").asDouble(), 0.001);
+        applyEvent(m, "TracksChanged", "({ path: '', ratios: [2, 1] })");
+        Value kids = m.invokeMember("layout").getMember("children");
+        assertEquals(2.0 / 3.0, kids.getArrayElement(0).getMember("ratio").asDouble(), 1e-9);
     }
 
     @Test
-    void mergeCollapsesSplitNodeBackToFirstChildLeaf() {
+    void tracksChangedIgnoresWhatItCannotUse() {
         Value m = freshModel();
-        applyEvent(m, "SplitCreated", "({ paneId: '_1_1', orientation: 'horizontal' })");
-        // Spawn into the new pane sp_1 — but the spawn event records to.paneId='_'
-        // by current emit convention, so simulate placing a tab in sp_1 via the
-        // model's update path (move there from tl).
-        applyEvent(m, "WidgetSpawnedFromPicker", "({ widgetInstanceId: 'x', widgetKind: 'X', to: { paneId: '_', tabIndex: 0 } })");
-        applyEvent(m, "WidgetSpawnedFromPicker", "({ widgetInstanceId: 'y', widgetKind: 'Y', to: { paneId: '_', tabIndex: 0 } })");
-        // y went to tl. Move it to sp_1 (path _1_1_2 inside the nested split).
-        applyEvent(m, "TabMoved", "({ widgetInstanceId: 'y', to: { paneId: '_1_1_2', tabIndex: 0 } })");
-        assertEquals(1, tabsAt(m, "sp_1").getArraySize());
-        // Merge the nested split back.
-        applyEvent(m, "SplitMerged", "({ paneId: '_1_1' })");
-        // After merge: kept slot is the first child ('tl'); sibling ('sp_1')
-        // tabs are appended to tl.
-        Value tlAfter = tabsAt(m, "tl");
-        assertEquals(2, tlAfter.getArraySize(), "sp_1's tabs migrated into tl on merge");
-        // sp_1 removed
-        Value sp1After = m.invokeMember("tabsBySlot").invokeMember("get", "sp_1");
-        assertTrue(sp1After == null || sp1After.isNull(),
-                "sp_1 slot removed after merge");
+        for (String bad : new String[]{
+                "({ path: '', ratios: [0.5] })",              // too few for this split
+                "({ path: '', ratios: [0, 1] })",             // a track with no room
+                "({ path: '', ratios: [0.5, 'bad'] })",       // not a number
+                "({ path: '9', ratios: [0.3, 0.7] })",        // no such track
+                "({ path: '0/0', ratios: [0.3, 0.7] })" }) {  // a leaf, not a split
+            applyEvent(m, "TracksChanged", bad);
+        }
+        assertEquals(0.5, m.invokeMember("layout").getMember("children")
+                            .getArrayElement(0).getMember("ratio").asDouble(), 1e-9);
     }
 
+    // ── SplitMerged: the pane that GOES, and where its room went ───────────
+
+    @Test
+    void mergedPaneGivesItsRoomAndItsTabsToTheNeighbour() {
+        Value m = freshModel();
+        applyEvent(m, "WidgetSpawnedFromPicker", "({ widgetInstanceId: 'x', widgetKind: 'X', to: { paneId: 'tl', tabIndex: 0 } })");
+        applyEvent(m, "WidgetSpawnedFromPicker", "({ widgetInstanceId: 'y', widgetKind: 'Y', to: { paneId: 'tr', tabIndex: 0 } })");
+        assertEquals(1, tabsAt(m, "tr").getArraySize());
+
+        // tr goes. Nothing named, so its room goes to the neighbour holding it,
+        // and the split left with one track gives way to that track.
+        applyEvent(m, "SplitMerged", "({ paneId: 'tr' })");
+        Value top = m.invokeMember("layout").getMember("children").getArrayElement(0).getMember("pane");
+        assertEquals("leaf", top.getMember("kind").asString(), "a split with one track left is no split");
+        assertEquals("tl",   top.getMember("slotId").asString());
+        assertEquals(2, tabsAt(m, "tl").getArraySize(), "tr's tabs went where tr's room went");
+        Value gone = m.invokeMember("tabsBySlot").invokeMember("get", "tr");
+        assertTrue(gone == null || gone.isNull(), "tr is gone");
+    }
+
+    /**
+     * With three in a row the merge has a choice, which is why the event carries
+     * one. {@code toward} names the pane that gains the room; it must be a track
+     * of the same split, which is the only pair a merge is offered between.
+     */
+    @Test
+    void mergedPaneRoomGoesTowardThePaneNamed() {
+        Value m = freshModel();
+        applyEvent(m, "SplitCreated", "({ paneId: 'tl', newPaneId: 'mid', side: 'right' })");
+        applyEvent(m, "WidgetSpawnedFromPicker", "({ widgetInstanceId: 'q', widgetKind: 'Q', to: { paneId: 'mid', tabIndex: 0 } })");
+
+        // mid sits between tl and tr; its room is asked to go to tr, not tl.
+        applyEvent(m, "SplitMerged", "({ paneId: 'mid', toward: 'tr' })");
+        Value kids = m.invokeMember("layout").getMember("children").getArrayElement(0)
+                      .getMember("pane").getMember("children");
+        assertEquals(2, kids.getArraySize());
+        assertEquals("tl", kids.getArrayElement(0).getMember("pane").getMember("slotId").asString());
+        assertEquals("tr", kids.getArrayElement(1).getMember("pane").getMember("slotId").asString());
+        assertEquals(0.25, kids.getArrayElement(0).getMember("ratio").asDouble(), 1e-9, "tl keeps what it had");
+        assertEquals(0.75, kids.getArrayElement(1).getMember("ratio").asDouble(), 1e-9, "tr gained mid's room");
+        assertEquals(1, tabsAt(m, "tr").getArraySize(), "the tabs follow the room");
+    }
+
+    @Test
+    void theLastPaneCannotGo() {
+        Value m = global("WorkspaceStateModel").newInstance(
+                js.eval("js", "({ kind: 'leaf', slotId: 'only' })"));
+        applyEvent(m, "SplitMerged", "({ paneId: 'only' })");
+        assertEquals("leaf", m.invokeMember("layout").getMember("kind").asString());
+        assertEquals("only", m.invokeMember("layout").getMember("slotId").asString());
+    }
     // ── Unknown events silently ignored ─────────────────────────────────
 
     @Test
@@ -324,10 +405,11 @@ class WorkspaceStateModelTest extends JsModuleTestBase {
     @Test
     void snapshotRoundTripPreservesEverything() {
         Value m = freshModel();
-        applyEvent(m, "SplitCreated",            "({ paneId: '_1_1', orientation: 'horizontal' })");
-        applyEvent(m, "WidgetSpawnedPinned",     "({ widgetInstanceId: 'doc:1', widgetKind: 'DocView', title: 'Intro', to: { paneId: '_', tabIndex: 0 } })");
-        applyEvent(m, "WidgetSpawnedFromPicker", "({ widgetInstanceId: 'mov:1', widgetKind: 'MovingAnimal', to: { paneId: '_', tabIndex: 0 } })");
-        applyEvent(m, "TabMoved",                "({ widgetInstanceId: 'mov:1', to: { paneId: '_1_1_2', tabIndex: 0 } })");
+        applyEvent(m, "SplitCreated",            "({ paneId: 'tl', newPaneId: 'sp_1', side: 'right' })");
+        applyEvent(m, "WidgetSpawnedPinned",     "({ widgetInstanceId: 'doc:1', widgetKind: 'DocView', title: 'Intro', to: { paneId: 'tl', tabIndex: 0 } })");
+        applyEvent(m, "WidgetSpawnedFromPicker", "({ widgetInstanceId: 'mov:1', widgetKind: 'MovingAnimal', to: { paneId: 'tl', tabIndex: 0 } })");
+        applyEvent(m, "TabMoved",                "({ widgetInstanceId: 'mov:1', to: { paneId: 'sp_1', tabIndex: 0 } })");
+        applyEvent(m, "TracksChanged",           "({ path: '', ratios: [0.4, 0.6] })");
         applyEvent(m, "WorkspaceActiveChanged",  "({ to: { widgetInstanceId: 'doc:1' } })");
 
         Value snap = m.invokeMember("toSnapshot");
