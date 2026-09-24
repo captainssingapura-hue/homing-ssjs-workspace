@@ -68,6 +68,9 @@ public final class WorkspaceShellCrate implements Crate {
                 CrateEntry.of(LayoutCodecModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(PartyBootstrapModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(PersistenceAttacherModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                // The per-tab focus primitive the coordinator drives, brought over
+                // from studio-base where nothing else ever called it.
+                CrateEntry.of(FocusManagerModule.INSTANCE, StandardJsModuleType.PRIMITIVE),
                 CrateEntry.of(WorkspaceFocusCoordinatorModule.INSTANCE),
                 CrateEntry.of(WorkspaceShallowKeyboardModule.INSTANCE),
                 CrateEntry.of(WorkspaceKeyboardScopeModule.INSTANCE),

@@ -5,7 +5,6 @@ import hue.captains.singapura.js.homing.core.Exportable;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
-import hue.captains.singapura.js.homing.studio.base.ui.layout.FocusManagerModule;
 
 import java.util.List;
 
@@ -47,7 +46,7 @@ public record WorkspaceFocusCoordinatorModule() implements DomModule<WorkspaceFo
     @Override
     public ImportsFor<WorkspaceFocusCoordinatorModule> imports() {
         return ImportsFor.<WorkspaceFocusCoordinatorModule>builder()
-                // The per-tab FocusManager primitive (studio-base) — the
+                // The per-tab FocusManager primitive, this repo's own now — the
                 // coordinator instantiates one per tab on its content element.
                 .add(new ModuleImports<>(
                         List.of(new FocusManagerModule.FocusManager()),
