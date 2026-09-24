@@ -3,7 +3,6 @@ package hue.captains.singapura.js.homing.workspace;
 import hue.captains.singapura.js.homing.core.CssClass;
 import hue.captains.singapura.js.homing.core.CssGroup;
 import hue.captains.singapura.js.homing.core.Wearable;
-import hue.captains.singapura.js.homing.studio.base.css.StudioStyles;
 
 import java.util.List;
 
@@ -28,7 +27,6 @@ public record WorkspaceLayoutStyles() implements CssGroup<WorkspaceLayoutStyles>
     public static final WorkspaceLayoutStyles INSTANCE = new WorkspaceLayoutStyles();
 
     public record wl_root() implements CssClass<WorkspaceLayoutStyles> {
-        @Override public List<CssClass<?>> dependsOn() { return List.of(new StudioStyles.st_main()); }
         @Override public List<? extends Wearable> wears() { return List.of(of(Base.class, Color.Surface.class), of(Raised.class, Color.Edge.class), of(Raised.class, Shape.Rule.class), of(Raised.class, Shape.Corner.class)); }
         @Override public String body() { return """
                 position: relative;
@@ -144,7 +142,6 @@ public record WorkspaceLayoutStyles() implements CssGroup<WorkspaceLayoutStyles>
         @Override public String body() { return ""; /* marker — rules apply via body selector below */ }
     }
     public record wl_body_locked() implements CssClass<WorkspaceLayoutStyles> {
-        @Override public List<CssClass<?>> dependsOn() { return List.of(new StudioStyles.st_root()); }
         @Override public String body() { return """
                 height: 100vh !important;
                 overflow: hidden !important;
@@ -161,11 +158,6 @@ public record WorkspaceLayoutStyles() implements CssGroup<WorkspaceLayoutStyles>
                 inset: 0;
                 z-index: 9000;
                 height: 100vh;
-                """; }
-    }
-    public record wl_chrome_hidden() implements CssClass<WorkspaceLayoutStyles> {
-        @Override public String body() { return """
-                display: none !important;
                 """; }
     }
 
@@ -187,8 +179,7 @@ public record WorkspaceLayoutStyles() implements CssGroup<WorkspaceLayoutStyles>
                 new wl_workspace_active(),
                 new wl_body_locked(),
                 new wl_fullscreen_active(),
-                new wl_root_fullscreen(),
-                new wl_chrome_hidden()
+                new wl_root_fullscreen()
         );
     }
 }

@@ -35,7 +35,7 @@ import java.util.List;
  * }</pre>
  *
  * <p>Entry data comes from {@link WidgetEntriesJson} (a JSON array
- * emitted into the page by {@link WorkspaceShell#widgetEntriesJson()} —
+ * emitted into the page by the spec's serializer —
  * one entry per registered {@link WidgetEntry} with display metadata,
  * lifecycle hint, dynamic-import module URL, and Params record schema).
  * The chrome filters PINNED entries out of {@code pickerEntries} (they

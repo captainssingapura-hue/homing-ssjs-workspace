@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * One entry in a {@link WorkspaceShell}'s widget type registry. Pairs
+ * One entry in a workspace's widget type registry. Pairs
  * a typed {@link WorkspaceWidget} class with its picker-display
  * metadata.
  *

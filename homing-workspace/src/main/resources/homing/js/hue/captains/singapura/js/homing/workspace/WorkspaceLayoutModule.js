@@ -18,7 +18,7 @@
 //
 // Fullscreen mechanism: body class wl-fullscreen-active is the toggle.
 // CSS rules (in WorkspaceLayoutStyles) push the workspace root to
-// position:fixed inset:0 and hide marked studio chrome (.st-header).
+// position:fixed inset:0, over whatever chrome the host drew.
 // Escape exits.
 // =============================================================================
 
@@ -28,7 +28,6 @@
 // Map JS-emitted CSS class identifiers for the body-level fullscreen marker
 // to actual class names. css.className() returns the generated class name.
 function _bodyFullscreenClassName() { return css.className(wl_fullscreen_active); }
-function _chromeHiddenClassName()   { return css.className(wl_chrome_hidden); }
 function _workspaceActiveClassName(){ return css.className(wl_workspace_active); }
 
 class WorkspaceLayout {
@@ -81,7 +80,7 @@ class WorkspaceLayout {
     //      FullscreenToggleRequested on click; reacts to FullscreenChanged
     //      by swapping its icon glyph.
     //   3. The body Actor reacts to FullscreenChanged by performing the
-    //      DOM mutations (body classes, root class, .st-header hiding,
+    //      DOM mutations (body classes, root class,
     //      Escape-key listener attach/detach).
     //
     // No piece owns authoritative state except the Secretary. No Actor
@@ -128,17 +127,19 @@ class WorkspaceLayout {
     }
 
     _build() {
-        // ─── Anchor html + body + .st-root to viewport height so wl_root's
-        //     overflow:hidden can actually clip. Base .st-root is min-height:100vh
-        //     — grows when tall content pushes it; same for body and html in their
-        //     default flow. Without bounding all three the document scrollbar
-        //     appears, defeating "workspace locked in size". All three classes
-        //     added; removed on destroy.
+        // ─── Anchor html + body to viewport height so wl_root's overflow:hidden
+        //     can actually clip: in their default flow both grow when tall content
+        //     pushes them, and the document scrollbar that follows defeats
+        //     "workspace locked in size". Removed on destroy.
+        //
+        //     The page column between body and us is NOT ours to bound. This
+        //     reached up and locked ".st-root" by name - the studio frame's class,
+        //     typed as a string - which found nothing under any other host and
+        //     silently did nothing. A frame bounds its own column; we fill what
+        //     holds us.
         document.body.classList.add(_workspaceActiveClassName());
         css.addClass(document.documentElement, wl_body_locked);
         css.addClass(document.body,            wl_body_locked);
-        var stRoot = document.querySelector(".st-root");
-        if (stRoot) css.addClass(stRoot, wl_body_locked);
 
         var root = document.createElement("div");
         css.setClass(root, wl_root);
@@ -378,9 +379,11 @@ class WorkspaceLayout {
         var self = this;
         if (on) {
             document.body.classList.add(_bodyFullscreenClassName());
+            // The fullscreen root is fixed to the viewport at z-index 9000, so it
+            // covers the host's own chrome by being over it. This used to ALSO hide
+            // ".st-header" by name - the studio bar's class, typed as a string,
+            // found under no other host - which was belt to the braces already here.
             css.addClass(this._rootEl, wl_root_fullscreen);
-            var header = document.querySelector(".st-header");
-            if (header) css.addClass(header, wl_chrome_hidden);
             this._escHandler = function (e) {
                 if (e.key === "Escape") self.setFullScreen(false);
             };
@@ -388,8 +391,6 @@ class WorkspaceLayout {
         } else {
             document.body.classList.remove(_bodyFullscreenClassName());
             css.removeClass(this._rootEl, wl_root_fullscreen);
-            var header2 = document.querySelector(".st-header");
-            if (header2) css.removeClass(header2, wl_chrome_hidden);
             if (this._escHandler) {
                 document.removeEventListener("keydown", this._escHandler);
                 this._escHandler = null;
@@ -410,13 +411,11 @@ class WorkspaceLayout {
             try { this._party.leave("layout/body"); } catch (e) {}
             this._party = null;
         }
-        // Restore html + body + .st-root to their base styles so non-workspace
-        // pages that follow get normal page scroll behaviour back.
+        // Restore html + body to their base styles so non-workspace pages that
+        // follow get normal page scroll behaviour back.
         document.body.classList.remove(_workspaceActiveClassName());
         css.removeClass(document.documentElement, wl_body_locked);
         css.removeClass(document.body,            wl_body_locked);
-        var stRoot = document.querySelector(".st-root");
-        if (stRoot) css.removeClass(stRoot, wl_body_locked);
         if (this._rootEl && this._rootEl.parentNode) this._rootEl.parentNode.removeChild(this._rootEl);
         this._rootEl = null;
     }

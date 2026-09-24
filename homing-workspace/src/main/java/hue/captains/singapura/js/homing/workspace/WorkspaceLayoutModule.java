@@ -80,8 +80,7 @@ public record WorkspaceLayoutModule() implements DomModule<WorkspaceLayoutModule
                                 new WorkspaceLayoutStyles.wl_workspace_active(),
                                 new WorkspaceLayoutStyles.wl_body_locked(),
                                 new WorkspaceLayoutStyles.wl_fullscreen_active(),
-                                new WorkspaceLayoutStyles.wl_root_fullscreen(),
-                                new WorkspaceLayoutStyles.wl_chrome_hidden()),
+                                new WorkspaceLayoutStyles.wl_root_fullscreen()),
                         WorkspaceLayoutStyles.INSTANCE))
                 // RFC 0028 cycle 3 — WorkspaceLayout routes its fullscreen flow
                 // through a LayoutParty: the fullscreen toggle Actor sends a

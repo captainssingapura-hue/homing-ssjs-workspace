@@ -5,7 +5,6 @@ import hue.captains.singapura.js.homing.core.CrateEntry;
 import hue.captains.singapura.js.homing.core.StandardJsModuleType;
 import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
 import hue.captains.singapura.js.homing.theme.color.ThemeColorCrate;
-import hue.captains.singapura.js.homing.studio.base.StudioBaseCrate;
 import hue.captains.singapura.js.homing.workspace.catalogue.WorkspaceCatalogueModule;
 import hue.captains.singapura.js.homing.workspace.events.CheckpointStoreModule;
 import hue.captains.singapura.js.homing.workspace.events.CheckpointWorkerModule;
@@ -19,7 +18,7 @@ import java.util.List;
  * RFC 0044 — the {@link Crate} for {@code homing-workspace}: the workspace
  * primitives (picker, layout, catalogue, event log, party bus, checkpoint
  * stores, widget-params codec registry). Requires the core-js substrate and
- * studio-base (styles/DOM primitives its modules import).
+ * the palettes its groups read. Not studio-base: no module here imports one.
  */
 public final class WorkspaceCrate implements Crate {
 
@@ -31,7 +30,7 @@ public final class WorkspaceCrate implements Crate {
 
     @Override public List<Crate> requires() {
         // RFC 0066 - the palette its groups read is a crate edge, not a transitive accident.
-        return List.of(CoreJsCrate.INSTANCE, StudioBaseCrate.INSTANCE, ThemeColorCrate.INSTANCE,
+        return List.of(CoreJsCrate.INSTANCE, ThemeColorCrate.INSTANCE,
                 hue.captains.singapura.js.homing.design.DesignCrate.INSTANCE,
                 hue.captains.singapura.js.homing.server.ServerCrate.INSTANCE);   // the Party primitive is the base's now
     }

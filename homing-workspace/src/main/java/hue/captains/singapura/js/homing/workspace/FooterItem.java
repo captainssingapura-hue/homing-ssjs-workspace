@@ -5,7 +5,7 @@ import java.util.Objects;
 /**
  * Typed element in a workspace's Footer. Sealed for exhaustive switches
  * in JS code-gen. Workspaces declare their footer contents by
- * overriding {@link WorkspaceShell#footerItems()} — an empty list
+ * overriding {@link hue.captains.singapura.js.homing.workspace.shell.WorkspaceSpec#footerItems()} — an empty list
  * suppresses the footer entirely (the DOM slot is not rendered).
  *
  * <p>Distinct from {@link RibbonItem} because footers and ribbons

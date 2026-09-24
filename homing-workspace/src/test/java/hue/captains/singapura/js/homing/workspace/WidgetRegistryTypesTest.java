@@ -193,7 +193,7 @@ final class WidgetRegistryTypesTest {
     }
 
     // ------------------------------------------------------------------
-    // WorkspaceShell.validateWidgetEntries (no need to instantiate full shell —
+    // The empty-registry refusal, now WorkspaceSpecRegistry's (no need to build one —
     // exercise the rules via a lightweight harness that calls the same
     // validation logic shape.)
     // ------------------------------------------------------------------

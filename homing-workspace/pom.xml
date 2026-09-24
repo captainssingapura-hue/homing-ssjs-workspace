@@ -12,11 +12,13 @@
     <artifactId>homing-workspace</artifactId>
 
     <description>
-        RFC 0025 — Workspace + Dynamic Widget Management. A strict downstream
-        of homing-studio-base providing the workspace shell pattern: a
-        per-page registry of WorkspaceWidget types, a controller that
-        dynamically loads modules on user pick, a picker UI, and the
-        WorkspaceShell AppModule base that ties it together.
+        RFC 0025 — Workspace + Dynamic Widget Management: a registry of
+        WorkspaceWidget types, a controller that loads modules on user pick,
+        a picker UI, and the layout frame they sit in.
+
+        No studio. The frame fills what holds it and names no page class; the
+        AppModule base that used to tie this together was the studio's page
+        model, and a WorkspaceSpec says what it used to say.
 
         Studios that don't need workspace capabilities (catalogue browsers,
         doc readers, single-widget viewers) leave this dependency off and pay
@@ -36,14 +38,35 @@
     </properties>
 
     <dependencies>
+        <!-- What this module actually imports, and used to reach through
+             studio-base: core and its js substrate, the Party primitive, the
+             colour palette its groups read, and the server's CSS manager. The
+             studio never owned any of it - it merely happened to be between
+             here and there. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-design-core</artifactId>
+            <artifactId>homing-core-js</artifactId>
             <version>${homing.core.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-studio-base</artifactId>
+            <artifactId>homing-component-base</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-theme-color</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-server</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-design-core</artifactId>
             <version>${homing.core.version}</version>
         </dependency>
         <!-- Meta-Function ontology — interfaces for code-generated codecs.

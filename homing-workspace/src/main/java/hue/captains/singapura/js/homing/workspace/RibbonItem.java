@@ -5,12 +5,12 @@ import java.util.Objects;
 
 /**
  * Typed element in a workspace's Ribbon (the row of action affordances
- * across the top of a {@link WorkspaceShell}). Sealed for exhaustive
+ * across the top of a workspace). Sealed for exhaustive
  * switches in the JS code-gen — every variant earns its own render
  * branch.
  *
  * <p>Workspaces declare their ribbon contents by overriding {@link
- * WorkspaceShell#ribbonItems()}. The framework automatically prepends
+ * hue.captains.singapura.js.homing.workspace.shell.WorkspaceSpec#ribbonItems()}. The framework automatically prepends
  * the workspace's title (left edge) and appends a fullscreen toggle
  * (right edge); {@code ribbonItems()} supplies the workspace-specific
  * middle content.</p>
