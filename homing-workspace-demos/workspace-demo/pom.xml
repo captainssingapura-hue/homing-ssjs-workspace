@@ -35,6 +35,23 @@
             <version>${homing.core.version}</version>
         </dependency>
 
+        <!-- The framework page model: StandardMpa, Brand and the page a JS app
+             becomes. Explicit though the shell brings it: this module names it. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-site-mpa</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+
+        <!-- The designs the chrome wears. A theme registry is a SITE's choice, and
+             the studio's seven are the only ones that exist today; separating the
+             themes from the components they dress is its own stage. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-studio-themes</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+
         <!-- The gate, headless. NOT homing-conformance-studio: that one is
              itself a workspace application, and taking it here would pull
              core's copy of this very stack onto the classpath beside ours. -->
@@ -50,5 +67,19 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <!-- mvn -pl homing-workspace-demos/workspace-demo exec:java -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <mainClass>hue.captains.singapura.js.homing.workspace.demo.WorkspaceDemoServer</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

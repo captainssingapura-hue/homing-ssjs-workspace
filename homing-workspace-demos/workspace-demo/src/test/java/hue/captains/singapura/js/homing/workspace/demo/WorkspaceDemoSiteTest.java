@@ -1,0 +1,71 @@
+package hue.captains.singapura.js.homing.workspace.demo;
+
+import hue.captains.singapura.js.homing.site.Path;
+import hue.captains.singapura.js.homing.site.Query;
+import hue.captains.singapura.js.homing.workspace.shell.WorkspaceApp;
+import hue.captains.singapura.js.homing.workspace.shell.WorkspaceSpecRegistry;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+/**
+ * The stage's claim, asserted: the workspace is a page of a standard MPA, with
+ * no studio anywhere.
+ *
+ * <p>What this can check without a browser is exactly the seam the stage
+ * moved — the document the site serves. A workspace that mounts is the
+ * server's job up to the point where the page names the app's module and
+ * stamps the kind; everything past that is the shell's, and the shell's own
+ * tests have it. So these assert the handover and stop.</p>
+ */
+class WorkspaceDemoSiteTest {
+
+    private static String pageAt(String path) {
+        var found = WorkspaceDemoSite.INSTANCE.router().resolve(Path.parse(path));
+        assertTrue(found.isPresent(), "no page at " + path);
+        return found.get().html(Query.NONE).body();
+    }
+
+    @Test
+    void bothKindsAreRegistered() {
+        // The site's static block fills the registry; touching INSTANCE is what runs it.
+        assertEquals(WorkspaceDemoSite.INSTANCE, WorkspaceDemoSite.INSTANCE);
+        assertTrue(WorkspaceSpecRegistry.INSTANCE.get("monitors").isPresent());
+        assertTrue(WorkspaceSpecRegistry.INSTANCE.get("graph").isPresent());
+    }
+
+    @Test
+    void theRootIsTheMonitorsWorkspace() {
+        String html = pageAt("/");
+        assertTrue(html.contains("\"ws_kind\":\"monitors\""), "the kind is stamped into the page");
+        assertTrue(html.contains(WorkspaceApp.class.getCanonicalName()),
+                "the page imports the app's module and calls its appMain");
+        assertTrue(html.contains("appMain(page.main"), "the app is handed the MPA's slot");
+    }
+
+    @Test
+    void aSecondKindIsASecondRoute() {
+        String html = pageAt("/graph");
+        assertTrue(html.contains("\"ws_kind\":\"graph\""));
+        assertTrue(html.contains("Design graph"), "the router told the page its trail");
+    }
+
+    /**
+     * The negative half of the claim, and the reason the stage exists: nothing
+     * the site serves comes from the studio. A page that named a studio class
+     * would still work — and would mean the workspace had not left.
+     */
+    @Test
+    void noStudioInThePageTheSiteServes() {
+        String html = pageAt("/");
+        assertFalse(html.contains("studio.base"), "a studio-base module reached the page");
+        assertFalse(html.contains("GenericWorkspace"), "the studio's mounting reached the page");
+    }
+
+    @Test
+    void anUnknownPathIsNotAPage() {
+        assertTrue(WorkspaceDemoSite.INSTANCE.router().resolve(Path.parse("/nope")).isEmpty());
+    }
+}

@@ -5,6 +5,7 @@ import hue.captains.singapura.js.homing.core.CrateEntry;
 import hue.captains.singapura.js.homing.core.StandardJsModuleType;
 import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
+import hue.captains.singapura.js.homing.site.mpa.MpaCrate;
 import hue.captains.singapura.js.homing.studio.base.StudioBaseCrate;
 import hue.captains.singapura.js.homing.theme.color.ThemeColorCrate;
 import hue.captains.singapura.js.homing.theme.type.ThemeTypeCrate;
@@ -33,6 +34,9 @@ public final class WorkspaceShellCrate implements Crate {
                 CoreJsCrate.INSTANCE,
                 ServerCrate.INSTANCE,
                 StudioBaseCrate.INSTANCE,
+                // The framework page model WorkspaceApp is a page of, for the one
+                // word it wears on the slot it is handed.
+                MpaCrate.INSTANCE,
                 WorkspaceCrate.INSTANCE,
                 WorkspaceCodecsCrate.INSTANCE,
                 WorkspacePersistenceCrate.INSTANCE,
@@ -49,6 +53,10 @@ public final class WorkspaceShellCrate implements Crate {
                 CrateEntry.of(CodecRegistrarModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(EventEmitterModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(GenericWorkspace.INSTANCE),
+                // The workspace as a page of any standard MPA: the app, and the
+                // registry stamped into a module it can import.
+                CrateEntry.of(WorkspaceSpecsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(WorkspaceApp.INSTANCE, StandardJsModuleType.CONSUMER),
                 // RFC 0058 — the authentic-path app: one page per WorkspaceGroup, the kind an anchor.
                 CrateEntry.of(WorkspaceGroupApp.INSTANCE),
                 CrateEntry.of(WorkspaceGroupChrome.INSTANCE),

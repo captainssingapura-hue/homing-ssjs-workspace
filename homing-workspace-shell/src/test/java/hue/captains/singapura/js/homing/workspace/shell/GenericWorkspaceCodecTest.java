@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 class GenericWorkspaceCodecTest {
 
     /** Round-trip samples live here for genericWorkspace and in WorkspaceGroupAppCodecTest for workspaceGroup. */
-    private static final Set<String> COVERED = Set.of("genericWorkspace", "workspaceGroup");
+    private static final Set<String> COVERED = Set.of("genericWorkspace", "workspaceGroup", "workspace");
 
     @Test
     void genericWorkspace() {
@@ -32,6 +32,24 @@ class GenericWorkspaceCodecTest {
                 new GenericWorkspace.Params("studio"),
                 new GenericWorkspace.Params("animals-playground"),
                 new GenericWorkspace.Params("a&b=c")));
+    }
+
+    /**
+     * The same reading, under the other mounting. {@link WorkspaceApp} is the
+     * workspace as a page of a standard MPA and declares its own codec rather
+     * than sharing this one: two separate URL contracts that agree today. The
+     * samples are the same so the day they stop agreeing is visible here.
+     */
+    @Test
+    void workspaceApp() {
+        ParamCodecLaw.assertRoundTrips("WorkspaceApp", WorkspaceApp.CODEC, List.of(
+                new WorkspaceApp.Params("studio"),
+                new WorkspaceApp.Params("animals-playground"),
+                new WorkspaceApp.Params("a&b=c")));
+
+        var missing = assertInstanceOf(ParamCodec.Decoded.Missing.class,
+                WorkspaceApp.CODEC.fromQueryString("widget=tabs"));
+        assertEquals("ws_kind", missing.key());
     }
 
     @Test

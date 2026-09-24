@@ -46,6 +46,16 @@
     </properties>
 
     <dependencies>
+        <!-- RFC 0066 E3 - the framework page model the workspace is a page OF.
+             WorkspaceApp is an AppModule under a StandardMpa, and the slot it
+             fills says it lays itself out by wearing the MPA main-full word. The
+             studio mounting needs none of this; a standalone workspace is
+             nothing but this. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-site-mpa</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-design-core</artifactId>
