@@ -331,6 +331,125 @@ class WorkspaceStateModelTest extends JsModuleTestBase {
                             .getArrayElement(0).getMember("ratio").asDouble(), 1e-9);
     }
 
+    // ── TabActivated: what each pane is showing ────────────────────────────
+    //
+    // Per pane, and persisted. WidgetLocation.InPane has carried isActive since
+    // RFC 0029 and WorkspaceState has enforced one per pane, but no event ever
+    // said so — the state could describe it and nothing could record it, so
+    // every pane came back showing whichever tab it picked.
+
+    private void spawn(Value m, String uuid, String kind, String pane) {
+        applyEvent(m, "WidgetSpawnedFromPicker",
+                "({ widgetInstanceId: '" + uuid + "', widgetKind: '" + kind + "', to: { paneId: '" + pane + "' } })");
+    }
+
+    @Test
+    void aPaneShowsTheTabThatLandsInIt() {
+        Value m = freshModel();
+        spawn(m, "a", "A", "tl");
+        spawn(m, "b", "B", "tl");
+        assertEquals("b", m.invokeMember("activeInSlot", "tl").asString(), "the arrival default is front");
+    }
+
+    @Test
+    void eachPaneShowsItsOwnAndTheyDoNotCompete() {
+        Value m = freshModel();
+        spawn(m, "a", "A", "tl");
+        spawn(m, "b", "B", "tl");
+        spawn(m, "c", "C", "tr");
+        applyEvent(m, "TabActivated", "({ paneId: 'tl', widgetInstanceId: 'a' })");
+        assertEquals("a", m.invokeMember("activeInSlot", "tl").asString());
+        assertEquals("c", m.invokeMember("activeInSlot", "tr").asString(), "tr is untouched");
+    }
+
+    @Test
+    void aPaneCannotShowATabItDoesNotHold() {
+        Value m = freshModel();
+        spawn(m, "a", "A", "tl");
+        spawn(m, "c", "C", "tr");
+        applyEvent(m, "TabActivated", "({ paneId: 'tl', widgetInstanceId: 'c' })");
+        assertEquals("a", m.invokeMember("activeInSlot", "tl").asString());
+    }
+
+    /** The answer a tab strip gives when the tab you were on closes. */
+    @Test
+    void closingTheShownTabShowsTheOneThatTookItsPlace() {
+        Value m = freshModel();
+        spawn(m, "a", "A", "tl");
+        spawn(m, "b", "B", "tl");
+        spawn(m, "c", "C", "tl");
+        applyEvent(m, "TabActivated", "({ paneId: 'tl', widgetInstanceId: 'b' })");
+        applyEvent(m, "TabClosed", "({ widgetInstanceId: 'b', widgetKind: 'B' })");
+        assertEquals("c", m.invokeMember("activeInSlot", "tl").asString(), "the one that took its index");
+
+        applyEvent(m, "TabClosed", "({ widgetInstanceId: 'c', widgetKind: 'C' })");
+        assertEquals("a", m.invokeMember("activeInSlot", "tl").asString(), "last tab closed: the one before");
+
+        applyEvent(m, "TabClosed", "({ widgetInstanceId: 'a', widgetKind: 'A' })");
+        Value none = m.invokeMember("activeInSlot", "tl");
+        assertTrue(none == null || none.isNull(), "an empty pane shows nothing");
+    }
+
+    @Test
+    void aTabIsShownWhereItLandsAndTheSourceMovesOn() {
+        Value m = freshModel();
+        spawn(m, "a", "A", "tl");
+        spawn(m, "b", "B", "tl");
+        applyEvent(m, "TabMoved", "({ widgetInstanceId: 'b', to: { paneId: 'tr', tabIndex: 0 } })");
+        assertEquals("b", m.invokeMember("activeInSlot", "tr").asString());
+        assertEquals("a", m.invokeMember("activeInSlot", "tl").asString());
+    }
+
+    @Test
+    void theHeirOfAMergeKeepsShowingWhatItWasShowing() {
+        Value m = freshModel();
+        spawn(m, "a", "A", "tl");
+        spawn(m, "b", "B", "tl");
+        applyEvent(m, "TabActivated", "({ paneId: 'tl', widgetInstanceId: 'a' })");
+        spawn(m, "c", "C", "tr");
+
+        applyEvent(m, "SplitMerged", "({ paneId: 'tr', toward: 'tl' })");
+        assertEquals(3, tabsAt(m, "tl").getArraySize(), "tr's tab came across");
+        assertEquals("a", m.invokeMember("activeInSlot", "tl").asString(),
+                "the heir keeps its own showing tab; it did not adopt the visitor's");
+        Value gone = m.invokeMember("activeInSlot", "tr");
+        assertTrue(gone == null || gone.isNull());
+    }
+
+    /** The point of recording it at all. */
+    @Test
+    void everyPaneComesBackOnTheTabItWasShowing() {
+        Value m = freshModel();
+        spawn(m, "a", "A", "tl");
+        spawn(m, "b", "B", "tl");
+        spawn(m, "c", "C", "tr");
+        spawn(m, "d", "D", "tr");
+        applyEvent(m, "TabActivated", "({ paneId: 'tl', widgetInstanceId: 'a' })");
+        applyEvent(m, "TabActivated", "({ paneId: 'tr', widgetInstanceId: 'c' })");
+
+        Value restored = global("WorkspaceStateModel").invokeMember("fromSnapshot", m.invokeMember("toSnapshot"));
+        assertEquals("a", restored.invokeMember("activeInSlot", "tl").asString());
+        assertEquals("c", restored.invokeMember("activeInSlot", "tr").asString());
+    }
+
+    /**
+     * A snapshot outlives the arrangement it was taken of. A pane showing a tab
+     * it no longer holds is worse than a pane showing its first, so the restore
+     * drops what no longer fits rather than carrying a dangling answer.
+     */
+    @Test
+    void aShowingTabThatIsNoLongerThereIsDropped() {
+        Value m = freshModel();
+        spawn(m, "a", "A", "tl");
+        Value snap = m.invokeMember("toSnapshot");
+        js.eval("js", "(function (s) { s.tabsBySlot = s.tabsBySlot.map(function (pr) {"
+                    + " return pr[0] === 'tl' ? ['tl', []] : pr; }); })").execute(snap);
+
+        Value restored = global("WorkspaceStateModel").invokeMember("fromSnapshot", snap);
+        Value none = restored.invokeMember("activeInSlot", "tl");
+        assertTrue(none == null || none.isNull());
+    }
+
     // ── SplitMerged: the pane that GOES, and where its room went ───────────
 
     @Test

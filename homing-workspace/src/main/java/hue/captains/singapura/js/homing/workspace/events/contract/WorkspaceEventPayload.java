@@ -260,6 +260,36 @@ public sealed interface WorkspaceEventPayload {
         @Override public EventName name() { return NAME; }
     }
 
+    /**
+     * Which tab a pane is showing.
+     *
+     * <p>Schema 2, and the gap it fills was a plain one: {@link WidgetLocation.InPane}
+     * has carried {@code isActive} since RFC 0029, meaning "the active tab in THIS
+     * pane", and {@link hue.captains.singapura.js.homing.workspace.state.WorkspaceState}
+     * has enforced at most one per pane — but no event ever said so. The state
+     * could describe it and nothing could record it, so a workspace came back with
+     * every pane showing whichever tab it happened to pick. With four panes open
+     * that is three wrong tabs on every reload.</p>
+     *
+     * <p>PER PANE, which is what the dock reports: a pane shows one of its tabs
+     * whether or not the keyboard is anywhere near it. {@link WorkspaceActiveChanged}
+     * is the other question — which tab the workspace as a whole is in — and both
+     * are kept because neither derives from the other once the pane the user was
+     * last IN is not itself recorded: the cursor over the panes is transient and
+     * deliberately unrecorded.</p>
+     */
+    record TabActivated(
+            PaneId           paneId,
+            WidgetInstanceId widgetInstanceId
+    ) implements WorkspaceEventPayload {
+        public static final EventName NAME = EventName.of("TabActivated");
+        public TabActivated {
+            Objects.requireNonNull(paneId,           "TabActivated.paneId");
+            Objects.requireNonNull(widgetInstanceId, "TabActivated.widgetInstanceId");
+        }
+        @Override public EventName name() { return NAME; }
+    }
+
     /** Workspace-active tab transition. Either side may be absent (no active tab). */
     record WorkspaceActiveChanged(
             Optional<TabRef> from,

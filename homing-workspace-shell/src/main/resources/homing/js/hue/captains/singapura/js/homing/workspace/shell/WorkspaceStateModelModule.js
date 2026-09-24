@@ -11,6 +11,7 @@
 //   _layout       : MTP-native layout tree ({kind:'leaf',slotId} | split)
 //   _tabsBySlot   : Map<slotId, Array<TabDescriptor>>
 //   _activeUuid   : widget UUID currently workspace-active (or null)
+//   _activeBySlot : slotId → the uuid that pane is showing
 //
 // TabDescriptor shape:
 //   { widgetInstanceUuid, widgetKind, params, title, pinned }
@@ -57,6 +58,9 @@ class WorkspaceStateModel {
             this._tabsBySlot.set(id, []);
         }
         this._activeUuid   = null;
+        // slotId → the uuid that pane is SHOWING. Per pane, because a pane shows
+        // one of its tabs whether or not the keyboard is anywhere near it.
+        this._activeBySlot = new Map();
         this._nextSplitId  = 1;
     }
 
@@ -85,6 +89,7 @@ class WorkspaceStateModel {
             case 'TabClosed':               this._close(p);        break;
             case 'SplitCreated':            this._split(p);        break;
             case 'SplitMerged':             this._merge(p);        break;
+            case 'TabActivated':            this._activated(p);    break;
             case 'TracksChanged':           this._tracks(p);       break;
             case 'WorkspaceActiveChanged':  this._setActive(p);    break;
             default: /* unknown event — ignore */                  break;
@@ -114,6 +119,12 @@ class WorkspaceStateModel {
     /** Currently workspace-active widgetInstanceUuid, or null. */
     activeUuid() { return this._activeUuid; }
 
+    /** The uuid the pane `slot` is showing, or null. */
+    activeInSlot(slot) { return this._activeBySlot.get(slot) || null; }
+
+    /** Every pane's showing tab, as a fresh Map. */
+    activeBySlot() { return new Map(this._activeBySlot); }
+
     /** Inspect snapshot — for tests + DevTools surfacing. */
     inspect() {
         const tabs = [];
@@ -129,6 +140,7 @@ class WorkspaceStateModel {
             layout:       this._layout,
             tabs:         tabs,
             activeUuid:   this._activeUuid,
+            activeBySlot: Array.from(this._activeBySlot.entries()),
             slotCount:    this._tabsBySlot.size,
             nextSplitId:  this._nextSplitId
         };
@@ -146,10 +158,11 @@ class WorkspaceStateModel {
             tabsPairs.push([slot, arr.slice()]);
         });
         return {
-            schemaVersion: 1,
+            schemaVersion: 2,
             layout:        this._cloneNode(this._layout),
             tabsBySlot:    tabsPairs,
             activeUuid:    this._activeUuid,
+            activeBySlot:  Array.from(this._activeBySlot.entries()),
             nextSplitId:   this._nextSplitId
         };
     }
@@ -162,7 +175,11 @@ class WorkspaceStateModel {
     static fromSnapshot(snapshot) {
         const m = new WorkspaceStateModel();
         if (!snapshot) return m;
-        if (snapshot.schemaVersion !== 1) {
+        // 1 is read as well as 2: its splits are binary and its panes remember
+        // no showing tab, and both of those read as an absence rather than a
+        // conflict - the layout below handles the first, and a pane with no
+        // showing tab recorded simply shows its first.
+        if (snapshot.schemaVersion !== 1 && snapshot.schemaVersion !== 2) {
             throw new Error('[WorkspaceStateModel] unknown snapshot '
                           + 'schemaVersion: ' + snapshot.schemaVersion);
         }
@@ -180,6 +197,12 @@ class WorkspaceStateModel {
             if (!m._tabsBySlot.has(slotId)) m._tabsBySlot.set(slotId, []);
         });
         m._activeUuid  = snapshot.activeUuid || null;
+        for (const pair of (snapshot.activeBySlot || [])) {
+            // Only where the pane still holds that tab: a snapshot outlives the
+            // arrangement it was taken of, and a pane showing a tab it no longer
+            // has is worse than a pane showing its first.
+            if (m._tabHeldBy(pair[0], pair[1])) m._activeBySlot.set(pair[0], pair[1]);
+        }
         m._nextSplitId = (typeof snapshot.nextSplitId === 'number')
                        ? snapshot.nextSplitId : 1;
         return m;
@@ -205,6 +228,39 @@ class WorkspaceStateModel {
             title:              p.title || null,
             pinned:             !!isPinned
         });
+        // The arrival default is FRONT: a tab that lands is the one its pane
+        // shows. Quiet arrivals do not spawn - they are moves.
+        this._activeBySlot.set(slot, uuid);
+    }
+
+    /** The pane `paneId` is showing this tab now. */
+    _activated(p) {
+        const slot = this._slotIdOfPaneId(p.paneId);
+        const uuid = p.widgetInstanceId;
+        if (!slot || !uuid) return;
+        if (!this._tabHeldBy(slot, uuid)) return;   // not that pane's tab to show
+        this._activeBySlot.set(slot, uuid);
+    }
+
+    /** Whether `slot` holds the tab `uuid`. */
+    _tabHeldBy(slot, uuid) {
+        const tabs = this._tabsBySlot.get(slot);
+        if (!tabs) return false;
+        for (const t of tabs) if (t.widgetInstanceUuid === uuid) return true;
+        return false;
+    }
+
+    /**
+     * The tab a pane was showing has gone from it. The pane shows the one that
+     * took its place, or the one before it when it was last, or nothing when it
+     * was the only one — the same answer a tab strip gives, so the two agree
+     * without the strip having to say.
+     */
+    _showingLeft(slot, wasIndex) {
+        const tabs = this._tabsBySlot.get(slot) || [];
+        if (!tabs.length) { this._activeBySlot.delete(slot); return; }
+        const i = Math.min(wasIndex, tabs.length - 1);
+        this._activeBySlot.set(slot, tabs[i].widgetInstanceUuid);
     }
 
     _move(p) {
@@ -224,6 +280,10 @@ class WorkspaceStateModel {
                   ? Math.max(0, Math.min(p.to.tabIndex, destTabs.length))
                   : destTabs.length;
         destTabs.splice(idx, 0, tab);
+        // A tab that moved is shown where it landed, and the pane it left shows
+        // whatever took its place.
+        if (this._activeBySlot.get(found.slot) === uuid) this._showingLeft(found.slot, found.index);
+        this._activeBySlot.set(destSlot, uuid);
     }
 
     _close(p) {
@@ -233,6 +293,7 @@ class WorkspaceStateModel {
         if (!found) return;
         this._tabsBySlot.get(found.slot).splice(found.index, 1);
         if (this._activeUuid === uuid) this._activeUuid = null;
+        if (this._activeBySlot.get(found.slot) === uuid) this._showingLeft(found.slot, found.index);
     }
 
     /**
@@ -307,6 +368,12 @@ class WorkspaceStateModel {
         for (const t of (this._tabsBySlot.get(fromSlot) || [])) kept.push(t);
         this._tabsBySlot.set(toSlot, kept);
         this._tabsBySlot.delete(fromSlot);
+        // The heir keeps showing what it was showing; the pane that went shows
+        // nothing, and only its tabs come across.
+        this._activeBySlot.delete(fromSlot);
+        if (!this._activeBySlot.has(toSlot) && kept.length) {
+            this._activeBySlot.set(toSlot, kept[0].widgetInstanceUuid);
+        }
     }
 
     /**

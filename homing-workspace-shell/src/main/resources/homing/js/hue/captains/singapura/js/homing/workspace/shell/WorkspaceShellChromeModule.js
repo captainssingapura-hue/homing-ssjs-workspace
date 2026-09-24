@@ -510,6 +510,17 @@ class WorkspaceShellChrome {
             },
             onTabActivated: function (slotId, tabId) {
                 if (self._focusCoordinator) self._focusCoordinator.onTabActivated(slotId, tabId);
+                // WHICH TAB THIS PANE IS SHOWING, recorded. The pane has always
+                // reported it and it went only to the focus coordinator, which is
+                // live state - so a workspace came back with every pane showing
+                // whichever tab it picked. That is one wrong tab per pane, every
+                // reload, and the state has had somewhere to put it all along
+                // (WidgetLocation.InPane.isActive) with no event to fill it.
+                const hit = self._tabRegistry && self._tabRegistry.findByTabId(tabId);
+                if (!hit) return;
+                const payload = { paneId: slotId, widgetInstanceId: hit.widgetInstanceUuid };
+                self._applyToModel('TabActivated', payload);
+                if (self._eventRecorder) self._eventRecorder.emit('TabActivated', payload);
             },
             onChromeInteract: function (ev) {
                 if (self._focusCoordinator) self._focusCoordinator.onChromeInteract(ev);
@@ -674,7 +685,22 @@ class WorkspaceShellChrome {
             console.log('[WorkspaceShellChrome] projecting model — '
                       + tasks.length + ' widget(s) to mount');
         }
-        return Promise.all(tasks);
+        // Every pane back on the tab it was showing, once its tabs are all in:
+        // the mounts are ordered by the model and the LAST one mounted would
+        // otherwise be the one showing, which is the order of the log rather
+        // than anything the user did.
+        return Promise.all(tasks).then(function () { self._showRecordedTabs(); });
+    }
+
+    /** Switch each pane to the tab the model says it was showing. */
+    _showRecordedTabs() {
+        const self = this;
+        this._model.activeBySlot().forEach(function (uuid, slot) {
+            const tabId = self._tabRegistry && self._tabRegistry.tabIdOf(uuid);
+            if (!tabId) return;
+            try { self._mtp.switchTab(slot, tabId); }
+            catch (e) { console.warn('[WorkspaceShellChrome] could not show ' + uuid + ' in ' + slot, e); }
+        });
     }
 
     /**
