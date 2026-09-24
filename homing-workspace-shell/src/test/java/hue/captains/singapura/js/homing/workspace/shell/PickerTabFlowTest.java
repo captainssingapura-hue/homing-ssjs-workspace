@@ -206,7 +206,8 @@ class PickerTabFlowTest extends JsModuleTestBase {
         flow.invokeMember("openInSlot", "tr");
 
         Value snap = flow.invokeMember("inspect");
-        assertEquals(0, snap.getMember("singletonsByKind").getMemberKeys().size());
+        // What is LIVE, asked of the registry, rather than a tally kept on the side.
+        assertEquals(0, snap.getMember("singletons").getMemberKeys().size());
         assertEquals(2, snap.getMember("tabsIssued").asInt());
     }
 

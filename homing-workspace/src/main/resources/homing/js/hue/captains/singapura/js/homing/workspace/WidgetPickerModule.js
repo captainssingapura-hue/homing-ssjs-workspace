@@ -25,9 +25,11 @@
 // sideways the moment a pane were narrowed. Home and End go to the ends of the
 // grid, Enter or Space picks, Escape cancels.
 //
-// The cursor is a design STATE — data-cursor="on", answered on the tile's own
-// word — so the keyboard and the pointer land on the same mark, and neither
-// this file nor its stylesheet picks a colour for it.
+// The cursor is a CLASS the picker puts on and takes off, wearing the selected
+// and focus words — the same mark for the keyboard and the pointer, and no
+// colour chosen here. Not a selector on the resting class: a worn token is put
+// on the element whenever its class is added, so a state written as a selector
+// marks every tile it is declared on.
 //
 // The keys come THROUGH THE PARTY: the picker joins the page's steward while it
 // is up and leaves when it goes. Without a steward it still picks by pointer;
@@ -90,7 +92,7 @@ class WidgetPicker {
         var self = this;
         var disabled = !!this._disabledIds[entry.simpleName];
         var tile = this._branch.createElement("tile" + this._seq + "_" + i, "div");
-        css.addClass(tile, hwp_tile, hwp_tile_cursor);
+        css.addClass(tile, hwp_tile);
         if (disabled) css.addClass(tile, hwp_tile_disabled);
         tile.setAttribute("role", "option");
         tile.setAttribute("aria-selected", "false");
@@ -118,11 +120,11 @@ class WidgetPicker {
     _moveTo(i) {
         if (i < 0 || i >= this._tiles.length || i === this._at) return;
         if (this._at >= 0) {
-            this._tiles[this._at].el.removeAttribute("data-cursor");
+            css.removeClass(this._tiles[this._at].el, hwp_tile_on);
             this._tiles[this._at].el.setAttribute("aria-selected", "false");
         }
         this._at = i;
-        this._tiles[i].el.setAttribute("data-cursor", "on");
+        css.addClass(this._tiles[i].el, hwp_tile_on);
         this._tiles[i].el.setAttribute("aria-selected", "true");
         if (this._tiles[i].el.scrollIntoView) {
             this._tiles[i].el.scrollIntoView({ block: "nearest", inline: "nearest" });

@@ -300,6 +300,28 @@ class WorkspacePanes {
 
     seam(on) { this._grid.seam(on); return this; }
 
+    /**
+     * A tab's chip says its new name.
+     *
+     * REACHING, and knowingly: the strip draws a chip's label once, from the
+     * title it was handed, and the pane offers no way to say a title changed.
+     * That belongs on the pane - retitle(id, title) beside switchTab - and
+     * until it is there this finds the label and writes it, which is the one
+     * place in this file that knows what a chip is made of.
+     */
+    retitle(slotId, tabId, title) {
+        var pane = this._panes.get(slotId);
+        if (!pane) return this;
+        var tab = this._tabObjs.get(tabId);
+        if (tab) tab.title = title;
+        var chip = pane.chipOf(pane.tabIndexOf(tabId));
+        if (!chip) return this;
+        chip.title = title;
+        var label = chip.querySelector("[class*='mtp-chip-label']");
+        if (label) label.textContent = title;
+        return this;
+    }
+
     /** The tab a pane is showing, or null. */
     activeTabOf(slotId) {
         var pane = this._panes.get(slotId);

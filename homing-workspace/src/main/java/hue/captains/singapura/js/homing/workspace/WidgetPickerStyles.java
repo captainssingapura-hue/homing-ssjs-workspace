@@ -79,16 +79,21 @@ public record WidgetPickerStyles() implements CssGroup<WidgetPickerStyles> {
     }
 
     /**
-     * The tile the keys are on. The SAME mark the pointer gets, because a
-     * reader should not have to learn two ways of being shown where they are;
-     * geometry is the design's and colour is the palette's, so this says only
-     * that the state exists and the word answers it.
+     * The tile the cursor is on, as a CLASS the picker adds and takes off —
+     * not a selector on the resting one.
+     *
+     * <p>It was a selector, and every tile wore the mark. A worn token is put
+     * ON THE ELEMENT by the manager whenever the class is added; a selector
+     * scopes only this class's own body, which was empty. So the class
+     * contributed no CSS at all and its four worn words landed on every tile
+     * in the grid, which is exactly what the screenshot showed: two tiles,
+     * both ringed. A design state is a class you add, as the focus monitor's
+     * holder row is.</p>
      */
-    public record hwp_tile_cursor() implements CssClass<WidgetPickerStyles> {
-        @Override public String selector() { return "&[data-cursor=\"on\"]"; }
+    public record hwp_tile_on() implements CssClass<WidgetPickerStyles> {
         @Override public List<? extends Wearable> wears() { return List.of(
                 of(Selected.class, Color.Surface.class), of(Selected.class, Color.Ink.class),
-                of(Focus.class, Color.Edge.class), of(Focus.class, Shape.Shadow.class)); }
+                of(Focus.class, Color.Edge.class)); }
         @Override public String body() { return ""; }
     }
     public record hwp_tile_disabled() implements CssClass<WidgetPickerStyles> {
@@ -162,7 +167,7 @@ public record WidgetPickerStyles() implements CssGroup<WidgetPickerStyles> {
                 new hwp_grid(),
                 new hwp_group_label(),
                 new hwp_tile(),
-                new hwp_tile_cursor(),
+                new hwp_tile_on(),
                 new hwp_tile_disabled(),
                 new hwp_tile_icon(),
                 new hwp_tile_label(),

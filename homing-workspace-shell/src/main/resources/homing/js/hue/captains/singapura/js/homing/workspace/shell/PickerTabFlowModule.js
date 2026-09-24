@@ -61,14 +61,13 @@ class PickerTabFlow {
         // MTP. Without this the model is correct at boot but drifts as
         // soon as the user opens a new tab via the picker.
         this._model            = opts.model       || null;
-        this._singletonsByKind = {};
         this._counter          = 0;
     }
 
     /** Inspect-able state for dev tools (Diligent Secretaries pillar 2). */
     inspect() {
         return {
-            singletonsByKind: Object.assign({}, this._singletonsByKind),
+            singletons: this._liveSingletons(),
             tabsIssued:       this._counter
         };
     }
@@ -101,7 +100,7 @@ class PickerTabFlow {
         // in the tab it is showing.
         if (this._mtp.land) this._mtp.land(slotId, tabId);
         const pickerEntries = this._spec.entries || [];
-        const disabledIds = Object.assign({}, this._singletonsByKind);
+        const disabledIds = this._liveSingletons();
 
         // Its own branch, and the page's steward: the picker takes the keys
         // while it is up and gives them back when it picks or is cancelled.
@@ -127,7 +126,7 @@ class PickerTabFlow {
 
     /** SINGLETON focus-existing path: dispose picker tab, focus the live one. */
     _focusExistingSingleton(entry, slotId, tabId) {
-        const existingId = this._singletonsByKind[entry.simpleName];
+        const existingId = this._liveSingletons()[entry.simpleName];
         if (existingId) {
             const liveSlot = this.findSlotForTab(existingId);
             if (liveSlot && this._mtp.switchTab) {
@@ -163,6 +162,10 @@ class PickerTabFlow {
         while (contentEl.firstChild) contentEl.removeChild(contentEl.firstChild);
         contentEl.appendChild(loading);
         tab.title = entry.label;
+        // A tab called "New tab" is only true until it is one. The strip drew
+        // its chip from the title it was given, so the pane is told rather than
+        // left to find out.
+        if (this._mtp.retitle) this._mtp.retitle(slotId, tabId, entry.label);
         if (this._mtp.switchTab) this._mtp.switchTab(slotId, tabId);
 
         // Sync: per-widget branch. Sanitise the uuid for branch-name
@@ -226,13 +229,7 @@ class PickerTabFlow {
                 if (self._tabRegistry) {
                     self._tabRegistry.unregister(tab.widgetInstanceUuid);
                 }
-                if (entry.lifecycleHint === 'SINGLETON') {
-                    delete self._singletonsByKind[entry.simpleName];
-                }
             };
-            if (entry.lifecycleHint === 'SINGLETON') {
-                self._singletonsByKind[entry.simpleName] = tabId;
-            }
             // If the pane is STILL SHOWING this tab after the async mount, the
             // controller catches up: it did not exist when the tab was made
             // active, so nothing could tell it then.
@@ -247,6 +244,30 @@ class PickerTabFlow {
     }
 
     /** Finds the slot id that hosts the given tab. */
+    /**
+     * The SINGLETON kinds that are open right now, as kind -> the tab id
+     * holding one.
+     *
+     * Asked of what is live, because a tally kept on the side is only right
+     * until something else opens a tab. It was such a tally, written only by
+     * this flow's own spawns — so a widget restored by PROJECTION never
+     * counted, and after a reload the picker offered a singleton that was
+     * already open and a second one was attempted.
+     */
+    _liveSingletons() {
+        const out = {};
+        if (!this._tabRegistry || !this._tabRegistry.uuids) return out;
+        const single = {};
+        for (const e of (this._spec.entries || [])) {
+            if (e.lifecycleHint === 'SINGLETON') single[e.simpleName] = true;
+        }
+        for (const uuid of this._tabRegistry.uuids()) {
+            const hit = this._tabRegistry.lookup(uuid);
+            if (hit && single[hit.widgetKind]) out[hit.widgetKind] = this._tabRegistry.tabIdOf(uuid) || uuid;
+        }
+        return out;
+    }
+
     findSlotForTab(tabId) {
         if (!this._mtp.getState) return null;
         const state = this._mtp.getState();

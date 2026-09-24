@@ -84,7 +84,7 @@ public record WidgetPickerModule() implements DomModule<WidgetPickerModule> {
                                 new WidgetPickerStyles.hwp_grid(),
                                 new WidgetPickerStyles.hwp_group_label(),
                                 new WidgetPickerStyles.hwp_tile(),
-                                new WidgetPickerStyles.hwp_tile_cursor(),
+                                new WidgetPickerStyles.hwp_tile_on(),
                                 new WidgetPickerStyles.hwp_tile_disabled(),
                                 new WidgetPickerStyles.hwp_tile_icon(),
                                 new WidgetPickerStyles.hwp_tile_label(),
