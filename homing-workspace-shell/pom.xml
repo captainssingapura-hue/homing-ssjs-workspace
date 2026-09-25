@@ -56,6 +56,13 @@
             <artifactId>homing-site-mpa</artifactId>
             <version>${homing.core.version}</version>
         </dependency>
+        <!-- The MPA's implementation - StandardMpa, its page, its chrome - from the
+             ui-components repo; core's homing-site-mpa above holds the definitions. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-site-mpa-standard</artifactId>
+            <version>${homing.components.version}</version>
+        </dependency>
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-design-core</artifactId>
@@ -65,7 +72,7 @@
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-ui-menu</artifactId>
-            <version>${homing.core.version}</version>
+            <version>${homing.components.version}</version>
         </dependency>
 
         <!-- The three the workspace's panes are made of: the grid arranges,
@@ -73,17 +80,17 @@
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-ui-splitgrid</artifactId>
-            <version>${homing.core.version}</version>
+            <version>${homing.components.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-ui-panes</artifactId>
-            <version>${homing.core.version}</version>
+            <version>${homing.components.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-ui-docking</artifactId>
-            <version>${homing.core.version}</version>
+            <version>${homing.components.version}</version>
         </dependency>
 
         <!-- The Dialog component the switcher opens: the first of the studio's
@@ -91,7 +98,7 @@
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-ui-dialog</artifactId>
-            <version>${homing.core.version}</version>
+            <version>${homing.components.version}</version>
         </dependency>
 
         <!-- THE UI SWAP'S REMAINING DEBT, made visible. homing-workspace used

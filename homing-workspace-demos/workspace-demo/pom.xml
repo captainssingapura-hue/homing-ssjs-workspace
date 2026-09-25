@@ -42,12 +42,19 @@
             <artifactId>homing-site-mpa</artifactId>
             <version>${homing.core.version}</version>
         </dependency>
+        <!-- The MPA's implementation - StandardMpa, its page, its chrome - from the
+             ui-components repo; core's homing-site-mpa above holds the definitions. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-site-mpa-standard</artifactId>
+            <version>${homing.components.version}</version>
+        </dependency>
 
         <!-- The button the demo counter is built from. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-ui-elements</artifactId>
-            <version>${homing.core.version}</version>
+            <version>${homing.components.version}</version>
         </dependency>
 
         <!-- The relation grid and tree the demo's Books and Shelves views are

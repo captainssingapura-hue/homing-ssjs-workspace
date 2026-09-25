@@ -45,6 +45,10 @@
         <!-- The substrate, from the core repo. Its own version, not ours:
              this repo releases on its own clock. -->
         <homing.core.version>LOCAL-SNAPSHOT</homing.core.version>
+        <!-- The ui-components (and the MPA's standard implementation), from the
+             homing-ssjs-ui-components repo: moved out of core, same coordinates,
+             their own version. -->
+        <homing.components.version>LOCAL-SNAPSHOT</homing.components.version>
         <!-- The relation grid family (a repo of its own), for the demo's views. -->
         <homing.relgrid.version>LOCAL-SNAPSHOT</homing.relgrid.version>
         <junit.version>5.11.3</junit.version>
