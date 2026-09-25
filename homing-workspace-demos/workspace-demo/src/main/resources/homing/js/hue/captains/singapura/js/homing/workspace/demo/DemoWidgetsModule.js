@@ -2,12 +2,13 @@
 // DemoWidgetsModule — two widgets for the demo workspace, written to the new
 // contract and nothing more.
 //
-//   new NoteWidget(branch, params)      -> { root }
-//   new CounterWidget(branch, params)   -> { root, keyDown }
+//   new NoteWidget(branch, params, host)      -> { root }
+//   new CounterWidget(branch, params, host)   -> { root, keyDown }
 //
 // A WIDGET RUNS IN A ROOM and knows nothing else. It is handed a branch and
 // gives back { root }. It does not touch the tab, the dock or the focus party:
 // the room is the member of the party, and it wraps the element given back.
+// Its one word to where it runs is its HOST: host.title(text) names its tab.
 //
 // The two show the two things a widget may be:
 //
@@ -17,7 +18,7 @@
 //   CounterWidget has both worlds. Its buttons are native controls and take
 //   the browser's focus the ordinary way; and it offers keyDown, so when the
 //   tab holds the keys the room hands arrows on to it. It never asks the party
-//   for anything.
+//   for anything. Its name is its count, so it tells its host on every change.
 // =============================================================================
 
 const _demoOwner = Object.freeze({ toString: () => "demoWidget" });
@@ -35,9 +36,10 @@ class NoteWidget {
 }
 
 class CounterWidget {
-    constructor(branch, params) {
+    constructor(branch, params, host) {
         branch.activate(_demoOwner);
         var self = this;
+        this._host = host || null;
         this._n = Number(params && params.start) || 0;
 
         var root = branch.createElement("counter", "div");
@@ -69,7 +71,11 @@ class CounterWidget {
     }
 
     _by(d) { this._n += d; this._draw(); }
-    _draw() { this._count.textContent = String(this._n); }
+    /** The number, and the name that is the number: the tab says it too. */
+    _draw() {
+        this._count.textContent = String(this._n);
+        if (this._host) this._host.title("Counter · " + this._n);
+    }
 
     /** Offered, not claimed: the room calls this with a key it holds. */
     keyDown(ev) {

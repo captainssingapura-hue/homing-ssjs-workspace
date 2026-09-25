@@ -29,6 +29,6 @@ public final class DemoPictureWidget extends WorkspaceWidget<WorkspaceWidget._No
 
     @Override
     protected List<String> constructBodyJs() {
-        return List.of("    return new PictureWidget(branch, params);");
+        return List.of("    return new PictureWidget(branch, params, host);");
     }
 }

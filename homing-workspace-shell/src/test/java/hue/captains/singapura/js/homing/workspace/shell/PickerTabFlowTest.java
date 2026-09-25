@@ -33,6 +33,8 @@ class PickerTabFlowTest extends JsModuleTestBase {
                     this.removedTabs     = [];
                     this.switchedTo      = [];
                     this.landed          = [];
+                    this.retitled        = [];
+                    this.iconed          = [];
                     this.workspaceActiveTabId = null;
                     this._tabsBySlot     = new Map();
                 }
@@ -43,6 +45,8 @@ class PickerTabFlowTest extends JsModuleTestBase {
                     return {
                         slotId, branch, widgets: [], said: [], active: null,
                         root: { children: [] }, focus: { join() {} },
+                        _host: Object.freeze({ title() {}, parties: {} }),
+                        host() { return this._host; },
                         branchFor(name) { return branch.createBranch(name); },
                         setWidget(w) { this.widgets.push(w); return this; },
                         say(t) { this.said.push(t); return this; },
@@ -66,6 +70,8 @@ class PickerTabFlowTest extends JsModuleTestBase {
                     if (s) s.tabs = s.tabs.filter(t => t.id !== tabId);
                 }
                 switchTab(slotId, tabId) { this.switchedTo.push({ slotId, tabId }); }
+                retitle(tabId, title) { this.retitled.push({ tabId, title }); }
+                setIcon(tabId, icon) { this.iconed.push({ tabId, icon }); }
                 land(slotId, tabId) { this.landed.push({ slotId, tabId }); }
                 activeTabOf(slotId) {
                     const s = this._tabsBySlot.get(slotId);
@@ -193,6 +199,30 @@ class PickerTabFlowTest extends JsModuleTestBase {
         assertTrue(!picker.getMember("mountedInto").isNull());
     }
 
+    /**
+     * The chooser picked: the SAME tab takes the kind's name and icon at once,
+     * by the tab-pane's own calls - the widget may name itself later, through
+     * its host - and the widget is mounted with the room's host.
+     */
+    @Test
+    void aPickNamesTheTabAfterTheKindWithItsIcon_andTheWidgetGetsTheRoomsHost() {
+        Value setup = newPickerFlow();
+        Value flow = setup.getMember("flow");
+        String tabId = flow.invokeMember("openInSlot", "tl").asString();
+        js.eval("js", "_lastPicker.opts.onPick(_lastPicker.opts.entries[0], {})");
+        Value mtp = setup.getMember("mtp");
+        assertEquals(1, mtp.getMember("retitled").getArraySize());
+        assertEquals(tabId, mtp.getMember("retitled").getArrayElement(0).getMember("tabId").asString());
+        assertEquals("Doc", mtp.getMember("retitled").getArrayElement(0).getMember("title").asString());
+        assertEquals("D", mtp.getMember("iconed").getArrayElement(0).getMember("icon").getMember("value").asString(),
+                "the kind's icon, as a site's favicon");
+        // The mount is past the flow's one async boundary; the jobs run when the eval above returns.
+        Value hosts = setup.getMember("flow").getMember("_mounter").getMember("hosts");
+        assertEquals(1, hosts.getArraySize(), "the widget was mounted");
+        Value room = mtp.getMember("addedTabs").getArrayElement(0).getMember("tab").getMember("widget");
+        assertTrue(hosts.getArrayElement(0).equals(room.invokeMember("host")), "with its room's host, and no other");
+    }
+
     @Test
     void onCancelRemovesTheTab() {
         Value setup = newPickerFlow();
@@ -230,7 +260,7 @@ class PickerTabFlowTest extends JsModuleTestBase {
                     const wB  = new StubBranch('widgets');
                     const spec = {
                         entries: [
-                            { simpleName: 'DocViewWidget', moduleUrl: '/dvw', label: 'Doc' },
+                            { simpleName: 'DocViewWidget', moduleUrl: '/dvw', label: 'Doc', icon: { kind: 'emoji', value: 'D' } },
                             { simpleName: 'Spinning',      moduleUrl: '/s',   label: 'Spin' }
                         ]
                     };
@@ -238,14 +268,15 @@ class PickerTabFlowTest extends JsModuleTestBase {
                         resolveCalls: [],
                         resolve: function (e) { this.resolveCalls.push(e);
                                                 return Promise.resolve({ construct: () => ({ root:{}, setActive:()=>{} }) }); },
-                        mount:   function (mod, b, e) { return mod.construct(b, {}, {}); },
+                        hosts:   [],
+                        mount:   function (mod, b, e, p, host) { this.hosts.push(host); return mod.construct(b, {}, host); },
                         attach:  function (c, tab) { tab.controller = c; }
                     };
                     // The pane rests the keys itself now; nothing sits above it.
                     // a spy stands in for it.
                     const flow = new PickerTabFlow({
                         mtp, widgetsBranch: wB, spec,
-                        workspaceCtx: {}, WidgetPickerCtor: StubPicker, mounter: stubMounter
+                        WidgetPickerCtor: StubPicker, mounter: stubMounter
                     });
                     return { mtp, wB, spec, flow };
                 })()""");

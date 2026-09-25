@@ -29,6 +29,6 @@ public final class DemoShelvesWidget extends WorkspaceWidget<WorkspaceWidget._No
 
     @Override
     protected List<String> constructBodyJs() {
-        return List.of("    return new ShelvesWidget(branch, params);");
+        return List.of("    return new ShelvesWidget(branch, params, host);");
     }
 }

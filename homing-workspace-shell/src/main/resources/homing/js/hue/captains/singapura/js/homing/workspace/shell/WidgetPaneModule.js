@@ -1,14 +1,24 @@
 // =============================================================================
 // WidgetPaneModule — the PANE half of a tab-pane: the room a widget runs in.
 //
-//   var room = new WidgetPane(branch, { focus })     focus: the dock's focus branch
+//   var room = new WidgetPane(branch, { focus, onTitle?, parties? })
+//     focus     the dock's focus branch
+//     onTitle   (text) the widget named itself: the holder puts it on the tab
+//     parties   the parties the workspace exposes to its widgets, by name
 //   room.root                  the element a dock shows, and a desk floats
 //   room.focus                 the room's membership of the focus party
 //   room.branchFor(name)       a branch for the widget, under the room's own
+//   room.host()                the widget's HOST: what it may say to where it runs, handed to
+//                              it at construction - { title(text), parties }
 //   room.setWidget(widget)     put a widget in the room; the one before goes
 //   room.widget()              the widget in the room, or null
 //   room.say(text)             a status line as the tenant, until a widget arrives
 //   room.activate() .keyDown(ev) .dispose()
+//
+// What a widget is handed: its branch, its params, and its HOST - the one
+// handle to where it runs, the same for every widget:
+//   host.title(text)      its name, now: the tab says so. Its icon is its kind's.
+//   host.parties.<name>   a party the workspace exposes to its widgets
 //
 // What a widget may offer, all of it optional:
 //   keyDown(ev)   a key the room holds, handed on; true when taken
@@ -62,6 +72,9 @@ class WidgetPane {
         this._branch = branch;
         this._widget = null;
         this._seq = 0;
+        this._onTitle = typeof opts.onTitle === "function" ? opts.onTitle : null;
+        this._parties = opts.parties || {};
+        this._host = null;
 
         var root = branch.createElement("room", "div");
         css.addClass(root, wp_host);
@@ -96,6 +109,25 @@ class WidgetPane {
         if (was !== "held" && was !== "lent") return;
         var a = typeof document === "undefined" ? null : document.activeElement;
         this.root.setAttribute("data-keys", a && a !== this.root && a !== document.body && this.root.contains(a) ? "lent" : "held");
+    }
+
+    /**
+     * The widget's host: what it may say to where it runs, and all of it.
+     * Handed to the widget at construction; one per room, so a widget that
+     * keeps it may use it for as long as it lives. A blank name is no name.
+     */
+    host() {
+        if (!this._host) {
+            var self = this;
+            this._host = Object.freeze({
+                title: function (text) {
+                    if (text == null || !String(text).trim() || !self._onTitle) return;
+                    self._onTitle(String(text));
+                },
+                parties: this._parties
+            });
+        }
+        return this._host;
     }
 
     /** A branch for a widget to be built on, under the room's own. */

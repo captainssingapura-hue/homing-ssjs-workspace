@@ -24,8 +24,7 @@ import java.util.List;
  *   <caption>Two widget shapes</caption>
  *   <tr><th></th><th>RFC 0024 Widget</th><th>WorkspaceWidget</th></tr>
  *   <tr><td>JS function</td><td>{@code mountInto(branch, parent, params)} — returns nothing</td>
- *       <td>{@code construct(branch, params)} — returns
- *           {@code { root: Element, setActive: (boolean) => void }}</td></tr>
+ *       <td>{@code construct(branch, params, host)} — returns {@code { root: Element }}</td></tr>
  *   <tr><td>Placement</td><td>Widget attaches to {@code parent} (host gives it the spot)</td>
  *       <td>Widget returns a controller; workspace chrome attaches the controller's root</td></tr>
  *   <tr><td>Load timing</td><td>Eager via static import graph at page load</td>
@@ -33,36 +32,45 @@ import java.util.List;
  *   <tr><td>Lifecycle hint</td><td>n/a</td>
  *       <td>Declared via {@link #lifecycleHint()} — MULTI / SINGLETON / PINNED</td></tr>
  *   <tr><td>Active gating</td><td>n/a (single-instance)</td>
- *       <td>Returned {@code setActive(boolean)} fires on workspace-active transitions —
- *           widget toggles keyboard listeners, audio, animation pausing as needed.
- *           Mouse gating is handled by the framework via an invisible overlay on
- *           non-active tabs; widget code doesn't worry about mouse.</td></tr>
+ *       <td>An offered {@code setActive(boolean)} hears whether its tab is the one
+ *           showing — for pausing audio or animation. Keys never need gating: they
+ *           come through the room, the focus party's member, only while it holds them.</td></tr>
  *   <tr><td>Params</td><td>Typed Java record; URL marshalling reads it</td>
  *       <td>Same — typed Params record; picker form derives from it; URL marshalling
  *           and (future) server-side state storage both use it</td></tr>
  * </table>
  *
- * <h2>Construct return contract (RFC 0025 Ext1b D2.l)</h2>
+ * <h2>The construct contract: a widget runs in a room</h2>
  *
- * <p>{@code construct(branch, params)} MUST return a controller object of shape:</p>
+ * <p>A tab is two parts: the TAB — its chip, its name, its icon, its place —
+ * which is the workspace's; and the ROOM its widget runs in, the focus
+ * party's member. The widget touches neither. It is handed three things:</p>
+ *
+ * <ul>
+ *   <li>{@code branch} — its own, UNACTIVATED: the widget activates it, as
+ *       every component does, and mints everything on it.</li>
+ *   <li>{@code params} — the typed Params record, as plain JS.</li>
+ *   <li>{@code host} — what the widget may say to the host it runs in, and
+ *       all of it. The standard API, the same for every widget:
+ *       <pre>{@code host.title("Report.md")   // the widget's name, now: its tab says so}</pre>
+ *       A widget names itself when its name is its own to know — a document's
+ *       file name, a count, a zoom — at construction and on every change. Until
+ *       it does, the tab carries the kind's label; its ICON is always the
+ *       kind's ({@link WidgetEntry#icon()}), like a site's favicon.</li>
+ * </ul>
+ *
+ * <p>It returns {@code { root: Element }}, and may offer more — each optional,
+ * each the widget's to have a use for:</p>
  *
  * <pre>{@code
  * {
- *     root      : Element,                    // attached to the tab's content area
- *     setActive : function (active: boolean)  // workspace-active transition callback
+ *     root      : Element,                      // what the room shows
+ *     keyDown   : function (ev) -> boolean,     // a key the room holds, handed on
+ *     activate  : function (),                  // the room holds the keys: put the focus where yours work
+ *     setActive : function (showing: boolean),  // its tab is, or is no longer, the one showing
+ *     dispose   : function ()                   // it is going
  * }
  * }</pre>
- *
- * <p>The chrome validates this shape and throws clearly if construct returns
- * anything else. Widgets with no behavior to gate (a doc viewer, a static
- * gallery — anything that's mouse-only with no document listeners and no
- * audio) ship a no-op {@code setActive: function (active) {}} — the field
- * is required by contract; the body can be empty.</p>
- *
- * <p>{@code setActive(true)} fires when this widget's tab becomes the single
- * workspace-active tab; {@code setActive(false)} fires when another tab
- * takes over. Both are wrapped in try/catch by the framework — a misbehaving
- * widget doesn't block the transition.</p>
  *
  * <h2>Subclass template</h2>
  *
@@ -160,8 +168,8 @@ public abstract class WorkspaceWidget<P extends WorkspaceWidget._Param, W extend
     public LifecycleHint lifecycleHint() { return LifecycleHint.MULTI; }
 
     /**
-     * The body JS of the {@code construct(branch, params)} function. Two
-     * things in scope:
+     * The body JS of the {@code construct(branch, params, host)} function.
+     * Three things in scope:
      * <ul>
      *   <li>{@code branch} — DomOpsParty branch owned by the workspace's
      *       widgets sub-tree. Use {@code branch.createElement(name, tag)}
@@ -170,14 +178,12 @@ public abstract class WorkspaceWidget<P extends WorkspaceWidget._Param, W extend
      *   <li>{@code params} — plain JS object matching the typed Params
      *       record. The framework marshals from URL / picker submission
      *       into the typed shape before invoking construct.</li>
+     *   <li>{@code host} — the widget's word to its host:
+     *       {@code host.title(text)} names its tab.</li>
      * </ul>
      *
-     * <p>The body MUST {@code return} a controller object
-     * {@code { root: Element, setActive: (boolean) => void }} — the
-     * workspace chrome attaches {@code root} to the tab's content area
-     * and wires {@code setActive} into the workspace-active transition.
-     * Widgets with nothing to gate ship a no-op {@code setActive}.
-     * See the class-level Javadoc for the full contract.</p>
+     * <p>The body MUST {@code return} a controller object with at least
+     * {@code root}; see the class-level Javadoc for the rest, all optional.</p>
      */
     protected abstract List<String> constructBodyJs();
 
@@ -209,12 +215,10 @@ public abstract class WorkspaceWidget<P extends WorkspaceWidget._Param, W extend
     @Override
     public final List<String> selfContent(ModuleNameResolver resolver) {
         var lines = new ArrayList<String>();
-        // RFC 0028 cycle 4 — third arg `workspaceCtx` carries workspace-
-        // provided messaging Parties (and any future per-workspace handles).
-        // Widgets that don't need messaging ignore the arg; existing
-        // implementations are forward-compatible (extra args are silently
-        // dropped by JavaScript function calls).
-        lines.add("function construct(branch, params, workspaceCtx) {");
+        // The third arg is the widget's HOST: what it may say to the host it
+        // runs in - host.title(text) names its tab. A body that has nothing to
+        // say ignores it.
+        lines.add("function construct(branch, params, host) {");
         lines.add("    try {");
         lines.addAll(constructBodyJs());
         lines.add("    } catch (e) {");
@@ -223,11 +227,12 @@ public abstract class WorkspaceWidget<P extends WorkspaceWidget._Param, W extend
         // conformant itself — build it through the DomOpsParty branch, with no
         // inline style or literal colour (a class would need a CssGroup this base
         // doesn't own; the fallback stays unstyled, which is fine for an error).
+        // The branch was handed unactivated; a widget that threw before
+        // activating it has left it so, and the card needs it active.
+        lines.add("        try { branch.activate({ toString: function () { return 'widgetError'; } }); } catch (_) {}");
         lines.add("        var err = branch.createElement('__widgetError', 'div');");
         lines.add("        err.textContent = '\\u26a0 Widget failed to construct: ' + (e && e.message ? e.message : String(e));");
-        lines.add("        // Return the controller shape the chrome expects; setActive is a no-op");
-        lines.add("        // — the error widget has nothing to gate.");
-        lines.add("        return { root: err, setActive: function (active) {} };");
+        lines.add("        return { root: err };");
         lines.add("    }");
         lines.add("}");
         return lines;

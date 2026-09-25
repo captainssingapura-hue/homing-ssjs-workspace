@@ -91,8 +91,8 @@ public interface WorkspaceSpec extends Stateless {
     /**
      * Parties this workspace constructs at boot. Each {@link PartyDecl}
      * names the Secretary's JS module + initial actors + (optionally)
-     * the {@code workspaceCtx} key the constructed Party is exposed
-     * under to widgets.
+     * the name the constructed Party is exposed under to widgets, on
+     * their host as {@code host.parties.<name>}.
      */
     default List<PartyDecl> parties() { return List.of(); }
 

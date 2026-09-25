@@ -4,10 +4,18 @@
 //
 //   new WorkspacePanes(branch, { host, layout, budget?, onEvent?, keyboard?,
 //                                keyboardId?, menus?, stripMenu?, keys?,
-//                                seam?, thickness? })
+//                                seam?, thickness?, parties? })
 //     seam       the lattice drawn - every splitter and the grid's edge; on
 //                unless said false
 //     thickness  its lines, in pixels; 1 unless said
+//     parties    the parties the workspace exposes to its widgets, on every room's host
+//
+// A TAB'S NAME AND ICON are the tab-pane's, and this assembly is the tab-pane:
+//   panes.retitle(tabId, title)   the tab's name, wherever it is - its dock's chip, or the
+//                                 floating pane's head. A widget says it through its room's
+//                                 host (host.title), and it arrives here.
+//   panes.setIcon(tabId, icon)    the tab's icon, a widget kind's as the workspace declares
+//                                 it ({ kind, value }), shown as an element made and kept here
 //
 // WHAT THIS REPLACES. The studio's MultiTabPane was a pane that SPLIT ITSELF:
 // one object owning a tree of leaves, a strip per leaf, the dividers, the drag
@@ -56,6 +64,8 @@ class WorkspacePanes {
         this._panes = new Map();       // cellId → MultiTabPane
         this._tabObjs = new Map();     // tabId  → the tab the holder gave us
         this._floated = new Map();     // tabId  → { slotId, index } it left
+        this._icons = new Map();       // tabId  → { branch, el }: the icon the tab shows
+        this._iconSeq = 0;
         this._merging = null;          // { slotId, toward } while a merge carries its tabs across
         this._roomSeq = 0;
         this._cellSeq = 0;
@@ -120,6 +130,7 @@ class WorkspacePanes {
                 break;
             case "TabRemoved":
                 this._tabObjs.delete(ev.tab.id);
+                this._forgetIcon(ev.tab.id);
                 break;
             case "Docked": {
                 this._floated.delete(ev.tabId);
@@ -141,6 +152,7 @@ class WorkspacePanes {
                 if (!from || !tab) break;
                 this._floated.delete(ev.id);
                 this._tabObjs.delete(ev.id);
+                this._forgetIcon(ev.id);
                 this._emit(ev);
                 ev = PaneEvents.TabRemoved(from.slotId, tab, from.index);
                 break;
@@ -209,7 +221,16 @@ class WorkspacePanes {
     roomFor(slotId) {
         var pane = this._panes.get(slotId);
         if (!pane) return null;
-        return new WidgetPane(this._branch.createBranch("room" + (++this._roomSeq)), { focus: pane.focus });
+        var self = this;
+        var room = new WidgetPane(this._branch.createBranch("room" + (++this._roomSeq)), {
+            focus: pane.focus,
+            parties: this._opts.parties || {},
+            // the widget named itself: its tab, wherever the tab is, says so
+            onTitle: function (text) {
+                self._tabObjs.forEach(function (tab) { if (tab.widget === room) self.retitle(tab.id, text); });
+            }
+        });
+        return room;
     }
 
     /**
@@ -350,25 +371,57 @@ class WorkspacePanes {
     seam(on) { this._grid.seam(on); return this; }
 
     /**
-     * A tab's chip says its new name.
-     *
-     * REACHING, and knowingly: the strip draws a chip's label once, from the
-     * title it was handed, and the pane offers no way to say a title changed.
-     * That belongs on the pane - retitle(id, title) beside switchTab - and
-     * until it is there this finds the label and writes it, which is the one
-     * place in this file that knows what a chip is made of.
+     * A tab's name, now, wherever the tab is: on its dock's chip, or on the
+     * floating pane's head while it floats - and on the tab itself, so it
+     * comes back down with it.
      */
-    retitle(slotId, tabId, title) {
-        var pane = this._panes.get(slotId);
-        if (!pane) return this;
+    retitle(tabId, title) {
         var tab = this._tabObjs.get(tabId);
         if (tab) tab.title = title;
-        var chip = pane.chipOf(pane.tabIndexOf(tabId));
-        if (!chip) return this;
-        chip.title = title;
-        var label = chip.querySelector("[class*='mtp-chip-label']");
-        if (label) label.textContent = title;
+        var slot = this.slotOf(tabId);
+        if (slot) { this._panes.get(slot).retitle(tabId, title); return this; }
+        var afloat = this._docking.desk.pane(tabId);
+        if (afloat) afloat.title(title);
         return this;
+    }
+
+    /**
+     * A tab's icon: a widget kind's, as the workspace declares it - { kind,
+     * value } - or null for none. The tab shows it as an element made and
+     * kept here, one per tab, so a tab that changes kind (a chooser that
+     * becomes a widget) changes its icon in place.
+     */
+    setIcon(tabId, icon) {
+        var el = icon ? this._iconFor(tabId, icon) : null;
+        var tab = this._tabObjs.get(tabId);
+        if (tab) tab.icon = el;
+        var slot = this.slotOf(tabId);
+        if (slot) { this._panes.get(slot).reicon(tabId, el); return this; }
+        var afloat = this._docking.desk.pane(tabId);
+        if (afloat) afloat.icon(el);
+        return this;
+    }
+
+    /** The tab's icon element, made on first asking and shown with the kind's glyph; an icon the page cannot draw yet shows the kind's default. */
+    _iconFor(tabId, icon) {
+        var rec = this._icons.get(tabId);
+        if (!rec) {
+            var b = this._branch.createBranch("icon" + (++this._iconSeq));
+            b.activate(_owner);
+            rec = { branch: b, el: b.createElement("glyph", "span") };
+            this._icons.set(tabId, rec);
+        }
+        // an Svg icon is a reference the page has no renderer for yet; the picker shows the default too
+        rec.el.textContent = icon.kind === "emoji" && icon.value ? icon.value : "📦";
+        return rec.el;
+    }
+
+    /** A tab gone: its icon with it. */
+    _forgetIcon(tabId) {
+        var rec = this._icons.get(tabId);
+        if (!rec) return;
+        this._icons.delete(tabId);
+        try { rec.branch.dissolve(); } catch (e) {}
     }
 
     /** The tab a pane is showing, or null. */

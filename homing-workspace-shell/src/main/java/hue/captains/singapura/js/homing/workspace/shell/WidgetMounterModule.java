@@ -13,12 +13,12 @@ import java.util.List;
  * {@code WidgetMounter} — Phase 15 of the workspace-shell chrome.
  * Stateless helper that turns a widget {@code entry} + params into a
  * mounted controller. Encapsulates the dynamic-import +
- * {@code construct(branch, params, workspaceCtx)} + controller-shape
+ * {@code construct(branch, params, host)} + controller-shape
  * validation flow that V1 inlines in three places (picker spawn,
  * pinned spawn, replay restore).
  *
  * <p>Functional Object: single method {@code mount(branch, entry,
- * params, workspaceCtx) → Promise<controller>}. No instance state. The
+ * params, host) → Promise<controller>}. No instance state. The
  * dynamic import is the only side effect; the rest is straight typed
  * dispatch.</p>
  *

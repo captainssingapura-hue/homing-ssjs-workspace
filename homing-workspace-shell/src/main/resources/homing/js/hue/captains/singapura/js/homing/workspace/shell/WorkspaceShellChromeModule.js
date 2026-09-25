@@ -513,6 +513,8 @@ class WorkspaceShellChrome {
             keyboardId: 'workspace',
             menus:      this._menus,
             stripMenu:  'pane',
+            // the parties the spec exposes to its widgets, on every room's host
+            parties:    this._workspaceCtx,
             onEvent: function (ev) { self._onPaneEvent(ev); }
         });
         this._handleMenus();
@@ -736,6 +738,7 @@ class WorkspaceShellChrome {
             room.dispose();
             return Promise.resolve();
         }
+        this._mtp.setIcon(tab.id, entry.icon);   // the kind's icon, as a site's favicon
         this._tabRegistry.register({
             widgetInstanceUuid: uuid,
             tab:                tab,
@@ -749,7 +752,8 @@ class WorkspaceShellChrome {
             const wBranch = room.branchFor('w-' + uuid.replace(/[^A-Za-z0-9_-]/g, '_'));
             // Handed UNACTIVATED: the widget activates its own branch, as every
             // component does - it is the widget's, not the room's.
-            const ctrl = self._widgetMounter.mount(mod, wBranch, entry, params, self._workspaceCtx);
+            // ...and its HOST: the widget's one handle to where it runs.
+            const ctrl = self._widgetMounter.mount(mod, wBranch, entry, params, room.host());
             room.setWidget(ctrl);
             tab.controller = ctrl;
             const existing = self._tabRegistry.lookup(uuid);
@@ -866,7 +870,6 @@ class WorkspaceShellChrome {
             mtp:           this._mtp,
             widgetsBranch: this._widgetsBranch,
             spec:          this._spec,
-            workspaceCtx:  this._workspaceCtx,
             mounter:       this._widgetMounter,
             tabRegistry:   this._tabRegistry,
             keyboard:      this._keyboard,

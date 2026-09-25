@@ -30,8 +30,9 @@
 class PickerTabFlow {
 
     /**
-     * Constructor takes per-instance data (mtp, widgetsBranch, spec,
-     * workspaceCtx) AND collaborator overrides (mounter, WidgetPickerCtor).
+     * Constructor takes per-instance data (mtp, widgetsBranch, spec) AND
+     * collaborator overrides (mounter, WidgetPickerCtor). A widget's word to
+     * where it runs is its room's host, not something this flow carries.
      * Per-call methods receive only call-time data; no per-call collaborator
      * overrides — the dep-graph walker can therefore enumerate everything
      * this flow depends on from instance fields alone.
@@ -45,7 +46,6 @@ class PickerTabFlow {
         // flow without focus side effects.
         this._widgetsBranch    = opts.widgetsBranch;
         this._spec             = opts.spec;
-        this._workspaceCtx     = opts.workspaceCtx || {};
         this._mounter          = opts.mounter          || WidgetMounter.INSTANCE;
         this._WidgetPickerCtor = opts.WidgetPickerCtor || WidgetPicker;
         // Phase 12 + Phase 6 — optional, but the orchestrator always
@@ -144,7 +144,10 @@ class PickerTabFlow {
         const uuid = tab.widgetInstanceUuid;
         room.say('Loading ' + entry.label + '…');
         tab.title = entry.label;
-        if (this._mtp.retitle) this._mtp.retitle(slotId, tabId, entry.label);
+        // The tab takes the kind's name and icon; the widget may name itself
+        // once it runs, through its host.
+        this._mtp.retitle(tabId, entry.label);
+        if (this._mtp.setIcon) this._mtp.setIcon(tabId, entry.icon);
         if (this._mtp.switchTab) this._mtp.switchTab(slotId, tabId);
 
         const wBranch = room.branchFor('w-' + uuid.replace(/[^A-Za-z0-9_-]/g, '_'));
@@ -153,7 +156,7 @@ class PickerTabFlow {
 
         // The ONE async boundary in this flow: resolve, then mount into the room.
         this._mounter.resolve(entry).then(function (mod) {
-            const controller = self._mounter.mount(mod, wBranch, entry, params, self._workspaceCtx);
+            const controller = self._mounter.mount(mod, wBranch, entry, params, room.host());
             room.setWidget(controller);
             tab.controller = controller;
             if (self._tabRegistry) {

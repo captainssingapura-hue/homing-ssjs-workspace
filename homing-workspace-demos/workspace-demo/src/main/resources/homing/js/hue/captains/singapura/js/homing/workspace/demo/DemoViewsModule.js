@@ -3,9 +3,9 @@
 // is not a paragraph: the books as a relation grid, the same books as shelves
 // in a relation tree, and a picture.
 //
-//   new BooksWidget(branch, params)     -> { root, activate, dispose }
-//   new ShelvesWidget(branch, params)   -> { root, activate, dispose }
-//   new PictureWidget(branch, params)   -> { root, keyDown }
+//   new BooksWidget(branch, params, host)     -> { root, activate, dispose }
+//   new ShelvesWidget(branch, params, host)   -> { root, activate, dispose }
+//   new PictureWidget(branch, params, host)   -> { root, keyDown }
 //
 // The gallery's docking page shows the same three as a dock's tabs, where each
 // was a member of the focus party itself. Here each is a WIDGET and nothing
@@ -72,9 +72,10 @@ class ShelvesWidget extends _RelView {
 
 /** A picture, and the room it is given: it fits the room, and the keys zoom it — a view that is not text. */
 class PictureWidget {
-    constructor(branch, params) {
+    constructor(branch, params, host) {
         branch.activate(_viewsOwner);
         var p = params || {};
+        this._host = host || null;
         this._zoom = 1;
         this._title = p.title || "A plate";
         var root = branch.createElement("view", "div");
@@ -102,7 +103,12 @@ class PictureWidget {
         this._note = note;
         this._say();
     }
-    _say() { this._note.textContent = this._title + " — " + Math.round(this._zoom * 100) + "%   (with the tab holding the keys: + − to zoom, 0 to fit)"; }
+    /** The line under the plate, and the tab's name: both say how far it is zoomed. */
+    _say() {
+        var pct = Math.round(this._zoom * 100) + "%";
+        this._note.textContent = this._title + " — " + pct + "   (with the tab holding the keys: + − to zoom, 0 to fit)";
+        if (this._host) this._host.title("Picture · " + pct);
+    }
     zoom(z) {
         this._zoom = Math.max(0.25, Math.min(4, z));
         this._plate.style.setProperty("--dw-zoom", String(this._zoom));

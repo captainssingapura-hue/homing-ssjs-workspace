@@ -20,6 +20,9 @@
 
 class WidgetMounter {
 
+    /** A host for a widget mounted with none - in a test, say: its name goes nowhere, and it is exposed no parties. */
+    static NO_HOST = Object.freeze({ title: function () {}, parties: Object.freeze({}) });
+
     constructor(deps) {
         deps = deps || {};
         this._importer    = deps.importer     || (url => import(url));
@@ -49,13 +52,15 @@ class WidgetMounter {
     /**
      * Pure transform: given a loaded module, construct + validate the
      * widget. Synchronous. Throws on invalid module or controller shape.
+     * `host` is the widget's one handle to where it runs - its room's
+     * host(): host.title(text) names its tab, host.parties the workspace's.
      */
-    mount(mod, branch, entry, params, workspaceCtx) {
+    mount(mod, branch, entry, params, host) {
         if (!mod || typeof mod.construct !== 'function') {
             throw new Error('[WidgetMounter] module missing construct(): '
                           + (entry && entry.simpleName));
         }
-        const controller = mod.construct(branch, params || {}, workspaceCtx || {});
+        const controller = mod.construct(branch, params || {}, host || WidgetMounter.NO_HOST);
         return this._validate(controller, entry && entry.simpleName);
     }
 

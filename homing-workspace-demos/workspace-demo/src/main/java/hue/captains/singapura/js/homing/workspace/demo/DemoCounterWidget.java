@@ -30,6 +30,6 @@ public final class DemoCounterWidget extends WorkspaceWidget<WorkspaceWidget._No
 
     @Override
     protected List<String> constructBodyJs() {
-        return List.of("    return new CounterWidget(branch, params);");
+        return List.of("    return new CounterWidget(branch, params, host);");
     }
 }

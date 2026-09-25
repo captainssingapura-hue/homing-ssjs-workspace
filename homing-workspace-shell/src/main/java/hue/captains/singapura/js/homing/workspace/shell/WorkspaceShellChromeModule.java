@@ -31,7 +31,7 @@ import java.util.List;
  *       host the <i>same</i> widgets ({@code DocViewWidget},
  *       {@code SpinningAnimalsWidget}, {@code MovingAnimalWidget}, …)
  *       with the <i>same</i> {@code construct(branch, params,
- *       workspaceCtx)} contract. If a widget needs chrome-specific
+ *       host)} contract. If a widget needs chrome-specific
  *       knowledge to work in V2 that V1 didn't expose, that's a
  *       coupling smell the parallel build surfaces immediately.</li>
  *   <li><b>Phase-by-phase progress is visible.</b> After each phase

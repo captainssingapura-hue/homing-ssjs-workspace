@@ -29,6 +29,6 @@ public final class DemoBooksWidget extends WorkspaceWidget<WorkspaceWidget._None
 
     @Override
     protected List<String> constructBodyJs() {
-        return List.of("    return new BooksWidget(branch, params);");
+        return List.of("    return new BooksWidget(branch, params, host);");
     }
 }

@@ -30,6 +30,6 @@ public final class DemoNoteWidget extends WorkspaceWidget<WorkspaceWidget._None,
 
     @Override
     protected List<String> constructBodyJs() {
-        return List.of("    return new NoteWidget(branch, params);");
+        return List.of("    return new NoteWidget(branch, params, host);");
     }
 }

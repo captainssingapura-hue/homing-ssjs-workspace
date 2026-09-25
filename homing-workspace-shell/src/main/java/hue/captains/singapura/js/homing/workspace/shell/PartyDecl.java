@@ -9,8 +9,8 @@ import java.util.Objects;
 /**
  * Declarative construction of one Party (RFC 0028). Carries the
  * Secretary's JS module + initial actors + an optional
- * {@code workspaceCtx} key to expose the constructed Party under
- * (so widgets receive {@code workspaceCtx.<exposedAs>}).
+ * name to expose the constructed Party under (so widgets receive it on
+ * their host, as {@code host.parties.<exposedAs>}).
  *
  * <p>Wire shape (after JSON serialization):</p>
  * <pre>{@code
@@ -30,7 +30,8 @@ import java.util.Objects;
  *       {@code secretaryExportName} export ({@code initial} + {@code behavior}).</li>
  *   <li>Constructs the Party with name + Secretary at path {@code name}.</li>
  *   <li>Calls {@code joinActor} for each declared actor.</li>
- *   <li>If {@code exposedAs} is set, assigns to {@code workspaceCtx[exposedAs]}.</li>
+ *   <li>If {@code exposedAs} is set, exposes it to every widget as
+ *       {@code host.parties[exposedAs]}.</li>
  * </ol>
  *
  * @since post-RFC-0034 workspace chrome decomposition
@@ -51,7 +52,7 @@ public record PartyDecl(
         if (secretaryExportName.isBlank())
             throw new IllegalArgumentException("PartyDecl.secretaryExportName must not be blank");
         actors = List.copyOf(actors);
-        // exposedAs may be null — Party not exposed via workspaceCtx (rare).
+        // exposedAs may be null — Party not exposed to widgets (rare).
     }
 
     /** Start a builder for the common fluent shape. */
@@ -85,7 +86,7 @@ public record PartyDecl(
             return this;
         }
 
-        /** Expose the constructed Party as {@code workspaceCtx[key]}. */
+        /** Expose the constructed Party to widgets as {@code host.parties[key]}. */
         public Builder exposedAs(String key) {
             this.exposedAs = key;
             return this;
