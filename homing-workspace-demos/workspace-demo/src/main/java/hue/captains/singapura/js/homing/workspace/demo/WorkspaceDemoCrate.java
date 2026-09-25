@@ -3,14 +3,17 @@ package hue.captains.singapura.js.homing.workspace.demo;
 import hue.captains.singapura.js.homing.core.Crate;
 import hue.captains.singapura.js.homing.core.CrateEntry;
 import hue.captains.singapura.js.homing.core.StandardJsModuleType;
+import hue.captains.singapura.js.homing.relgrid.RelGridCrate;
+import hue.captains.singapura.js.homing.relgrid.protocol.RelGridProtocolCrate;
+import hue.captains.singapura.js.homing.reltree.RelTreeCrate;
 import hue.captains.singapura.js.homing.ui.elements.UiElementsCrate;
 import hue.captains.singapura.js.homing.workspace.shell.WorkspaceShellCrate;
 
 import java.util.List;
 
 /**
- * What the demo site serves beyond the workspace itself: its two widgets, the
- * kinds that declare them, and their sheet.
+ * What the demo site serves beyond the workspace itself: its widgets, the kinds
+ * that declare them, their sheet, and the small book domain two of them view.
  */
 public final class WorkspaceDemoCrate implements Crate {
 
@@ -21,7 +24,8 @@ public final class WorkspaceDemoCrate implements Crate {
     @Override public String name() { return "workspace-demo"; }
 
     @Override public List<Crate> requires() {
-        return List.of(WorkspaceShellCrate.INSTANCE, UiElementsCrate.INSTANCE);
+        return List.of(WorkspaceShellCrate.INSTANCE, UiElementsCrate.INSTANCE,
+                       RelGridCrate.INSTANCE, RelTreeCrate.INSTANCE, RelGridProtocolCrate.INSTANCE);
     }
 
     @Override
@@ -30,6 +34,12 @@ public final class WorkspaceDemoCrate implements Crate {
                 CrateEntry.of(DemoWidgetStyles.INSTANCE),
                 CrateEntry.of(DemoWidgetsModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(DemoNoteWidget.INSTANCE),
-                CrateEntry.of(DemoCounterWidget.INSTANCE));
+                CrateEntry.of(DemoCounterWidget.INSTANCE),
+                // The views: the books as a grid and as shelves over one store, and a picture.
+                CrateEntry.of(DemoRelationsModule.INSTANCE),
+                CrateEntry.of(DemoViewsModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                CrateEntry.of(DemoBooksWidget.INSTANCE),
+                CrateEntry.of(DemoShelvesWidget.INSTANCE),
+                CrateEntry.of(DemoPictureWidget.INSTANCE));
     }
 }

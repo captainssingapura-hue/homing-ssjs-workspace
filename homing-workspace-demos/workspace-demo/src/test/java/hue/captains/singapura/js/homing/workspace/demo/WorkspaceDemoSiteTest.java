@@ -6,6 +6,8 @@ import hue.captains.singapura.js.homing.workspace.shell.WorkspaceApp;
 import hue.captains.singapura.js.homing.workspace.shell.WorkspaceSpecRegistry;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,6 +36,15 @@ class WorkspaceDemoSiteTest {
         assertEquals(WorkspaceDemoSite.INSTANCE, WorkspaceDemoSite.INSTANCE);
         assertTrue(WorkspaceSpecRegistry.INSTANCE.get("demo").isPresent());
         assertTrue(WorkspaceSpecRegistry.INSTANCE.get("notes").isPresent());
+    }
+
+    /** The demo kind offers every widget the demo has, in the picker's order. */
+    @Test
+    void theDemoKindOffersEveryDemoWidget() {
+        var offered = WorkspaceSpecRegistry.INSTANCE.get("demo").orElseThrow().widgetEntries().stream()
+                .map(e -> e.widgetClass()).toList();
+        assertEquals(List.of(DemoNoteWidget.class, DemoCounterWidget.class,
+                             DemoBooksWidget.class, DemoShelvesWidget.class, DemoPictureWidget.class), offered);
     }
 
     @Test

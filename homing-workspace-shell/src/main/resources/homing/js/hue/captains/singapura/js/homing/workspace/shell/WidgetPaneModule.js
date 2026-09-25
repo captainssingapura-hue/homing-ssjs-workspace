@@ -10,6 +10,13 @@
 //   room.say(text)             a status line as the tenant, until a widget arrives
 //   room.activate() .keyDown(ev) .dispose()
 //
+// What a widget may offer, all of it optional:
+//   keyDown(ev)   a key the room holds, handed on; true when taken
+//   activate()    the room has the keys now: a widget of native controls
+//                 puts the browser's focus where its own keys work
+//   setActive(on) its tab is, or is no longer, the one showing
+//   dispose()     it is going
+//
 // A tab-pane is two parts. The TAB is the dock's: its chip, its title, its
 // place in the strip. The PANE is this: a member of the focus party that wraps
 // whatever element the widget gives it. The widget runs INSIDE and touches
@@ -18,10 +25,17 @@
 //
 // So a dock's law — a tab's widget must be a focus member with a root and
 // activate() — is kept by the ROOM, never by the widget. A widget with no keys
-// at all, or only native ones (a form, a grid of inputs), needs nothing: the
-// room holds the tab's place in the focus tree, and the native world inside
-// does what it always does. A widget that does want keys offers keyDown(ev)
-// and activate(), and the room hands them on.
+// at all needs nothing: the room holds the tab's place in the focus tree. A
+// widget that wants keys offers keyDown(ev), and the room hands them on.
+//
+// A widget of NATIVE controls - a grid, a tree, a form - has keys of its own,
+// on elements that take the browser's focus. The room wires the seam, as a
+// panel wires the controls it holds (§14): it says its keys are LENT while
+// something inside it has the focus, and an Escape the control did not want
+// takes the focus out - the room, the holder, has the keys again - so the next
+// Escape is the room's and gives them back to the dock. The widget is told
+// when the room comes to hold, by activate(), and puts the focus where its
+// keys work; it never claims anything, having nothing to claim with.
 //
 // The room owns a branch of its own, under the holder's and not the dock's, so
 // it TRAVELS: a dock that lets a tab go takes the room's root out of its panel
@@ -59,6 +73,29 @@ class WidgetPane {
 
         this.focus = opts.focus.join(branch.name, this);
         this._off = Keys.claimOn(root, this.focus);
+
+        // The seam with the native world inside. An Escape out of a focused
+        // control that the control did not take: the focus leaves it, and the
+        // keys are the room's again.
+        var self = this;
+        root.addEventListener("keydown", function (ev) {
+            if (ev.key !== "Escape" || ev.defaultPrevented || ev.target === root || !root.contains(ev.target)) return;
+            if (typeof ev.target.blur === "function") ev.target.blur();
+            ev.preventDefault();
+            ev.stopPropagation();
+            self._mark();
+        });
+        // Held, or lent to a control inside: said again whenever the focus moves.
+        root.addEventListener("focusin", function () { self._mark(); });
+        root.addEventListener("focusout", function () { setTimeout(function () { self._mark(); }, 0); });
+    }
+
+    /** Held, or lent while something inside has the browser's focus - only while the room has the keys at all. */
+    _mark() {
+        var was = this.root.getAttribute("data-keys");
+        if (was !== "held" && was !== "lent") return;
+        var a = typeof document === "undefined" ? null : document.activeElement;
+        this.root.setAttribute("data-keys", a && a !== this.root && a !== document.body && this.root.contains(a) ? "lent" : "held");
     }
 
     /** A branch for a widget to be built on, under the room's own. */
@@ -101,16 +138,8 @@ class WidgetPane {
 
     // ── The member: what the dock and the steward ask of the room ───────────
 
-    /**
-     * The keys arrive here. A widget that wants them says how - it may focus a
-     * native control of its own - and a widget that does not leaves them with
-     * the room, which holds the tab's place.
-     */
-    activate() {
-        var w = this._widget;
-        if (w && typeof w.activate === "function") { w.activate(); return; }
-        Keys.claim(this.focus);
-    }
+    /** Told to by the dock: the room claims the keys. What the widget does with them, it is told when they arrive. */
+    activate() { Keys.claim(this.focus); }
 
     /** The steward routed a key here: the widget's if it takes it, Escape gives them back. */
     keyDown(ev) {
@@ -120,7 +149,13 @@ class WidgetPane {
         return false;
     }
 
-    granted()   { this.root.setAttribute("data-keys", "held"); }
+    /** The keys are the room's: the widget hears so, and may put the focus where its own keys work. */
+    granted() {
+        this.root.setAttribute("data-keys", "held");
+        var w = this._widget;
+        if (w && typeof w.activate === "function") { try { w.activate(); } catch (e) { console.error("[WidgetPane] widget activate threw", e); } }
+        this._mark();
+    }
     taken()     { this.root.removeAttribute("data-keys"); }
     offered()   { if (this.root.getAttribute("data-keys") === null) this.root.setAttribute("data-keys", "candidate"); }
     withdrawn() { if (this.root.getAttribute("data-keys") === "candidate") this.root.removeAttribute("data-keys"); }

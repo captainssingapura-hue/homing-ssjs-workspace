@@ -45,6 +45,8 @@
         <!-- The substrate, from the core repo. Its own version, not ours:
              this repo releases on its own clock. -->
         <homing.core.version>LOCAL-SNAPSHOT</homing.core.version>
+        <!-- The relation grid family (a repo of its own), for the demo's views. -->
+        <homing.relgrid.version>LOCAL-SNAPSHOT</homing.relgrid.version>
         <junit.version>5.11.3</junit.version>
         <jacoco.version>0.8.14</jacoco.version>
         <graalvm.version>24.1.1</graalvm.version>

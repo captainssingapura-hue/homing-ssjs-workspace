@@ -18,13 +18,15 @@ import java.util.List;
  * nothing about any of it. The workspace's older widgets are not here on
  * purpose: they run through an adapter that comes later.</p>
  *
- * <p>Two kinds, so switching between them is exercised rather than asserted.</p>
+ * <p>The DEMO kind offers every widget the demo has: the note and the counter,
+ * and three views — the books as a relation grid, the same books as shelves
+ * in a relation tree (one store, so the two agree live), and a picture.</p>
  */
 public final class WorkspaceDemoSpecs {
 
     private WorkspaceDemoSpecs() {}
 
-    /** A note and a counter: one widget with no keys, one with both worlds. */
+    /** Every demo widget: a note, a counter, the books as a grid and as shelves, a picture. */
     public static final WorkspaceSpec DEMO = new Demo();
 
     /** Notes only. */
@@ -52,6 +54,26 @@ public final class WorkspaceDemoSpecs {
                 .withGroup(DEMO_GROUP);
     }
 
+    private static final WidgetGroup VIEWS_GROUP = WidgetGroup.of("Views");
+
+    private static WidgetEntry books() {
+        return WidgetEntry.of(DemoBooksWidget.class, WidgetLabel.of("Books"))
+                .withIcon(new WidgetIcon.Emoji("📚"))
+                .withGroup(VIEWS_GROUP);
+    }
+
+    private static WidgetEntry shelves() {
+        return WidgetEntry.of(DemoShelvesWidget.class, WidgetLabel.of("Shelves"))
+                .withIcon(new WidgetIcon.Emoji("🗂"))
+                .withGroup(VIEWS_GROUP);
+    }
+
+    private static WidgetEntry picture() {
+        return WidgetEntry.of(DemoPictureWidget.class, WidgetLabel.of("Picture"))
+                .withIcon(new WidgetIcon.Emoji("🖼"))
+                .withGroup(VIEWS_GROUP);
+    }
+
     private static WidgetEntry counter() {
         return WidgetEntry.of(DemoCounterWidget.class, WidgetLabel.of("Counter"))
                 .withIcon(new WidgetIcon.Emoji("🔢"))
@@ -61,7 +83,7 @@ public final class WorkspaceDemoSpecs {
     private static final class Demo implements WorkspaceSpec {
         @Override public String kind()  { return "demo"; }
         @Override public String title() { return "Demo"; }
-        @Override public List<WidgetEntry> widgetEntries() { return List.of(note(), counter()); }
+        @Override public List<WidgetEntry> widgetEntries() { return List.of(note(), counter(), books(), shelves(), picture()); }
     }
 
     private static final class Notes implements WorkspaceSpec {

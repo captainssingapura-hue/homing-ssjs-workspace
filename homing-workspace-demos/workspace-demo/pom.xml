@@ -50,6 +50,24 @@
             <version>${homing.core.version}</version>
         </dependency>
 
+        <!-- The relation grid and tree the demo's Books and Shelves views are
+             built on, and the protocol the tree's relation answers in. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.ssjs</groupId>
+            <artifactId>rel-grid</artifactId>
+            <version>${homing.relgrid.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.ssjs</groupId>
+            <artifactId>rel-tree</artifactId>
+            <version>${homing.relgrid.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.ssjs</groupId>
+            <artifactId>rel-grid-protocol</artifactId>
+            <version>${homing.relgrid.version}</version>
+        </dependency>
+
         <!-- The designs the chrome wears. A theme registry is a SITE's choice, and
              the studio's seven are the only ones that exist today; separating the
              themes from the components they dress is its own stage. -->
