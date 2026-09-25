@@ -1,9 +1,9 @@
 package hue.captains.singapura.js.homing.workspace.shell;
 
-import hue.captains.singapura.js.homing.studio.base.app.Catalogue;
-import hue.captains.singapura.js.homing.studio.base.app.Entry;
-import hue.captains.singapura.js.homing.studio.base.app.L0_Catalogue;
-import hue.captains.singapura.js.homing.studio.base.app.Navigable;
+import hue.captains.singapura.js.homing.site.catalogue.Catalogue;
+import hue.captains.singapura.js.homing.site.catalogue.L0_Catalogue;
+import hue.captains.singapura.js.homing.site.catalogue.Leaf;
+import hue.captains.singapura.js.homing.site.mpa.AppPage;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -18,22 +18,26 @@ import java.util.Set;
  * placed exactly once, and every kind is positioned exactly once</b>. The
  * registry already refuses a kind in two groups; this adds what only the tree
  * can show — a group placed twice or nowhere, an unregistered group placed, and
- * a kind that is <em>both</em> held by a group and placed as a legacy
- * {@link GenericWorkspace} leaf, which is one kind at two positions.
+ * a kind that is <em>both</em> held by a group and placed as a flat kind
+ * leaf, which is one kind at two positions.
  *
- * <p>A legacy kind leaf on its own is not refused: {@code GenericWorkspace} is
- * the flat address every pre-0058 link carries, and a studio that has not
- * placed groups is unpositioned, not wrong. The law bites only when the two
+ * <p>A flat kind leaf on its own is not refused: it is the address every
+ * pre-0058 link carries, and a site that has not placed groups is
+ * unpositioned, not wrong. The law bites only when the two
  * addresses overlap.</p>
  *
- * <p>A static walk from a studio's L0 root through {@code subCatalogues()} and
- * {@code leaves()} — the same tree the {@code CatalogueRegistry} indexes (RFC
- * 0051 Law 3 guarantees the two agree), walked here because the registry is
- * built inside {@code Bootstrap}, below this crate. A studio's fixtures call it
- * once its groups are registered and its catalogues declared, so the boot
- * fails with the names rather than the index shadowing a placement silently.
- * Hosted studios are followed through their {@link Entry.OfStudio} proxies, so
- * an umbrella's walk covers every studio it composes.</p>
+ * <p>A static walk from a site's L0 root through {@code subCatalogues()} and
+ * {@code leaves()} — the catalogue tree of core's {@code homing-site-catalogue},
+ * the generic one, where a leaf is a slug over a page. A site calls it once its
+ * groups are registered and its catalogues declared, so the boot fails with the
+ * names rather than a placement going missing silently.</p>
+ *
+ * <p><b>What a leaf is read for.</b> A page is opaque to a catalogue; the ones
+ * this law reads are an app bound to its params — a {@link AppPage}, as a
+ * standard MPA makes it: {@code mpa.page(app, params)}. Its params say what it
+ * places: {@link WorkspaceGroupApp.Params} a group, {@link WorkspaceApp.Params}
+ * or {@link GenericWorkspace.Params} one kind, flat. Any other page is not a
+ * workspace's, and is passed over.</p>
  */
 public final class WorkspaceGroups {
 
@@ -56,8 +60,8 @@ public final class WorkspaceGroups {
             List<String> at = placements.getOrDefault(g.id(), List.of());
             if (at.isEmpty()) {
                 failures.add("group '" + g.id() + "' (" + g.kinds() + ") is placed nowhere under "
-                        + root.getClass().getName() + " — place it as a leaf: Entry.of(host, new Navigable<>("
-                        + "WorkspaceGroupApp.INSTANCE, WorkspaceGroupApp.of(group), …))");
+                        + root.getClass().getName() + " — place it as a leaf: Leaf.of(host, name, summary, "
+                        + "mpa.page(WorkspaceGroupApp.INSTANCE, WorkspaceGroupApp.of(group)))");
             } else if (at.size() > 1) {
                 failures.add("group '" + g.id() + "' is placed " + at.size() + " times — at " + at
                         + "; a group is placed exactly once");
@@ -80,22 +84,20 @@ public final class WorkspaceGroups {
     private static void walk(Catalogue<?> node, Set<Class<?>> seen,
                              Map<String, List<String>> placements, Map<String, List<String>> kindLeaves,
                              List<String> unknown, WorkspaceGroupRegistry registry) {
-        if (!seen.add(node.getClass())) return;   // the registry dedups by class; so do we
-        for (Entry<?> e : node.leaves()) {
-            switch (e) {
-                case Entry.OfLeaf<?, ?, ?> leaf -> {
-                    Navigable<?, ?> nav = leaf.nav();
-                    String where = node.getClass().getName() + " → " + leaf.slug().value();
-                    if (nav.params() instanceof WorkspaceGroupApp.Params p) {
-                        if (registry.get(p.ws_group()).isEmpty()) unknown.add("'" + p.ws_group() + "' at " + where);
-                        else placements.computeIfAbsent(p.ws_group(), k -> new ArrayList<>()).add(where);
-                    } else if (nav.params() instanceof GenericWorkspace.Params p) {
-                        kindLeaves.computeIfAbsent(p.ws_kind(), k -> new ArrayList<>()).add(where);
-                    }
+        if (!seen.add(node.getClass())) return;   // a catalogue is a singleton, known by its class
+        for (Leaf<?> leaf : node.leaves()) {
+            if (!(leaf.page() instanceof AppPage<?, ?> page)) continue;   // not an app's page: not a workspace's
+            String where = node.getClass().getName() + " → " + leaf.slug().value();
+            switch (page.params()) {
+                case WorkspaceGroupApp.Params p -> {
+                    if (registry.get(p.ws_group()).isEmpty()) unknown.add("'" + p.ws_group() + "' at " + where);
+                    else placements.computeIfAbsent(p.ws_group(), k -> new ArrayList<>()).add(where);
                 }
-                case Entry.OfStudio<?, ?> hosted ->
-                        walk(hosted.proxy().source(), seen, placements, kindLeaves, unknown, registry);
-                case Entry.OfIllustration<?> ignored -> { }
+                case WorkspaceApp.Params p ->
+                        kindLeaves.computeIfAbsent(p.ws_kind(), k -> new ArrayList<>()).add(where);
+                case GenericWorkspace.Params p ->
+                        kindLeaves.computeIfAbsent(p.ws_kind(), k -> new ArrayList<>()).add(where);
+                default -> { }
             }
         }
         for (Catalogue<?> child : node.subCatalogues()) {

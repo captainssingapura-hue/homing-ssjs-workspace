@@ -56,6 +56,13 @@
             <artifactId>homing-site-mpa</artifactId>
             <version>${homing.core.version}</version>
         </dependency>
+        <!-- The generic catalogue tree (core's, not the studio's): what
+             WorkspaceGroups walks to hold every group to one placement. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-site-catalogue</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
         <!-- The MPA's implementation - StandardMpa, its page, its chrome - from the
              ui-components repo; core's homing-site-mpa above holds the definitions. -->
         <dependency>
