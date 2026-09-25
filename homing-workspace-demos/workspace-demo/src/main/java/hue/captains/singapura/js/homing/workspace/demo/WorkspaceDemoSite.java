@@ -8,7 +8,7 @@ import hue.captains.singapura.js.homing.site.Trail;
 import hue.captains.singapura.js.homing.site.mpa.AppPage;
 import hue.captains.singapura.js.homing.site.mpa.Brand;
 import hue.captains.singapura.js.homing.site.mpa.StandardMpa;
-import hue.captains.singapura.js.homing.studio.themes.StudioThemeRegistry;
+import hue.captains.singapura.js.homing.designs.HomingDesigns;
 import hue.captains.singapura.js.homing.workspace.shell.WorkspaceApp;
 
 import java.util.Optional;
@@ -41,7 +41,7 @@ public record WorkspaceDemoSite() implements Site {
 
     /** The one declaration this site makes: the brand, the designs, the crate it serves. */
     public static final StandardMpa MPA = StandardMpa.of(
-            Brand.of("Workspace"), StudioThemeRegistry.INSTANCE, WorkspaceDemoCrate.INSTANCE);
+            Brand.of("Workspace"), HomingDesigns.REGISTRY, WorkspaceDemoCrate.INSTANCE);
 
     static final AppPage<?, ?> DEMO =
             MPA.page(WorkspaceApp.INSTANCE, new WorkspaceApp.Params(WorkspaceDemoSpecs.DEMO.kind()));
