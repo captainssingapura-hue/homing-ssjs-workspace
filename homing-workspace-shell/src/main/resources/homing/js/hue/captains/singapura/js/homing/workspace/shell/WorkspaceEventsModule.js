@@ -13,14 +13,15 @@
 //
 //   AddRequested     a question, not a mutation: the holder opens the picker,
 //                    and what the user picks is the holder's to author.
-//   TabAdded         the pane cannot know whether a tab came from the picker or
+//   TabAdded         the desk cannot know whether a tab came from the picker or
 //                    was pinned at boot, and the workspace records which. The
 //                    holder authored the spawn, so the holder names it.
 //   CursorMoved      which pane the cursor is over is live state. Recording it
 //                    would restore a cursor nobody put there.
-//   DetachRequested  floating is a transient state: a floated tab comes back to
-//   Undocked         the dock it left. Nothing to keep between visits, so
-//   Docked           nothing to write down - a dock is where the tab already is.
+//   a float          floating is a transient state: nothing to keep between
+//                    visits. The panes never pass a float on - a tab afloat is
+//                    where it left, and comes down from a float as a move from
+//                    there - so nothing here knows of one.
 //
 // Everything else is a fact about the arrangement, and the same fact either
 // language says it in.
@@ -37,7 +38,7 @@ class WorkspaceEvents {
 
     /** The kinds this answers for; anything else is deliberately null. */
     static KINDS = Object.freeze([
-        "TabRemoved", "TabMoved", "TabAttached", "TabActivated",
+        "TabRemoved", "TabMoved", "TabActivated",
         "Subdivided", "Removed", "TracksChanged"]);
 
     /**
@@ -55,7 +56,6 @@ class WorkspaceEvents {
         switch (ev.kind) {
             case "TabRemoved":    return WorkspaceEvents._closed(ev);
             case "TabMoved":      return WorkspaceEvents._moved(ev);
-            case "TabAttached":   return WorkspaceEvents._attached(ev);
             case "TabActivated":  return WorkspaceEvents._activated(ev);
             case "Subdivided":    return WorkspaceEvents._subdivided(ev);
             case "Removed":       return WorkspaceEvents._removed(ev);
@@ -75,11 +75,7 @@ class WorkspaceEvents {
         } };
     }
 
-    /**
-     * A tab moved, within a pane or between two. The workspace's `from` is
-     * optional because a re-dock from outside has no source pane; a move
-     * always has one, so it is always filled here.
-     */
+    /** A tab moved, within a pane or between two: a move always has a source, so `from` is always filled here. */
     static _moved(ev) {
         const uuid = _uuid(ev.tab);
         if (!uuid) return null;
@@ -87,17 +83,6 @@ class WorkspaceEvents {
             widgetInstanceId: uuid,
             from:             { paneId: ev.srcSlotId,  tabIndex: ev.srcIndex },
             to:               { paneId: ev.destSlotId, tabIndex: ev.destIndex }
-        } };
-    }
-
-    /** A tab attached from outside — the same move, with no source to name. */
-    static _attached(ev) {
-        const uuid = _uuid(ev.tab);
-        if (!uuid) return null;
-        return { name: "TabMoved", payload: {
-            widgetInstanceId: uuid,
-            from:             null,
-            to:               { paneId: ev.slotId, tabIndex: ev.atIndex }
         } };
     }
 

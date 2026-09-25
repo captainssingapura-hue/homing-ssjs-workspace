@@ -4,8 +4,8 @@
 // The '+' affordance on every pane strip lands here. Flow:
 //
 //   1. openInSlot(slotId)
-//        ├─ create empty 'picker-N' tab; mtp.addTab + switchTab +
-//        ├─ mount WidgetPicker into the tab's contentEl with
+//        ├─ open a tab in the pane (mtp.openTab: the desk names it) + switchTab +
+//        ├─ mount WidgetPicker into the tab's room with
 //        │     entries     = spec.entries minus pinned
 //        │     disabledIds = current singletons (one per kind)
 //        │     onPick(entry, params)  → mutate tab in place OR focus existing
@@ -75,19 +75,20 @@ class PickerTabFlow {
     /**
      * Open a new tab in a pane, and put the chooser in it.
      *
-     * The TAB-PANE owns this. The tab is the dock's and is called "New tab"
-     * until it is one; its room holds the picker now and the picked widget
-     * after, and the dock never learns the tenant changed. The picker is not
-     * handed the keyboard: the ROOM is the member of the party, the dock rests
-     * the keys in it, and it hands them on to whatever it is holding.
+     * The TAB-PANE owns this. The tab is the desk's, named by it, and is
+     * called "New tab" until it is one; its room holds the picker now and the
+     * picked widget after, and the dock never learns the tenant changed. The
+     * picker is not handed the keyboard: the ROOM is the member of the party,
+     * the dock rests the keys in it, and it hands them on to whatever it is
+     * holding.
      */
     openInSlot(slotId) {
         const self  = this;
-        // A tab id names the tab's branch wherever it goes - the dock's, and
-        // the desk's when it floats - so it is spelled as a branch name is.
-        const tabId = 'picker-' + (++this._counter);
-        const room  = this._mtp.roomFor(slotId);
+        const tab   = { title: 'New tab' };
+        const room  = this._mtp.openTab(slotId, tab);
         if (!room) return null;
+        const tabId = tab.id;
+        ++this._counter;
 
         const hostBranch = room.branchFor('chooser');
         hostBranch.activate(Object.freeze({ toString: () => 'chooser:' + tabId }));
@@ -108,7 +109,6 @@ class PickerTabFlow {
             dispose: function () { picker.dispose(); try { hostBranch.dissolve(); } catch (e) {} }
         });
 
-        this._mtp.addTab(slotId, { id: tabId, title: 'New tab', widget: room });
         if (this._mtp.switchTab) this._mtp.switchTab(slotId, tabId);
         if (this._mtp.land) this._mtp.land(slotId, tabId);
         return tabId;

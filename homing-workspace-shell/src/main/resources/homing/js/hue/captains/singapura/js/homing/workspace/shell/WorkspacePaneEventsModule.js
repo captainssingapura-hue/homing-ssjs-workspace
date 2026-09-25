@@ -6,14 +6,17 @@
 //
 //   WorkspacePaneEvents.fire(panes, ev)   the event, filled in, to the holder's sink
 //
-// The holder keeps its records by the tab it made, so every event names THAT
-// tab. A dock names the one it activated only by id; and a tab that floated
-// comes back from the desk as the desk's own { id, title, widget }, which the
-// dock it lands on keeps and reports from then on - the same tab, with nothing
-// the holder wrote on it. A tab closed goes out of the table, its icon with
-// it. And a tab floated off a dock and closed on the desk IS that tab closed:
-// the desk only knows a pane went, so it is said here as the dock would have
-// said it, from the place the tab left.
+// The holder keeps its records by the tab it opened, so every event names THAT
+// record, never the tab-pane the docks and the desk report: a dock names the
+// tab it activated only by id, and the tab-pane carries nothing the holder
+// wrote on it. A tab closed goes out of the table, its icon with it.
+//
+// A FLOAT IS TRANSIENT, so the holder never hears of one. A tab moved into a
+// float is still where it left, and that place is kept here; what a float
+// shows is nobody's record; a tab that comes down from a float onto a dock
+// moved from where it left to where it landed; a tab closed afloat closed
+// where it left. Shift+↓ on a dock asks for its tab to float: answered here,
+// at the tab's chip, as the tab menu's Detach is.
 //
 // A merge is ONE fact. The tabs it carries across, and the tab each dock then
 // shows, are part of it: marked, so the holder keeps its books by them but
@@ -29,37 +32,49 @@ class WorkspacePaneEvents {
             ev = WorkspacePaneEvents._with(ev, { tab: tabs.get(ev.tab.id) });
         }
         var merging = panes._merging;
-        if (merging && ev.slotId !== undefined && ev.kind !== "Removed") ev = WorkspacePaneEvents._with(ev, { merging: merging.slotId });
+        if (merging && (ev.slotId !== undefined || ev.srcSlotId !== undefined) && ev.kind !== "Removed") {
+            ev = WorkspacePaneEvents._with(ev, { merging: merging.slotId });
+        }
+        var afloat = function (slotId) { return slotId != null && !panes._panes.has(slotId); };
         switch (ev.kind) {
             case "TabActivated":
+                if (afloat(ev.slotId)) return;
                 ev = WorkspacePaneEvents._with(ev, { tab: tabs.get(ev.tabId) || null });
                 break;
-            case "TabRemoved":
+            case "TabRemoved": {
                 tabs.delete(ev.tab.id);
                 panes._forgetIcon(ev.tab.id);
+                var left = panes._floated.get(ev.tab.id);
+                if (left) {
+                    panes._floated.delete(ev.tab.id);
+                    ev = PaneEvents.TabRemoved(left.slotId, ev.tab, left.index);
+                }
                 break;
-            case "Docked": {
-                panes._floated.delete(ev.tabId);
-                // A tab dropped on a dock is the one it shows: the hand put it
-                // there to look at it, and a replay of the move shows it too.
-                var dock = panes._panes.get(ev.slotId);
-                panes._emit(ev);
-                if (dock && dock.activeTab() !== ev.tabId) dock.switchTab(ev.tabId);
+            }
+            case "TabMoved": {
+                var into = afloat(ev.destSlotId), outOf = afloat(ev.srcSlotId);
+                if (into) {
+                    if (!outOf) panes._floated.set(ev.tab.id, { slotId: ev.srcSlotId, index: ev.srcIndex });
+                    return;
+                }
+                if (outOf) {
+                    var from = panes._floated.get(ev.tab.id) || { slotId: ev.srcSlotId, index: ev.srcIndex };
+                    panes._floated.delete(ev.tab.id);
+                    ev = PaneEvents.TabMoved(from.slotId, ev.tab, from.index, ev.destSlotId, ev.destIndex);
+                }
+                break;
+            }
+            case "DetachRequested": {
+                var tp = panes._desk.register.get(ev.tabId);
+                if (tp && !tp.pinned) {
+                    var r = tp.chip.getBoundingClientRect();
+                    panes._desk.detach(tp, { x: r.left + 60, y: r.bottom + 14 });
+                }
                 return;
             }
             case "Removed":
                 if (merging && merging.slotId === ev.cellId) ev = WorkspacePaneEvents._with(ev, { toward: merging.toward });
                 break;
-            case "Closed": {
-                var from = panes._floated.get(ev.id), tab = tabs.get(ev.id);
-                if (!from || !tab) break;
-                panes._floated.delete(ev.id);
-                tabs.delete(ev.id);
-                panes._forgetIcon(ev.id);
-                panes._emit(ev);
-                ev = PaneEvents.TabRemoved(from.slotId, tab, from.index);
-                break;
-            }
         }
         panes._emit(ev);
     }

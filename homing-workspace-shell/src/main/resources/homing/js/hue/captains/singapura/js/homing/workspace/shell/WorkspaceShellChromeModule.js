@@ -585,10 +585,8 @@ class WorkspaceShellChrome {
                     panes.undockAt(o.pane, o.tab, { x: r.left + 60, y: r.bottom + 14 });
                 }
             },
-            // Detach floats the tab where its chip was. It was hidden while a tab
-            // carried a made-up widget whose host did not survive the take-out;
-            // a tab carries its ROOM now, on a branch of its own, and the room -
-            // root, membership and widget - goes wherever the tab goes.
+            // Detach floats the tab where its chip was: the tab-pane goes whole,
+            // chip and room - root, membership and widget - into a float of its own.
             state: function (id, o) { return { disabled: !!(o.tab && o.tab.pinned) }; }
         });
     }
@@ -640,9 +638,6 @@ class WorkspaceShellChrome {
             case 'TabMoved':
                 if (uuid && this._tabRegistry) this._tabRegistry.updateSlot(uuid, ev.destSlotId);
                 return;
-            case 'TabAttached':
-                if (uuid && this._tabRegistry) this._tabRegistry.updateSlot(uuid, ev.slotId);
-                return;
             case 'TabRemoved':
                 if (uuid && this._tabRegistry) this._tabRegistry.unregister(uuid);
                 return;
@@ -668,6 +663,9 @@ class WorkspaceShellChrome {
     _projectModel() {
         const self    = this;
         const tabsBySlot = this._model.tabsBySlot();
+        // What each pane was showing, read BEFORE the spawns: a pane's first
+        // arrival shows itself, and that activation reaches the model too.
+        const shown   = this._model.activeBySlot();
         const tasks   = [];
         tabsBySlot.forEach(function (descriptors, slot) {
             for (const d of descriptors) {
@@ -682,13 +680,13 @@ class WorkspaceShellChrome {
         // the mounts are ordered by the model and the LAST one mounted would
         // otherwise be the one showing, which is the order of the log rather
         // than anything the user did.
-        return Promise.all(tasks).then(function () { self._showRecordedTabs(); });
+        return Promise.all(tasks).then(function () { self._showRecordedTabs(shown); });
     }
 
-    /** Switch each pane to the tab the model says it was showing. */
-    _showRecordedTabs() {
+    /** Switch each pane to the tab the model said it was showing, before the projection. */
+    _showRecordedTabs(shown) {
         const self = this;
-        this._model.activeBySlot().forEach(function (uuid, slot) {
+        shown.forEach(function (uuid, slot) {
             const tabId = self._tabRegistry && self._tabRegistry.tabIdOf(uuid);
             if (!tabId) return;
             try { self._mtp.switchTab(slot, tabId); }
@@ -700,11 +698,11 @@ class WorkspaceShellChrome {
      * Mount one widget restored from the model, without emitting: projection,
      * fence still on.
      *
-     * A TAB-PANE: the dock's tab, and a room for the widget to run in. The
-     * room is made first and says it is loading, the tab is added carrying it,
-     * and the widget arrives into the room when its module has - the dock
-     * never sees the change of tenant. The widget is built on a branch under
-     * the room's, and touches neither the tab nor the dock.
+     * A TAB-PANE: the tab, opened by the desk in the pane, and a room for the
+     * widget to run in. The room says it is loading, and the widget arrives
+     * into it when its module has - the dock never sees the change of tenant.
+     * The widget is built on a branch under the room's, and touches neither
+     * the tab nor the dock.
      */
     _silentSpawn(slotId, descriptor) {
         const self  = this;
@@ -716,28 +714,24 @@ class WorkspaceShellChrome {
             return Promise.resolve();
         }
         const title = descriptor.title || entry.label;
-        const room  = this._mtp.roomFor(slotId);
+        // The widget's record; the desk names the tab, and writes its id here.
+        const tab = {
+            title:              title,
+            pinned:             !!descriptor.pinned,
+            widgetKind:         kind,
+            widgetInstanceUuid: uuid
+        };
+        let room;
+        try { room = this._mtp.openTab(slotId, tab); }
+        catch (e) {
+            console.error('[WorkspaceShellChrome] projection openTab failed:', slotId, uuid, e);
+            return Promise.resolve();
+        }
         if (!room) {
             console.warn('[WorkspaceShellChrome] projection: no pane', slotId);
             return Promise.resolve();
         }
         room.say('Loading ' + title + '…');
-        // The tab's id is spelled as a branch name, which the widget's id is
-        // not: the dock and the desk each name a branch after it.
-        const tab = {
-            id:                 uuid.replace(/[^A-Za-z0-9_-]/g, '_'),
-            title:              title,
-            pinned:             !!descriptor.pinned,
-            widgetKind:         kind,
-            widgetInstanceUuid: uuid,
-            widget:             room
-        };
-        try { this._mtp.addTab(slotId, tab); }
-        catch (e) {
-            console.error('[WorkspaceShellChrome] projection addTab failed:', slotId, uuid, e);
-            room.dispose();
-            return Promise.resolve();
-        }
         this._mtp.setIcon(tab.id, entry.icon);   // the kind's icon, as a site's favicon
         this._tabRegistry.register({
             widgetInstanceUuid: uuid,

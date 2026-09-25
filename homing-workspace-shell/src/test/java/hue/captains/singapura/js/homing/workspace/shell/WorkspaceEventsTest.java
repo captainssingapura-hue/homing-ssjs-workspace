@@ -64,7 +64,6 @@ class WorkspaceEventsTest extends JsModuleTestBase {
         for (String js : new String[]{
                 "({kind:'TabRemoved',   slotId:'p', tab:{id:'t', widgetInstanceUuid:'u', widgetKind:'K'}, fromIndex:0})",
                 "({kind:'TabMoved',     srcSlotId:'a', tab:{id:'t', widgetInstanceUuid:'u'}, srcIndex:0, destSlotId:'b', destIndex:1})",
-                "({kind:'TabAttached',  slotId:'p', tab:{id:'t', widgetInstanceUuid:'u'}, atIndex:0})",
                 "({kind:'TabActivated', slotId:'p', tabId:'t', tab:{id:'t', widgetInstanceUuid:'u'}})",
                 "({kind:'Subdivided',   cellId:'p', newCellId:'q', side:'right'})",
                 "({kind:'Removed',      cellId:'p'})",
@@ -87,7 +86,7 @@ class WorkspaceEventsTest extends JsModuleTestBase {
         Value kinds = global("WorkspaceEvents").getMember("KINDS");
         Set<String> claimed = new LinkedHashSet<>();
         for (long i = 0; i < kinds.getArraySize(); i++) claimed.add(kinds.getArrayElement(i).asString());
-        assertEquals(Set.of("TabRemoved", "TabMoved", "TabAttached", "TabActivated",
+        assertEquals(Set.of("TabRemoved", "TabMoved", "TabActivated",
                             "Subdivided", "Removed", "TracksChanged"), claimed);
     }
 
@@ -133,15 +132,6 @@ class WorkspaceEventsTest extends JsModuleTestBase {
         assertEquals("a", payloadOf(out).getMember("from").getMember("paneId").asString());
         assertEquals("b", payloadOf(out).getMember("to").getMember("paneId").asString());
         assertEquals(3,   payloadOf(out).getMember("to").getMember("tabIndex").asInt());
-    }
-
-    /** An attach is the same move with no source to name — which is what the optional `from` is for. */
-    @Test
-    void anAttachIsAMoveFromNowhere() {
-        Value out = translate("({kind:'TabAttached', slotId:'b', tab:{id:'t', widgetInstanceUuid:'u'}, atIndex:1})");
-        assertEquals("TabMoved", nameOf(out));
-        assertTrue(payloadOf(out).getMember("from").isNull());
-        assertEquals("b", payloadOf(out).getMember("to").getMember("paneId").asString());
     }
 
     @Test
@@ -206,7 +196,7 @@ class WorkspaceEventsTest extends JsModuleTestBase {
      */
     @Test
     void whatAMergeCarriesAcrossIsPartOfTheMerge() {
-        assertNothing(translate("({kind:'TabAttached', slotId:'a', tab:{id:'t', widgetInstanceUuid:'u'}, atIndex:0, merging:'b'})"), "part of the merge");
+        assertNothing(translate("({kind:'TabMoved', srcSlotId:'b', tab:{id:'t', widgetInstanceUuid:'u'}, srcIndex:0, destSlotId:'a', destIndex:2, merging:'b'})"), "part of the merge");
         assertNothing(translate("({kind:'TabActivated', slotId:'a', tabId:'t', tab:{id:'t', widgetInstanceUuid:'u'}, merging:'b'})"), "part of the merge");
         Value merged = translate("({kind:'Removed', cellId:'b', toward:'a'})");
         assertEquals("SplitMerged", nameOf(merged));

@@ -10,22 +10,37 @@
 //     thickness  its lines, in pixels; 1 unless said
 //     parties    the parties the workspace exposes to its widgets, on every room's host
 //
-// A TAB'S NAME AND ICON are the tab-pane's, and this assembly is the tab-pane:
-//   panes.retitle(tabId, title)   the tab's name, wherever it is - its dock's chip, or the
-//                                 floating pane's head. A widget says it through its room's
-//                                 host (host.title), and it arrives here.
+// A TAB IS A TAB-PANE of the DESK (RFC 0066 E3, appendix "tab-panes"): opened
+// in the desk's register, which names it, and owned there for its whole life;
+// a dock or a float only holds it. Its widget is a ROOM, and the holder puts
+// what it likes in the room:
+//   panes.openTab(slotId, record, how?) → the room, or null when there is no such pane:
+//                                 a tab-pane opened in that pane, the record the holder's - the
+//                                 register's id written on it, and the room as record.widget.
+//                                 Every event names the tab by that record from then on
+//   panes.removeTab(slotId, tabId)   the tab-pane closed, wherever it is
+//   panes.undockAt(pane, tab, at)    the tab-pane into a float of its own, at the point
+//
+// A TAB'S NAME AND ICON are the tab-pane's own, and go wherever it goes:
+//   panes.retitle(tabId, title)   the tab's name, on its chip, docked or afloat. A widget
+//                                 says it through its room's host (host.title), and it arrives here.
 //   panes.setIcon(tabId, icon)    the tab's icon, a widget kind's as the workspace declares
 //                                 it ({ kind, value }), shown as an element made and kept here
+//
+// A FLOAT IS TRANSIENT: a tab afloat is still, for the workspace, where it
+// left. Nothing about floats is recorded; a tab dropped back on a dock moved
+// from where it left to where it landed, and a tab closed afloat closed there.
 //
 // WHAT THIS REPLACES. The studio's MultiTabPane was a pane that SPLIT ITSELF:
 // one object owning a tree of leaves, a strip per leaf, the dividers, the drag
 // between strips, the selection paint and ten on* callbacks. Three components
 // do that now, each minding one thing — the grid arranges cells and never
 // knows what a cell holds, a dock holds tabs and never knows where it sits,
-// the desk carries what floats — and each reports on ONE sink as frozen data.
+// the desk owns the tabs and moves them — and each reports on ONE sink as
+// frozen data.
 //
 // So this is not a port. It is the assembly, and the surface the shell already
-// calls is kept deliberately: paneIdOf, addTab, switchTab, removeTab, getState,
+// calls is kept deliberately: paneIdOf, switchTab, removeTab, getState,
 // contentElOf, tabIndexOf, neighbourOf, setAddEnabled, split, merge. The shell
 // keeps calling what it called; underneath, every one of them is now somebody's
 // single job.
@@ -62,12 +77,11 @@ class WorkspacePanes {
         this._opts = opts;
         this._sink = typeof opts.onEvent === "function" ? opts.onEvent : null;
         this._panes = new Map();       // cellId → MultiTabPane
-        this._tabObjs = new Map();     // tabId  → the tab the holder gave us
-        this._floated = new Map();     // tabId  → { slotId, index } it left
+        this._tabObjs = new Map();     // tabId  → the holder's record of the tab
+        this._floated = new Map();     // tabId  → { slotId, index } it left for a float
         this._icons = new Map();       // tabId  → { branch, el }: the icon the tab shows
         this._iconSeq = 0;
         this._merging = null;          // { slotId, toward } while a merge carries its tabs across
-        this._roomSeq = 0;
         this._cellSeq = 0;
 
         var layout = WorkspaceGrid.toGrid(opts.layout) || { kind: "cell", id: "main" };
@@ -88,10 +102,14 @@ class WorkspacePanes {
             onEvent: function (ev) { self._fire(ev); self._sync(); }
         });
 
-        // The desk over the grid: a tab pulled off a strip floats, and lands on
-        // whichever strip it is dropped over. The docks are the cells' panes.
-        this._docking = new Docking(branch.createBranch("docking"), {
+        // THE DESK over the grid: every tab is a tab-pane of its register, and
+        // a widget rests in its focus branch while no dock holds it. A tab
+        // detached floats, and lands on whichever strip it is dropped over. The
+        // docks are the cells' panes.
+        this._desk = new Desk(branch.createBranch("desk"), {
             host: opts.host,
+            focusName: "workspace-desk",
+            menus: opts.menus || null,
             keyboard: opts.keyboard || null,
             keyboardId: opts.keyboardId ? opts.keyboardId + "/desk" : null,
             onEvent: function (ev) { self._fire(ev); }
@@ -118,7 +136,7 @@ class WorkspacePanes {
         }
         this._panes.forEach(function (pane, id) {
             if (live.indexOf(id) >= 0) return;
-            self._docking.removeDock(pane);
+            self._desk.removeDock(pane);
             try { pane.dispose(); } catch (e) {}
             self._panes.delete(id);
         });
@@ -140,7 +158,7 @@ class WorkspacePanes {
         if (o.keyboard && typeof pane.keyboard === "function") {
             pane.keyboard(o.keyboard, o.keyboardId ? o.keyboardId + "/" + cellId : cellId);
         }
-        this._docking.addDock(pane);
+        this._desk.addDock(pane);
         return pane;
     }
 
@@ -156,44 +174,42 @@ class WorkspacePanes {
     layout() { return WorkspaceGrid.fromGrid(this._grid.layout()); }
 
     /**
-     * A room for a tab in this pane: the PANE half of a tab-pane, a member of
-     * this dock's focus branch, on a branch of the assembly's own so it
-     * travels with its tab. The holder puts a widget in it and adds the tab.
+     * A tab in this pane: a tab-pane opened in the desk's register, its widget
+     * a ROOM - a member of the dock's focus branch, keeping the dock's law, so
+     * the dock is handed exactly what it asks for - which the holder puts a
+     * widget in. The record is the holder's: the register's id is written on
+     * it, and the room as record.widget, BEFORE the tab arrives, so the events
+     * of its arrival already name it. how: the desk's - "quiet" unless said.
      */
-    roomFor(slotId) {
+    openTab(slotId, record, how) {
         var pane = this._panes.get(slotId);
         if (!pane) return null;
         var self = this;
-        var room = new WidgetPane(this._branch.createBranch("room" + (++this._roomSeq)), {
-            focus: pane.focus,
-            parties: this._opts.parties || {},
-            // the widget named itself: its tab, wherever the tab is, says so
-            onTitle: function (text) {
-                self._tabObjs.forEach(function (tab) { if (tab.widget === room) self.retitle(tab.id, text); });
-            }
-        });
-        return room;
-    }
-
-    /**
-     * A tab carries its room as its widget, and the room keeps the dock's law
-     * - so the dock is handed exactly what it asks for, and nothing is made up
-     * here to get past its door.
-     */
-    addTab(slotId, tab) {
-        var pane = this._panes.get(slotId);
-        if (!pane) return -1;
-        if (!tab.widget || !tab.widget.root || !tab.widget.focus) {
-            throw new Error("[WorkspacePanes] tab '" + tab.id + "' carries no room: roomFor(slot), setWidget, then addTab");
+        try {
+            this._desk.open({
+                title: record.title, pinned: !!record.pinned,
+                make: function (b, t) {
+                    record.id = t.id;
+                    record.widget = new WidgetPane(b, {
+                        focus: t.focus,
+                        parties: self._opts.parties || {},
+                        onTitle: function (text) { self.retitle(t.id, text); }   // the widget named itself: its tab says so
+                    });
+                    self._tabObjs.set(t.id, record);
+                    return record.widget;
+                }
+            }, pane, null, how);
+        } catch (e) {
+            if (record.id != null && this._tabObjs.get(record.id) === record) this._tabObjs.delete(record.id);
+            throw e;
         }
-        this._tabObjs.set(tab.id, tab);
-        return pane.addTab(tab);
+        return record.widget;
     }
 
-    /** The tab goes out of the table when its dock reports it gone. */
+    /** The tab-pane closed, wherever it is; it goes out of the table when its host reports it gone. */
     removeTab(slotId, tabId) {
-        var pane = this._panes.get(slotId);
-        return pane ? pane.removeTab(tabId) : null;
+        var tp = this._desk.register.get(tabId);
+        return tp ? tp.close() : null;
     }
 
     switchTab(slotId, tabId) {
@@ -267,11 +283,10 @@ class WorkspacePanes {
         return null;
     }
 
-    /** A tab off its dock and onto the desk, at a point: the float. */
+    /** A tab off its dock and into a float of its own, at a point; where it left is kept as its move is said. */
     undockAt(pane, tab, at) {
-        var from = { slotId: pane.slotId, index: pane.tabIndexOf(tab.id) };
-        this._docking.undockAt(pane, tab, at);
-        this._floated.set(tab.id, from);
+        var tp = this._desk.register.get(tab.id);
+        if (tp) this._desk.detach(tp, at);
         return this;
     }
 
@@ -298,7 +313,7 @@ class WorkspacePanes {
         this._merging = { slotId: slotId, toward: toward || null };
         try {
             var ids = from.tabs();
-            for (var i = 0; i < ids.length; i++) to.attachTab(from.detachTab(ids[i]), null);
+            for (var i = 0; i < ids.length; i++) this._desk.move(from.tabPaneOf(ids[i]), to);
             return this._grid.remove(slotId, toward);
         } finally {
             this._merging = null;
@@ -312,7 +327,7 @@ class WorkspacePanes {
 
     seam(on) { this._grid.seam(on); return this; }
 
-    /** A tab's name, now, wherever the tab is — its dock's chip, or the floating head: WorkspaceTabNames. */
+    /** A tab's name, now, wherever the tab is: WorkspaceTabNames. */
     retitle(tabId, title) { WorkspaceTabNames.retitle(this, tabId, title); return this; }
 
     /** A tab's icon: a widget kind's ({ kind, value }), or null for none: WorkspaceTabNames. */
@@ -340,10 +355,16 @@ class WorkspacePanes {
         return this;
     }
 
+    /**
+     * Every tab-pane closed with the desk, and then the docks, empty. Said to
+     * no one: a workspace going away has not closed its tabs, and the record
+     * must not say it did.
+     */
     dispose() {
+        this._sink = null;
+        try { this._desk.dispose(); } catch (e) {}
         this._panes.forEach(function (pane) { try { pane.dispose(); } catch (e) {} });
         this._panes.clear();
-        try { this._docking.dispose(); } catch (e) {}
         try { this._grid.dispose(); } catch (e) {}
         try { this._branch.dissolve(); } catch (e) {}
     }
