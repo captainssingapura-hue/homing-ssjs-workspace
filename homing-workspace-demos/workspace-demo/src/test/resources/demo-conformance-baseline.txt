@@ -1,5 +1,6 @@
 # workspace-demo - its conformance debt. A ratchet: it only shrinks.
 # Re-record deliberately (-Dconformance.record=true), never to silence a new finding.
+# By decision (2026-09-25): the 'construct' function WorkspaceWidget generates for every widget is recorded here as debt, pending the widget contract (exports-are-classes exempts only appMain).
 hue.captains.singapura.js.homing.workspace.demo.DemoBooksWidget [exports-are-classes] exported function 'construct' — a component is a class: function construct(branch, params, host) {
 hue.captains.singapura.js.homing.workspace.demo.DemoCounterWidget [exports-are-classes] exported function 'construct' — a component is a class: function construct(branch, params, host) {
 hue.captains.singapura.js.homing.workspace.demo.DemoNoteWidget [exports-are-classes] exported function 'construct' — a component is a class: function construct(branch, params, host) {

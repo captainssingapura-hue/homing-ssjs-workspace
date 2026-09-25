@@ -79,6 +79,7 @@ class DemoConformanceTest {
             var lines = new ArrayList<String>();
             lines.add("# workspace-demo - its conformance debt. A ratchet: it only shrinks.");
             lines.add("# Re-record deliberately (-Dconformance.record=true), never to silence a new finding.");
+            lines.add("# By decision (2026-09-25): the 'construct' function WorkspaceWidget generates for every widget is recorded here as debt, pending the widget contract (exports-are-classes exempts only appMain).");
             lines.addAll(Baseline.record(raw));
             Files.write(BASELINE, lines, StandardCharsets.UTF_8);
             return;

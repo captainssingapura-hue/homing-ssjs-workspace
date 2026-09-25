@@ -1,5 +1,6 @@
 # homing-workspace-shell - the conformance debt it was copied with. A ratchet: it only shrinks.
 # Re-record deliberately (-Dconformance.record=true), never to silence a new finding.
+# By decision (2026-09-25): the 'construct' function WorkspaceWidget generates for every widget is recorded here as debt, pending the widget contract (exports-are-classes exempts only appMain).
 hue.captains.singapura.js.homing.workspace.shell.CheckpointServiceModule [max-effective-lines] module exceeds the 250 effective-line limit — split it
 hue.captains.singapura.js.homing.workspace.shell.CssGraphRendererModule [exports-are-classes] exported function 'renderCssGraph' — a component is a class: function renderCssGraph(branch, host, opts) {
 hue.captains.singapura.js.homing.workspace.shell.CssGraphWorkbenchWidget [exports-are-classes] exported function 'construct' — a component is a class: function construct(branch, params, host) {
