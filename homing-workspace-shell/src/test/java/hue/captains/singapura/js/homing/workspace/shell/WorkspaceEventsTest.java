@@ -101,8 +101,6 @@ class WorkspaceEventsTest extends JsModuleTestBase {
         assertNothing(translate("({kind:'CursorMoved', cellId:'p', by:'pointer'})"),
                 "live state");
         assertNothing(translate("({kind:'DetachRequested', slotId:'p', tabId:'t'})"), "no workspace record");
-        assertNothing(translate("({kind:'Docked',   tabId:'t', slotId:'p', index:0})"), "no workspace record");
-        assertNothing(translate("({kind:'Undocked', tabId:'t', slotId:'p'})"), "no workspace record");
     }
 
     /** A component may grow a kind this does not know; a log that refuses to be written is worse. */

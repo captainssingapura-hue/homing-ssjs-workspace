@@ -28,8 +28,8 @@ import java.util.List;
  * question rather than a mutation; {@code TabAdded} cannot say whether a tab
  * came from the picker or was pinned, which the workspace records, so the
  * holder that authored the spawn names it; {@code CursorMoved} is live state;
- * and {@code DetachRequested} / {@code Docked} / {@code Undocked} are a
- * transient float that comes back to the dock it left.</p>
+ * and a float is transient: the panes never pass one on, and a tab that comes
+ * down from a float comes down as a move from where it left.</p>
  */
 public record WorkspaceEventsModule() implements EsModule<WorkspaceEventsModule> {
 

@@ -580,9 +580,9 @@ class WorkspaceShellChrome {
         this._menus.handle('tab', {
             pick: function (id, o) {
                 if (id === 'close') { o.pane.removeTab(o.tab.id); return; }
-                if (id === 'detach' && panes.undockAt) {
+                if (id === 'detach') {
                     const r = o.anchor.getBoundingClientRect();
-                    panes.undockAt(o.pane, o.tab, { x: r.left + 60, y: r.bottom + 14 });
+                    panes.detach(o.tab.id, { x: r.left + 60, y: r.bottom + 14 });
                 }
             },
             // Detach floats the tab where its chip was: the tab-pane goes whole,

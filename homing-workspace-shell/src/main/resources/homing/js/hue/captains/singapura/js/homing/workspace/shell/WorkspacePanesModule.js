@@ -19,7 +19,7 @@
 //                                 register's id written on it, and the room as record.widget.
 //                                 Every event names the tab by that record from then on
 //   panes.removeTab(slotId, tabId)   the tab-pane closed, wherever it is
-//   panes.undockAt(pane, tab, at)    the tab-pane into a float of its own, at the point
+//   panes.detach(tabId, at)          the tab-pane into a float of its own, at the point
 //
 // A TAB'S NAME AND ICON are the tab-pane's own, and go wherever it goes:
 //   panes.retitle(tabId, title)   the tab's name, on its chip, docked or afloat. A widget
@@ -284,8 +284,8 @@ class WorkspacePanes {
     }
 
     /** A tab off its dock and into a float of its own, at a point; where it left is kept as its move is said. */
-    undockAt(pane, tab, at) {
-        var tp = this._desk.register.get(tab.id);
+    detach(tabId, at) {
+        var tp = this._desk.register.get(tabId);
         if (tp) this._desk.detach(tp, at);
         return this;
     }
