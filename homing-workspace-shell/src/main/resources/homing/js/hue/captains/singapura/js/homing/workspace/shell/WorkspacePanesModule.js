@@ -3,7 +3,11 @@
 // per cell, a desk over all of them.
 //
 //   new WorkspacePanes(branch, { host, layout, budget?, onEvent?, keyboard?,
-//                                keyboardId?, menus?, stripMenu?, keys? })
+//                                keyboardId?, menus?, stripMenu?, keys?,
+//                                seam?, thickness? })
+//     seam       the lattice drawn - every splitter and the grid's edge; on
+//                unless said false
+//     thickness  its lines, in pixels; 1 unless said
 //
 // WHAT THIS REPLACES. The studio's MultiTabPane was a pane that SPLIT ITSELF:
 // one object owning a tree of leaves, a strip per leaf, the dividers, the drag
@@ -62,9 +66,14 @@ class WorkspacePanes {
         // so a new pane is never given the id of one that went.
         this._cellIds = new Set(SplitGridTree.cells(layout));
 
+        // The seam: a workspace is flat, and flat is not featureless - a
+        // hairline says where one pane ends and the next begins, which the
+        // panes' own edges are too pale to say against the ground.
         this._grid = new SplitGrid(branch.createBranch("grid"), {
             host: opts.host,
             layout: layout,
+            seam: opts.seam !== false,
+            thickness: opts.thickness == null ? 1 : opts.thickness,
             minCellPx: 160,
             onEvent: function (ev) { self._fire(ev); self._sync(); }
         });
