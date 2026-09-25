@@ -17,10 +17,8 @@ import java.util.List;
  * Every registered {@link WorkspaceSpec}, stamped into one JS module as
  * {@code SPECS}, keyed by kind.
  *
- * <p>The same object {@code GenericWorkspaceChrome} interpolates into its body
- * JS, in a module of its own instead. The difference matters: a body is the
- * studio's widget machinery writing a page, and only that machinery can carry
- * it; a module is imported by whoever wants it. {@link WorkspaceApp} wants it
+ * <p>A module of its own, not a body the studio's widget machinery writes into
+ * a page: a module is imported by whoever wants it. {@link WorkspaceApp} wants it
  * to be a page of any standard MPA, and the workspace is then hosted by the
  * framework's own page model rather than the studio's.</p>
  *

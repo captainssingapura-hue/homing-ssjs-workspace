@@ -11,9 +11,6 @@ import hue.captains.singapura.js.homing.ui.docking.UiDockingCrate;
 import hue.captains.singapura.js.homing.ui.menu.UiMenuCrate;
 import hue.captains.singapura.js.homing.ui.panes.UiPanesCrate;
 import hue.captains.singapura.js.homing.ui.splitgrid.UiSplitGridCrate;
-import hue.captains.singapura.js.homing.studio.base.StudioBaseCrate;
-import hue.captains.singapura.js.homing.theme.color.ThemeColorCrate;
-import hue.captains.singapura.js.homing.theme.type.ThemeTypeCrate;
 import hue.captains.singapura.js.homing.workspace.WorkspaceCrate;
 import hue.captains.singapura.js.homing.workspace.codecs.WorkspaceCodecsCrate;
 import hue.captains.singapura.js.homing.workspace.persistence.WorkspacePersistenceCrate;
@@ -23,8 +20,10 @@ import java.util.List;
 /**
  * RFC 0044 — the {@link Crate} for {@code homing-workspace-shell}: the universal
  * workspace-chrome substrate (orchestrator + the layout / party / codec /
- * checkpoint / replay / mounter sub-modules and the GenericWorkspace app).
- * Requires the workspace stack below it plus the core-js + studio-base substrate.
+ * checkpoint / replay / mounter sub-modules), and {@link WorkspaceApp}, the
+ * workspace as a page of any standard MPA. Requires the workspace stack below
+ * it, the core-js and server substrate, the MPA and the ui-components it is
+ * built of — and nothing of the studio.
  */
 public final class WorkspaceShellCrate implements Crate {
 
@@ -38,7 +37,6 @@ public final class WorkspaceShellCrate implements Crate {
         return List.of(
                 CoreJsCrate.INSTANCE,
                 ServerCrate.INSTANCE,
-                StudioBaseCrate.INSTANCE,
                 // The framework page model WorkspaceApp is a page of, for the one
                 // word it wears on the slot it is handed.
                 MpaCrate.INSTANCE,
@@ -53,10 +51,9 @@ public final class WorkspaceShellCrate implements Crate {
                 WorkspaceCrate.INSTANCE,
                 WorkspaceCodecsCrate.INSTANCE,
                 WorkspacePersistenceCrate.INSTANCE,
-                // RFC 0066 - the palettes its groups read: colour, and the mono face.
-                ThemeColorCrate.INSTANCE,
-                hue.captains.singapura.js.homing.design.DesignCrate.INSTANCE,
-                ThemeTypeCrate.INSTANCE);
+                // The design substrate its sheets wear words of. No legacy palette:
+                // nothing here reads a --color-* or a legacy font token.
+                hue.captains.singapura.js.homing.design.DesignCrate.INSTANCE);
     }
 
     @Override
@@ -65,15 +62,10 @@ public final class WorkspaceShellCrate implements Crate {
                 CrateEntry.of(CheckpointServiceModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(CodecRegistrarModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(EventEmitterModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(GenericWorkspace.INSTANCE),
                 // The workspace as a page of any standard MPA: the app, and the
                 // registry stamped into a module it can import.
                 CrateEntry.of(WorkspaceSpecsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WorkspaceApp.INSTANCE, StandardJsModuleType.CONSUMER),
-                // RFC 0058 — the authentic-path app: one page per WorkspaceGroup, the kind an anchor.
-                CrateEntry.of(WorkspaceGroupApp.INSTANCE),
-                CrateEntry.of(WorkspaceGroupChrome.INSTANCE),
-                CrateEntry.of(GenericWorkspaceChrome.INSTANCE),
                 CrateEntry.of(LayoutCodecModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(PartyBootstrapModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(PersistenceAttacherModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
@@ -84,7 +76,6 @@ public final class WorkspaceShellCrate implements Crate {
                 // RFC 0057 Phase 3 — the switcher replaces WorkspaceControlModal.
                 CrateEntry.of(WorkspaceSwitcherStyles.INSTANCE),
                 CrateEntry.of(WorkspaceSwitcherModel.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(WorkspaceGroupPathModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),   // RFC 0058
                 CrateEntry.of(WorkspaceSwitcherModule.INSTANCE),
                 // RFC 0063 — the DomOpsParty monitor: sheet, renderer, widget.
                 CrateEntry.of(PartyMonitorStyles.INSTANCE),

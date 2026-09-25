@@ -10,8 +10,8 @@ import java.util.Map;
 
 /**
  * Serializer for {@link WorkspaceSpec} → JS object literal. The output
- * is interpolated into {@link GenericWorkspaceChrome}'s body JS and
- * consumed by {@code mountWorkspaceShell(branch, parent, spec)}.
+ * is stamped into {@link WorkspaceSpecsModule} and consumed by
+ * {@code mountWorkspaceShell(branch, parent, spec)}.
  *
  * <p>Lives in its own class so the wire contract is unit-testable.
  * Wire shape (one spec):</p>

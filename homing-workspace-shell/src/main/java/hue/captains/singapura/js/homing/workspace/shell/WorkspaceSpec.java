@@ -14,7 +14,7 @@ import java.util.Map;
  * {@code INSTANCE} static field) — they declare what a workspace kind
  * looks like, with zero embedded behaviour.
  *
- * <p>A {@code WorkspaceSpec} carries everything {@link GenericWorkspaceChrome}
+ * <p>A {@code WorkspaceSpec} carries everything {@link WorkspaceApp}
  * needs to mount the workspace's chrome via
  * {@code mountWorkspaceShell(branch, parent, specJson)}:</p>
  *
@@ -69,13 +69,10 @@ public interface WorkspaceSpec extends Stateless {
     String title();
 
     /**
-     * The section this kind sits under in its {@link WorkspaceGroup}'s tree — the
-     * heading the switcher draws it beneath, and the middle segment of its anchor
-     * ({@code #ws/<section>/<kind>}, RFC 0058). The role {@code Theme.group()}
-     * plays for the theme picker (RFC 0057), under a different name: a
-     * <em>group</em> is the container a studio places; a <em>section</em> is a
-     * heading inside it. Defaulted so every kind lands in one section until its
-     * spec says otherwise.
+     * The section this kind sits under in the switcher's tree — the heading it
+     * is drawn beneath. The role {@code Theme.group()} plays for the theme
+     * picker (RFC 0057), under a different name. Defaulted so every kind lands
+     * in one section until its spec says otherwise.
      */
     default String section() { return "Workspaces"; }
 

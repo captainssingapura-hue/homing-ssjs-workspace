@@ -4,7 +4,7 @@
 // kind on the right, and three verbs underneath: Cancel, Open in new tab, Open.
 // Nothing navigates until you confirm — browsing and opening are different acts.
 //
-//   new WorkspaceSwitcher({ workspaceKind, workspaceTitle, group | availableKinds + switchBase,
+//   new WorkspaceSwitcher({ workspaceKind, workspaceTitle, availableKinds, switchBase,
 //                           identity, catalogueStore, eventLog, checkpointStore })
 //     .open() .close() .toggle() .isOpen() .destroy()
 //
@@ -101,14 +101,9 @@ class WorkspaceSwitcher {
         opts = opts || {};
         this._kind     = opts.workspaceKind;
         this._title    = opts.workspaceTitle || opts.workspaceKind;
-        // Two apps, two ways to name a kind (RFC 0058). The authentic-path app
-        // hands the GROUP the page is in, as served, and a kind change is an
-        // anchor on this same address. The legacy app hands availableKinds and
-        // switchBase, and a kind change goes through /goto as it always has.
-        this._group    = opts.group || null;
-        this._kinds    = this._group ? (this._group.kinds || [])
-                       : (Array.isArray(opts.availableKinds) ? opts.availableKinds : []);
-        this._base     = this._group ? null : (opts.switchBase || null);
+        // The kinds on offer, and the address a kind change goes to.
+        this._kinds    = Array.isArray(opts.availableKinds) ? opts.availableKinds : [];
+        this._base     = opts.switchBase || null;
         this._identity = opts.identity || {};          // LIVE ref — the orchestrator fills it in
         this._store    = opts.catalogueStore  || null;
         this._eventLog = opts.eventLog        || null;

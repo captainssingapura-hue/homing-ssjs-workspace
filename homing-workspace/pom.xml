@@ -39,10 +39,9 @@
 
     <dependencies>
         <!-- What this module actually imports, and used to reach through
-             studio-base: core and its js substrate, the Party primitive, the
-             colour palette its groups read, and the server's CSS manager. The
-             studio never owned any of it - it merely happened to be between
-             here and there. -->
+             studio-base: core and its js substrate, the Party primitive, and
+             the server's CSS manager. The studio never owned any of it - it
+             merely happened to be between here and there. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-core-js</artifactId>
@@ -51,11 +50,6 @@
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-component-base</artifactId>
-            <version>${homing.core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-theme-color</artifactId>
             <version>${homing.core.version}</version>
         </dependency>
         <dependency>

@@ -56,13 +56,6 @@
             <artifactId>homing-site-mpa</artifactId>
             <version>${homing.core.version}</version>
         </dependency>
-        <!-- The generic catalogue tree (core's, not the studio's): what
-             WorkspaceGroups walks to hold every group to one placement. -->
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-site-catalogue</artifactId>
-            <version>${homing.core.version}</version>
-        </dependency>
         <!-- The MPA's implementation - StandardMpa, its page, its chrome - from the
              ui-components repo; core's homing-site-mpa above holds the definitions. -->
         <dependency>
@@ -106,19 +99,6 @@
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-ui-dialog</artifactId>
             <version>${homing.components.version}</version>
-        </dependency>
-
-        <!-- THE UI SWAP'S REMAINING DEBT, made visible. homing-workspace used
-             to carry this and every module above it inherited it silently; it
-             is declared here now because here is where it is used, and the
-             swap is done when this block goes. Three ties left: the shell
-             chrome's legacy MultiTabPane, the focus coordinator's
-             FocusManager, and the studio mounting (WorkspaceMPA, DocWidget,
-             Catalogue) - which stays, the catalogue contract being kept. -->
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-studio-base</artifactId>
-            <version>${homing.core.version}</version>
         </dependency>
 
         <dependency>

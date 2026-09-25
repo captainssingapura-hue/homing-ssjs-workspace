@@ -11,11 +11,10 @@
 var DEFAULT_SECTION = "Workspaces";
 
 /**
- * The group's kinds — [{kind, title, section, sectionSlug}] as the server
+ * The kinds on offer — [{kind, title, section, sectionSlug?}] as the server
  * served them, section order then spec order — → TreeRenderer data: sections at
- * L1, kinds at L2. RFC 0058: this IS the group's inner catalogue, and the L1
- * segment is the slug the server minted, so the tree the switcher draws and
- * the path the anchor names are one derivation.
+ * L1, kinds at L2. A section's segment is the slug the server served, else one
+ * derived from its name.
  */
 function kindTreeData(kinds, currentKind) {
     var order = [], byName = {}, slugOf = {};
@@ -98,26 +97,16 @@ function canDelete(row, currentId) {
 }
 
 /**
- * The URL a choice navigates to. Two apps share this switcher, and they name a
- * kind two different ways (RFC 0058):
- *
- *   ANCHOR mode — the authentic-path app (workspaceGroup). o.kinds carries the
- *   served section slugs and o.base is absent. The kind is `#ws/<section>/<kind>`
- *   on the SAME address, and the chrome reloads on hashchange; a same-kind
- *   change (another instance) keeps the anchor too, because current() carries
- *   no fragment and a reload without one would open the group's default.
- *
- *   GOTO mode — the legacy app (genericWorkspace), unchanged from RFC 0057.
- *   o.base is "/goto?app=<simpleName>", where a KIND change must go: ws_kind is
- *   a typed, stamped param, so editing it in the query of a path address
- *   changes nothing, and /goto resolves the pair to its authentic path when one
- *   exists and to the flat render otherwise. A same-kind change edits the
- *   current URL and every other parameter survives.
+ * The URL a choice navigates to. A KIND change goes to o.base, the workspace
+ * app's flat address, with ws_kind set: ws_kind is a typed, stamped param, so
+ * editing it in the query of a path address would change nothing. A same-kind
+ * change (another instance) edits the current URL, and every other parameter
+ * survives.
  *
  *   o.kinds       the kinds as served — [{kind, title, section, sectionSlug?}]
  *   o.kind        the chosen kind
  *   o.currentKind the kind now open
- *   o.base        "/goto?app=<simpleName>" — GOTO mode when present
+ *   o.base        the flat address a kind change goes to
  *   o.instanceId  an existing instance (→ ?workspace=)
  *   o.name        a new instance to mint (→ ?name=, which the directory resolves)
  *
@@ -143,12 +132,10 @@ function targetUrl(current, o) {
     if (o.name)            params.set("name", o.name);
     else if (o.instanceId) params.set("workspace", o.instanceId);
     var s = params.toString();
-    var anchor = o.base ? null : anchorOf(o.kinds, o.kind);
-    return path + (s ? "?" + s : "") + (anchor ? "#" + anchor : "");
+    return path + (s ? "?" + s : "");
 }
 
-// The legacy app serves kinds without a slug (its tree is not an address);
-// the authentic-path app serves the slug the server minted and this is unused.
+/** A section's segment when the server served none: its name, slugged. */
 function _slug(s) {
     return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 32) || "n";
 }

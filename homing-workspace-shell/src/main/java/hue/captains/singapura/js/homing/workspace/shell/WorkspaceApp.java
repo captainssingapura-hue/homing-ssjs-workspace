@@ -17,17 +17,13 @@ import java.util.Map;
  * The workspace as a page of any standard MPA: {@code /app?app=workspace&ws_kind=<kind>},
  * or wherever a site's router puts it.
  *
- * <p>The same workspace {@link GenericWorkspace} is, hosted differently. That
- * one extends the studio's {@code WorkspaceMPA}, so a page of it is a studio
- * page: the studio draws the chrome, the studio's widget machinery writes the
- * body, and a site that is not a studio cannot have one. This one extends
- * nothing. It is an {@code AppModule} like any other — the MPA hands it the
- * slot and its params, it fills the slot — so the workspace is a page anywhere
- * the framework's page model reaches, and a standalone workspace application
- * is a site with one route.</p>
- *
- * <p>Both are live on purpose. The studio keeps its own mounting while its
- * copy of this stack is retired; nothing here points back at it.</p>
+ * <p>The one way this repo hosts a workspace. It extends nothing: it is an
+ * {@code AppModule} like any other — the MPA hands it the slot and its params,
+ * it fills the slot — so the workspace is a page anywhere the framework's page
+ * model reaches, and a standalone workspace application is a site with one
+ * route. (The studio mounting this repo was copied with — a workspace as a
+ * studio page — is gone from here; the studio keeps its own, on core's copy of
+ * this stack.)</p>
  *
  * <p>{@code ws_kind} is required and selects a registered {@link WorkspaceSpec}
  * from {@link WorkspaceSpecRegistry}, as it always did — the URL contract is
@@ -47,9 +43,7 @@ public record WorkspaceApp() implements AppModule<WorkspaceApp.Params, Workspace
     /**
      * RFC 0051 — the kind is required. This app mounts a registered spec by
      * kind and there is no sensible default to fall back to, so an absent kind
-     * is a malformed request rather than a page. Same reading as
-     * {@link GenericWorkspace#CODEC}, and deliberately not shared with it: the
-     * two apps are separate URL contracts that happen to agree today.
+     * is a malformed request rather than a page.
      */
     public static final ParamCodec<Params> CODEC = new ParamCodec<>() {
 

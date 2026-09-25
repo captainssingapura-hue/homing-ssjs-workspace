@@ -8,9 +8,9 @@ import java.util.Optional;
 
 /**
  * Process-wide registry of every {@link WorkspaceSpec} a runtime knows
- * about. {@link GenericWorkspace} reads from it at request time to
- * serialize the registry into the chrome's body JS; the JS chooses
- * which spec to mount by the URL's {@code ?ws_kind=…} parameter.
+ * about. {@link WorkspaceSpecsModule} stamps it into a module the page
+ * imports; {@link WorkspaceApp} mounts the spec its {@code ws_kind}
+ * param names.
  *
  * <p>Apps populate the registry at construction time — typically a
  * static initializer or a studio's bootstrap. Validation is at
