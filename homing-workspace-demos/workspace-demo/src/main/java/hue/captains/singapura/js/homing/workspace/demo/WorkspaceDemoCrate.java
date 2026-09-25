@@ -25,7 +25,9 @@ public final class WorkspaceDemoCrate implements Crate {
 
     @Override public List<Crate> requires() {
         return List.of(WorkspaceShellCrate.INSTANCE, UiElementsCrate.INSTANCE,
-                       RelGridCrate.INSTANCE, RelTreeCrate.INSTANCE, RelGridProtocolCrate.INSTANCE);
+                       RelGridCrate.INSTANCE, RelTreeCrate.INSTANCE, RelGridProtocolCrate.INSTANCE,
+                       // the design substrate the demo's sheet wears words of: a crate edge, not a reach through the shell
+                       hue.captains.singapura.js.homing.design.DesignCrate.INSTANCE);
     }
 
     @Override

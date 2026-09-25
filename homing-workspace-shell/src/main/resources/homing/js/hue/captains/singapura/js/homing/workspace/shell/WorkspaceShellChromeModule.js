@@ -1006,7 +1006,7 @@ class DepGraphWalker {
 
     _kind(v) {
         if (v === null || v === undefined) return String(v);
-        if (typeof v === 'function')        return 'class ' + (v.name || '<anonymous>');
+        if (typeof v === 'function')        return 'class ' + (v.name || '(anonymous)');
         const ctor = v.constructor && v.constructor.name;
         return ctor || typeof v;
     }

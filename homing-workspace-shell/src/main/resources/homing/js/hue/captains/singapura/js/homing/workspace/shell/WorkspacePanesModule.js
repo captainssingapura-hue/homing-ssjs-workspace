@@ -100,66 +100,8 @@ class WorkspacePanes {
         this._sync();
     }
 
-    /**
-     * Every event from the grid, the docks and the desk, on to the holder -
-     * with what only the assembly knows filled in.
-     *
-     * The holder keeps its records by the tab it made, so every event names
-     * THAT tab. A dock names the one it activated only by id; and a tab that
-     * floated comes back from the desk as the desk's own { id, title, widget },
-     * which the dock it lands on keeps and reports from then on - the same tab,
-     * with nothing the holder wrote on it. A tab closed goes out of the table.
-     * And a tab floated off a dock and closed on the desk IS that tab closed:
-     * the desk only knows a pane went, so it is said here as the dock would
-     * have said it, from the place the tab left.
-     */
-    _fire(ev) {
-        if (ev.tab && ev.tab !== this._tabObjs.get(ev.tab.id) && this._tabObjs.has(ev.tab.id)) {
-            ev = Object.freeze(Object.assign({}, ev, { tab: this._tabObjs.get(ev.tab.id) }));
-        }
-        // A merge is ONE fact. The tabs it carries across, and the tab each
-        // dock then shows, are part of it: marked, so the holder keeps its
-        // books by them but records only the merge, whose replay moves the
-        // tabs the same way.
-        if (this._merging && ev.slotId !== undefined && ev.kind !== "Removed") {
-            ev = Object.freeze(Object.assign({}, ev, { merging: this._merging.slotId }));
-        }
-        switch (ev.kind) {
-            case "TabActivated":
-                ev = Object.freeze(Object.assign({}, ev, { tab: this._tabObjs.get(ev.tabId) || null }));
-                break;
-            case "TabRemoved":
-                this._tabObjs.delete(ev.tab.id);
-                this._forgetIcon(ev.tab.id);
-                break;
-            case "Docked": {
-                this._floated.delete(ev.tabId);
-                // A tab dropped on a dock is the one it shows: the hand put it
-                // there to look at it, and a replay of the move shows it too.
-                var dock = this._panes.get(ev.slotId);
-                this._emit(ev);
-                if (dock && dock.activeTab() !== ev.tabId) dock.switchTab(ev.tabId);
-                return;
-            }
-            case "Removed":
-                if (this._merging && this._merging.slotId === ev.cellId) {
-                    ev = Object.freeze(Object.assign({}, ev, { toward: this._merging.toward }));
-                }
-                break;
-            case "Closed": {
-                var from = this._floated.get(ev.id);
-                var tab = this._tabObjs.get(ev.id);
-                if (!from || !tab) break;
-                this._floated.delete(ev.id);
-                this._tabObjs.delete(ev.id);
-                this._forgetIcon(ev.id);
-                this._emit(ev);
-                ev = PaneEvents.TabRemoved(from.slotId, tab, from.index);
-                break;
-            }
-        }
-        this._emit(ev);
-    }
+    /** Every event on to the holder, with what only the assembly knows filled in: WorkspacePaneEvents. */
+    _fire(ev) { WorkspacePaneEvents.fire(this, ev); }
 
     _emit(ev) {
         if (!this._sink) return;
@@ -370,59 +312,14 @@ class WorkspacePanes {
 
     seam(on) { this._grid.seam(on); return this; }
 
-    /**
-     * A tab's name, now, wherever the tab is: on its dock's chip, or on the
-     * floating pane's head while it floats - and on the tab itself, so it
-     * comes back down with it.
-     */
-    retitle(tabId, title) {
-        var tab = this._tabObjs.get(tabId);
-        if (tab) tab.title = title;
-        var slot = this.slotOf(tabId);
-        if (slot) { this._panes.get(slot).retitle(tabId, title); return this; }
-        var afloat = this._docking.desk.pane(tabId);
-        if (afloat) afloat.title(title);
-        return this;
-    }
+    /** A tab's name, now, wherever the tab is — its dock's chip, or the floating head: WorkspaceTabNames. */
+    retitle(tabId, title) { WorkspaceTabNames.retitle(this, tabId, title); return this; }
 
-    /**
-     * A tab's icon: a widget kind's, as the workspace declares it - { kind,
-     * value } - or null for none. The tab shows it as an element made and
-     * kept here, one per tab, so a tab that changes kind (a chooser that
-     * becomes a widget) changes its icon in place.
-     */
-    setIcon(tabId, icon) {
-        var el = icon ? this._iconFor(tabId, icon) : null;
-        var tab = this._tabObjs.get(tabId);
-        if (tab) tab.icon = el;
-        var slot = this.slotOf(tabId);
-        if (slot) { this._panes.get(slot).reicon(tabId, el); return this; }
-        var afloat = this._docking.desk.pane(tabId);
-        if (afloat) afloat.icon(el);
-        return this;
-    }
-
-    /** The tab's icon element, made on first asking and shown with the kind's glyph; an icon the page cannot draw yet shows the kind's default. */
-    _iconFor(tabId, icon) {
-        var rec = this._icons.get(tabId);
-        if (!rec) {
-            var b = this._branch.createBranch("icon" + (++this._iconSeq));
-            b.activate(_owner);
-            rec = { branch: b, el: b.createElement("glyph", "span") };
-            this._icons.set(tabId, rec);
-        }
-        // an Svg icon is a reference the page has no renderer for yet; the picker shows the default too
-        rec.el.textContent = icon.kind === "emoji" && icon.value ? icon.value : "📦";
-        return rec.el;
-    }
+    /** A tab's icon: a widget kind's ({ kind, value }), or null for none: WorkspaceTabNames. */
+    setIcon(tabId, icon) { WorkspaceTabNames.setIcon(this, tabId, icon); return this; }
 
     /** A tab gone: its icon with it. */
-    _forgetIcon(tabId) {
-        var rec = this._icons.get(tabId);
-        if (!rec) return;
-        this._icons.delete(tabId);
-        try { rec.branch.dissolve(); } catch (e) {}
-    }
+    _forgetIcon(tabId) { WorkspaceTabNames.forget(this, tabId); }
 
     /** The tab a pane is showing, or null. */
     activeTabOf(slotId) {

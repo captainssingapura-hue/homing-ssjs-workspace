@@ -7,7 +7,6 @@ import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.ui.docking.DockingModule;
 import hue.captains.singapura.js.homing.ui.panes.MultiTabPaneModule;
-import hue.captains.singapura.js.homing.ui.panes.PaneEventsModule;
 import hue.captains.singapura.js.homing.ui.splitgrid.SplitGridModule;
 import hue.captains.singapura.js.homing.ui.splitgrid.SplitGridTreeModule;
 
@@ -56,8 +55,10 @@ public record WorkspacePanesModule() implements DomModule<WorkspacePanesModule> 
                         WorkspaceGridModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new MultiTabPaneModule.MultiTabPane()),
                         MultiTabPaneModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(new PaneEventsModule.PaneEvents()),
-                        PaneEventsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspacePaneEventsModule.WorkspacePaneEvents()),
+                        WorkspacePaneEventsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceTabNamesModule.WorkspaceTabNames()),
+                        WorkspaceTabNamesModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new DockingModule.Docking()),
                         DockingModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WidgetPaneModule.WidgetPane()), WidgetPaneModule.INSTANCE))

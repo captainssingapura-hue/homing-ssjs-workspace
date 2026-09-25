@@ -1,6 +1,10 @@
 package hue.captains.singapura.js.homing.workspace.shell;
 
+import hue.captains.singapura.js.homing.component.BranchComponent;
+import hue.captains.singapura.js.homing.component.keyboard.Key;
+import hue.captains.singapura.js.homing.component.keyboard.KeyBinding;
 import hue.captains.singapura.js.homing.component.keyboard.KeysModule;
+import hue.captains.singapura.js.homing.component.keyboard.NeedKeyboard;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.Exportable;
 import hue.captains.singapura.js.homing.core.ExportsOf;
@@ -32,7 +36,21 @@ public record WidgetPaneModule() implements DomModule<WidgetPaneModule> {
     public static final WidgetPaneModule INSTANCE = new WidgetPaneModule();
 
     /** The room. */
-    public record WidgetPane() implements Exportable._Class<WidgetPaneModule> {}
+    public record WidgetPane() implements BranchComponent<WidgetPaneModule>, NeedKeyboard {
+        @Override public String summary() {
+            return "The pane half of a tab-pane: the focus party's member for a tab, wrapping whatever element its widget gives, and handing the widget the keys it holds.";
+        }
+        /**
+         * The room's own keys. The rest it holds it hands on to its widget
+         * (keyDown), and a widget of native controls takes its own; the room
+         * says only how the keys come back out: Escape out of a native control
+         * the control did not take, and Escape again back to the dock.
+         */
+        @Override public List<KeyBinding> keys() {
+            return List.of(KeyBinding.of(Key.ESCAPE,
+                    "out of a native control inside, the keys the room's again; again, back to the dock"));
+        }
+    }
 
     @Override
     public ImportsFor<WidgetPaneModule> imports() {

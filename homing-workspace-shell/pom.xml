@@ -129,9 +129,25 @@
             <version>${homing.core.version}</version>
             <scope>test</scope>
         </dependency>
-            <dependency>
+        <!-- The gate (ShellConformanceTest), headless: the rules, the engine that
+             grades the served artifacts, and the designs every pair the shell's
+             sheets wear must be bound in. Test scope: the shell chooses no design;
+             a site does. -->
+        <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-conformance-rules</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-conformance-engine</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-designs</artifactId>
             <version>${homing.core.version}</version>
             <scope>test</scope>
         </dependency>

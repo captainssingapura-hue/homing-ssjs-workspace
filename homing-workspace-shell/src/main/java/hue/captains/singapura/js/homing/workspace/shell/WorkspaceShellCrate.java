@@ -100,6 +100,9 @@ public final class WorkspaceShellCrate implements Crate {
                 // The pane half of a tab-pane: the room a widget runs in.
                 CrateEntry.of(WidgetPaneModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(WorkspacePanesModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                // What the panes fill into their events, and a tab's name and icon: split out of them.
+                CrateEntry.of(WorkspacePaneEventsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(WorkspaceTabNamesModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(WorkspaceStateModelModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WriteLockGuardModule.INSTANCE));
     }
