@@ -29,6 +29,10 @@
         <module>homing-workspace</module>
         <!-- The arrangement's codecs: the state that crosses to JS. -->
         <module>homing-workspace-codecs</module>
+        <!-- The workspace log: its Java codecs, generated (output-only), then the store,
+             the exporter and the validator, in both languages. -->
+        <module>homing-workspace-log-codec</module>
+        <module>homing-workspace-log</module>
         <!-- Where an arrangement is kept between visits. -->
         <module>homing-workspace-persistence</module>
         <!-- The shell: chrome, layout, the switcher, the spec and its guard. -->

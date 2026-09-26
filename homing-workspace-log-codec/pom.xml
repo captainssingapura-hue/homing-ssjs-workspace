@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+        <artifactId>homing.js.ws</artifactId>
+        <version>LOCAL-SNAPSHOT</version>
+    </parent>
+    <artifactId>homing-workspace-log-codec</artifactId>
+    <description>
+        Output-only module: hosts NOTHING but the workspace log's generated Java
+        codecs. At generate-sources WorkspaceLogJavaGen (in homing-workspace-codecs)
+        writes one codec per WorkspaceLogManifest type into
+        target/generated-sources/log-codec, which is this module's source
+        directory - so the generated code never lives in src/, only in target/.
+        Their JavaScript counterparts are generated from the same manifest into
+        homing-workspace-codecs.
+    </description>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <log.codec.dir>${project.build.directory}/generated-sources/log-codec</log.codec.dir>
+    </properties>
+
+    <dependencies>
+        <!-- The generator on the exec classpath, and through it the types and Json/Wire the codecs use. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-codecs</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!-- Output-only: the module's one source root IS the generated directory. -->
+        <sourceDirectory>${log.codec.dir}</sourceDirectory>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>generate-workspace-log-java-codecs</id>
+                        <phase>generate-sources</phase>
+                        <goals><goal>java</goal></goals>
+                        <configuration>
+                            <mainClass>hue.captains.singapura.js.homing.workspace.codecs.log.WorkspaceLogJavaGen</mainClass>
+                            <arguments>
+                                <argument>${log.codec.dir}</argument>
+                            </arguments>
+                            <classpathScope>compile</classpathScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

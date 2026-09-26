@@ -27,6 +27,8 @@ public final class WorkspaceCodecsCrate implements Crate {
     @Override
     public List<CrateEntry> entries() {
         return List.of(
-                CrateEntry.of(WorkspaceStateCodecsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
+                CrateEntry.of(WorkspaceStateCodecsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                // The workspace log's types: generated from their Java declarations by WorkspaceLogJsGen.
+                CrateEntry.of(WorkspaceLogCodecsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
     }
 }

@@ -72,6 +72,12 @@
             <version>${homing.core.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ssjs-test-fixtures</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -102,6 +108,19 @@
                                  has homing-codec-ecma + homing-workspace on it. Maven
                                  exec uses the project's compile classpath by default,
                                  which is what we want — every dep above is reachable. -->
+                            <classpathScope>compile</classpathScope>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <!-- The workspace log's types (WorkspaceLogManifest): their classes and codecs. -->
+                        <id>generate-workspace-log-codecs</id>
+                        <phase>process-classes</phase>
+                        <goals><goal>java</goal></goals>
+                        <configuration>
+                            <mainClass>hue.captains.singapura.js.homing.workspace.codecs.log.WorkspaceLogJsGen</mainClass>
+                            <arguments>
+                                <argument>${codecs.output.dir}</argument>
+                            </arguments>
                             <classpathScope>compile</classpathScope>
                         </configuration>
                     </execution>
