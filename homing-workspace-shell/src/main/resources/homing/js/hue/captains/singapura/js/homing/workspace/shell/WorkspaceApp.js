@@ -5,9 +5,10 @@
 // slot lays itself out (a workspace is not a reading column), pick the spec the
 // address asked for, and build the Workspace in it - the desk and its docks,
 // as the gallery's docking page builds them (RFC 0066 E3, the workspace
-// detour). Its log is kept in IndexedDB, typed; with no replay yet, a visit's
-// log is that visit's, cleared as the page starts. What a tab may hold is, for
-// now, a fake.
+// detour). Its log is kept in IndexedDB, typed; the page comes back to what the
+// log folds to, and goes on logging. A log that cannot be read or folded - an
+// older format, a gap - is cleared, said, and the page starts afresh. What a tab
+// may hold is, for now, a fake.
 // =============================================================================
 
 /** What a tab may hold while the tabs are built: the fakes, as the tab source's kinds. */
@@ -29,10 +30,19 @@ function appMain(el, params) {
         return;
     }
     css.addClass(el, mpa_main_full);
+    var log = new WorkspaceLogStore({ header: WorkspaceLogIdentity.header(kind, ""), backend: new IndexedDbLog() });
     // The page made one keyboard steward for the document and handed it in the
     // params; everything under here that takes keys takes THAT one.
-    var log = new WorkspaceLogStore({ header: WorkspaceLogIdentity.header(kind, ""), backend: new IndexedDbLog() });
-    log.clear();
-    new Workspace(domOpsParty.createBranch("workspace"), { host: el, kinds: _KINDS, keyboard: params && params.keyboard, log: log,
-                                                           menus: params && params.menus, budget: spec.maxTabs || 16 });
+    function build(state, logged) {
+        new Workspace(domOpsParty.createBranch("workspace"), { host: el, kinds: _KINDS, keyboard: params && params.keyboard, menus: params && params.menus,
+                                                               budget: spec.maxTabs || 16, log: log, state: state, logged: logged });
+    }
+    function afresh(why) { console.warn("[workspaceApp] the stored log is cleared: " + why); log.clear(); build(null, 0); }
+    // what the log folds to, and the page built back to it; a log that will not fold starts the page afresh
+    log.events().then(function (events) {
+        var folded;
+        try { folded = WorkspaceFold.fold(log.header, events); }
+        catch (e) { afresh(e.message); return; }
+        build(folded.state, events.length);
+    }, function (e) { afresh(e && e.message); });
 }

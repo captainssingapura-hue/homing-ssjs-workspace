@@ -74,6 +74,7 @@ public final class WorkspaceShellCrate implements Crate {
                 CrateEntry.of(WorkspaceModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 // Its log: the recorder (headless) and the bar that exports it.
                 CrateEntry.of(WorkspaceRecorderModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(WorkspaceProjectionModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WorkspaceLogBarModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(WorkspaceStyles.INSTANCE),
                 // Stand-ins for the widgets while the tabs are built.

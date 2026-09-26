@@ -38,6 +38,7 @@ public record WorkspaceModule() implements DomModule<WorkspaceModule> {
                 .add(new ModuleImports<>(List.of(new WorkspaceMenus.MENUS()), WorkspaceMenus.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceStyles.ws_floor()), WorkspaceStyles.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceRecorderModule.WorkspaceRecorder()), WorkspaceRecorderModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceProjectionModule.WorkspaceProjection()), WorkspaceProjectionModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceLogBarModule.WorkspaceLogBar()), WorkspaceLogBarModule.INSTANCE))
                 .build();
     }

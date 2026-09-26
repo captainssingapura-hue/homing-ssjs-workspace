@@ -105,7 +105,7 @@ class _Working {
         this.layout = s.layout;
         this.regions = new Map();
         this.floats = new Map();      // bottom first
-        this.tabs = new Map();        // in the order opened
+        this.tabs = new Map();        // by id; the state lists them in the order the hosts hold them
         var self = this;
         s.regions.forEach(function (r) { self.regions.set(r.id.value, { tabs: r.tabs.map(function (t) { return t.value; }), shown: r.shown ? r.shown.value : null }); });
         s.floats.forEach(function (f) {
@@ -157,7 +157,9 @@ class _Working {
         if (regions.length !== this.regions.size) _no("the fold has regions the layout does not");
         var floats = [];
         this.floats.forEach(function (h, f) { floats.push(new FloatState(new FloatId(f), h.x, h.y, h.w, h.h, h.tabs.map(tab), h.shown === null ? null : tab(h.shown))); });
-        return new WorkspaceState(this.layout, regions, floats, Array.from(this.tabs.values()));
+        var listed = [];
+        regions.concat(floats).forEach(function (h) { h.tabs.forEach(function (t) { listed.push(self.tabs.get(t.value)); }); });
+        return new WorkspaceState(this.layout, regions, floats, listed);
     }
 }
 

@@ -138,7 +138,7 @@ public final class WorkspaceFold {
         Layout layout;
         final Map<RegionId, Hosted> regions = new LinkedHashMap<>();
         final Map<FloatId, Hosted> floats = new LinkedHashMap<>();   // bottom first
-        final Map<TabId, TabState> tabs = new LinkedHashMap<>();     // in the order opened
+        final Map<TabId, TabState> tabs = new LinkedHashMap<>();     // by id; the state lists them in the order the hosts hold them
 
         Working(WorkspaceState s) {
             layout = s.layout();
@@ -201,7 +201,10 @@ public final class WorkspaceFold {
                 Hosted h = f.getValue();
                 fs.add(new FloatState(f.getKey(), h.x, h.y, h.w, h.h, h.tabs, h.shown));
             }
-            return new WorkspaceState(layout, rs, fs, new ArrayList<>(tabs.values()));
+            var listed = new ArrayList<TabState>();
+            for (RegionState r : rs) for (TabId t : r.tabs()) listed.add(tabs.get(t));
+            for (FloatState f : fs) for (TabId t : f.tabs()) listed.add(tabs.get(t));
+            return new WorkspaceState(layout, rs, fs, listed);
         }
     }
 }

@@ -9,7 +9,8 @@
 //   new WorkspaceLogBar(branch, { host, store })
 //     host   where the bar goes: the workspace's floor, under its grid
 //     store  the WorkspaceLogStore it exports
-//   bar.count(n)     says how many are recorded
+//   bar.count(n)     says how many the log holds
+//   bar.restored(same)  says whether the page came back as its log has it
 //   bar.export()     → Promise<the log's text>, and the file saved
 //   bar.exportState() → Promise<the state's text>, and the file saved
 //   bar.dispose()
@@ -48,10 +49,19 @@ class WorkspaceLogBar {
         bar.appendChild(this._link);
         o.host.appendChild(bar);
         this.root = bar;
+        this._note = "";
         this.count(0);
     }
 
-    count(n) { this._counted.textContent = "Workspace log: " + n + (n === 1 ? " event" : " events") + " this visit"; }
+    count(n) {
+        this._n = n;
+        this._counted.textContent = "Workspace log: " + n + (n === 1 ? " event" : " events") + this._note;
+    }
+
+    restored(same) {
+        this._note = same ? " · restored as logged" : " · restored otherwise than logged";
+        this.count(this._n || 0);
+    }
 
     export() {
         var self = this;

@@ -50,7 +50,7 @@ class WorkspaceFoldTest {
         assertEquals(List.of(T1, T2), s.regions().get(0).tabs(), "a reorder within the region");
         assertEquals(Optional.of(T1), s.regions().get(0).shown(), "a reorder keeps the tab shown");
         assertEquals("Mine", s.tabs().get(1).title().value());
-        assertEquals(List.of(T1, T2), s.tabs().stream().map(t -> t.id()).toList(), "tabs in the order opened");
+        assertEquals(List.of(T1, T2), s.tabs().stream().map(t -> t.id()).toList(), "tabs in the order the hosts hold them");
         s = WorkspaceFold.apply(s, new TabClosed(T1));
         assertEquals(Optional.empty(), s.regions().get(0).shown(), "the shown tab closed: the region shows what the log says next");
     }
