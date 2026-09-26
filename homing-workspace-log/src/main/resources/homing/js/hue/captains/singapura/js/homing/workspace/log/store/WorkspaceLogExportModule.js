@@ -11,6 +11,9 @@
 //                                              FoldedState the browser's fold makes of it
 //   WorkspaceLogExport.state(store)          → Promise<that, for what the store holds>
 //   WorkspaceLogExport.stateFileName(header) → "<kind>-<workspaceId>.workspace.state"
+//   WorkspaceLogExport.asideText(aside)      → a set-aside log as a log file: its
+//                                              header, then its lines as they were kept
+//   WorkspaceLogExport.asideFileName(aside)  → "<kind>-<workspaceId>.aside-<at>.workspace.log"
 // =============================================================================
 
 class WorkspaceLogExport {
@@ -38,5 +41,15 @@ class WorkspaceLogExport {
 
     static stateFileName(header) {
         return header.kind.value + "-" + header.workspaceId.id + ".workspace.state";
+    }
+
+    static asideText(aside) {
+        var out = JSON.stringify(LogHeaderCodec.transformTo(aside.header)) + "\n";
+        for (var i = 0; i < aside.lines.length; i++) out += aside.lines[i] + "\n";
+        return out;
+    }
+
+    static asideFileName(aside) {
+        return aside.header.kind.value + "-" + aside.header.workspaceId.id + ".aside-" + aside.at + ".workspace.log";
     }
 }

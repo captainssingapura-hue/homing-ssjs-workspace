@@ -9,6 +9,7 @@ import hue.captains.singapura.js.homing.workspace.log.LogIds;
 import hue.captains.singapura.js.homing.workspace.log.LoggedEvent;
 import hue.captains.singapura.js.homing.workspace.log.RegionEvent;
 import hue.captains.singapura.js.homing.workspace.log.Scaled;
+import hue.captains.singapura.js.homing.workspace.log.SetAsideLog;
 import hue.captains.singapura.js.homing.workspace.log.TabEvent;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
@@ -75,6 +76,8 @@ public final class WorkspaceLogManifest {
             // the lines of a log
             LogCodecEntry.record(LoggedEvent.class),
             LogCodecEntry.record(LogHeader.class),
+            // a stored log the page could not read, kept as it was
+            LogCodecEntry.record(SetAsideLog.class),
             // the state a log folds to, and the file that carries it
             LogCodecEntry.record(WorkspaceState.TabState.class),
             LogCodecEntry.record(WorkspaceState.RegionState.class),

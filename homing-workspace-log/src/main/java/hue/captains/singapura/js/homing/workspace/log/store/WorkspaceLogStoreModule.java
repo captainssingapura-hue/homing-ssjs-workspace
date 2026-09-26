@@ -9,6 +9,7 @@ import hue.captains.singapura.js.homing.workspace.log.js.LogIdsModule;
 import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceEventModule;
 import hue.captains.singapura.js.homing.workspace.log.js.LoggedEventModule;
 import hue.captains.singapura.js.homing.workspace.log.js.LogHeaderModule;
+import hue.captains.singapura.js.homing.workspace.log.js.SetAsideLogModule;
 
 import java.util.List;
 
@@ -26,6 +27,7 @@ public record WorkspaceLogStoreModule() implements DomModule<WorkspaceLogStoreMo
                 .add(new ModuleImports<>(List.of(new WorkspaceEventModule.WorkspaceEvent(), new WorkspaceEventModule.WorkspaceEventCodec()), WorkspaceEventModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new LoggedEventModule.LoggedEvent(), new LoggedEventModule.LoggedEventCodec()), LoggedEventModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new LogHeaderModule.LogHeader()), LogHeaderModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new SetAsideLogModule.SetAsideLog(), new SetAsideLogModule.SetAsideLogCodec()), SetAsideLogModule.INSTANCE))
                 .build();
     }
 

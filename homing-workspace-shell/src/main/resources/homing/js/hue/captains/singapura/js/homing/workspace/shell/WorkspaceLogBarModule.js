@@ -3,8 +3,11 @@
 // how many events it has recorded; Export log, which saves the log as a
 // workspace log file — the file the Java validator reads; and Export state,
 // which saves what the browser folds that log to — the file the validator
-// compares with Java's own fold. The gallery keeps no log, so this is the
-// workspace's alone.
+// compares with Java's own fold. And a stored log the page could not read,
+// set aside rather than cleared: how many there are, the latest exported as
+// the log file it was - where the validator says which line fails - and
+// discarded when asked. The gallery keeps no log, so this is the workspace's
+// alone.
 //
 //   new WorkspaceLogBar(branch, { host, store })
 //     host   where the bar goes: the workspace's floor, under its grid
@@ -13,6 +16,9 @@
 //   bar.restored(same)  says whether the page came back as its log has it
 //   bar.export()     → Promise<the log's text>, and the file saved
 //   bar.exportState() → Promise<the state's text>, and the file saved
+//   bar.asides()     → Promise<the set-aside logs>, and the bar says them
+//   bar.exportAside() → Promise<the latest set-aside log's text>, and the file saved
+//   bar.discardAsides() → Promise<how many>, and the bar says none
 //   bar.dispose()
 // =============================================================================
 
@@ -40,17 +46,34 @@ class WorkspaceLogBar {
         state.type = "button";
         state.textContent = "Export state";
         state.addEventListener("click", function () { self.exportState(); });
+        // a stored log the page could not read: said, exported, discarded
+        this._aside = branch.createElement("aside", "span");
+        css.addClass(this._aside, ws_logbar_count);
+        this._exportAside = branch.createElement("exportAside", "button");
+        this._exportAside.type = "button";
+        this._exportAside.textContent = "Export set-aside log";
+        this._exportAside.addEventListener("click", function () { self.exportAside(); });
+        this._discardAside = branch.createElement("discardAside", "button");
+        this._discardAside.type = "button";
+        this._discardAside.textContent = "Discard set-aside";
+        this._discardAside.addEventListener("click", function () { self.discardAsides(); });
         // the file is handed over by a link the bar keeps, never shown
         this._link = branch.createElement("link", "a");
         css.addClass(this._link, ws_logbar_link);
         bar.appendChild(this._counted);
         bar.appendChild(button);
         bar.appendChild(state);
+        bar.appendChild(this._aside);
+        bar.appendChild(this._exportAside);
+        bar.appendChild(this._discardAside);
         bar.appendChild(this._link);
         o.host.appendChild(bar);
         this.root = bar;
         this._note = "";
+        this._latest = null;
         this.count(0);
+        this._said([]);
+        this.asides();
     }
 
     count(n) {
@@ -71,6 +94,34 @@ class WorkspaceLogBar {
     exportState() {
         var self = this;
         return WorkspaceLogExport.state(this._store).then(function (text) { return self._save(text, WorkspaceLogExport.stateFileName(self._store.header)); });
+    }
+
+    asides() {
+        var self = this;
+        return this._store.asides().then(function (all) { self._said(all); return all; },
+                                         function (e) { console.error("[WorkspaceLogBar] the set-aside logs do not read: " + (e && e.message)); return []; });
+    }
+
+    exportAside() {
+        if (!this._latest) return Promise.resolve(null);
+        var a = this._latest;
+        return Promise.resolve(this._save(WorkspaceLogExport.asideText(a), WorkspaceLogExport.asideFileName(a)));
+    }
+
+    discardAsides() {
+        var self = this;
+        return this._store.discardAsides().then(function (n) { self._said([]); return n; });
+    }
+
+    /** How many are set aside, and why the latest was; the controls only while there are some. */
+    _said(all) {
+        var n = all.length;
+        this._latest = n ? all[n - 1] : null;
+        this._aside.textContent = n ? " · " + n + (n === 1 ? " log" : " logs") + " set aside, unread" : "";
+        this._aside.title = n ? this._latest.why : "";
+        this._aside.hidden = !n;
+        this._exportAside.hidden = !n;
+        this._discardAside.hidden = !n;
     }
 
     /** The text handed over as a file, by the link the bar keeps. */

@@ -74,6 +74,51 @@ class WorkspaceLogStoreTest extends JsModuleTestBase {
                 js.eval("js", "WorkspaceLogExport.fileName(store.header)").asString());
     }
 
+    /**
+     * A log that no longer reads is set aside, not lost: its lines as they were
+     * kept, the one that does not read among them; the log left empty and logging
+     * on; the set-aside log exported as a log file the validator refuses at the
+     * line that does not read; and discarded only when asked.
+     */
+    @Test
+    void aLogThatDoesNotReadIsSetAsideWhole_andItsExportNamesTheLine() {
+        js.eval("js", """
+                var backend = new MemoryLog();
+                var kept = new WorkspaceLogStore({ header: WorkspaceLogIdentity.header("demo", ""), backend: backend, now: () => 1790000000500 });
+                const t = new TabId("tab-1"), h = new InRegion(new RegionId("main"));
+                kept.append(new TabOpened(t, new WidgetKind("note"), new WidgetTitle("Note"), h, 0))
+                    .then(() => backend.add({ kind: "demo", workspaceId: kept.header.workspaceId.id, at: 7, event: { type: "TabGone", id: "tab-1" } }))
+                    .then(() => kept.events()).then(() => { got.read = true; }, (e) => { got.why = e.message; })
+                    .then(() => kept.setAside(got.why))
+                    .then((aside) => { got.aside = aside; return kept.events(); })
+                    .then((left) => { got.left = left.length; return kept.setAside("again"); })
+                    .then((none) => { got.second = none; return kept.append(new TabClosed(t)); })
+                    .then(() => kept.events()).then((on) => { got.on = on.map((e) => e.seq.value); return kept.asides(); })
+                    .then((all) => { got.asides = all; });
+                """);
+        assertEquals(false, js.eval("js", "got.read === true").asBoolean(), "the log does not read");
+        assertTrue(js.eval("js", "got.why").asString().contains("seq 2"), js.eval("js", "got.why").asString());
+        assertTrue(js.eval("js", "got.aside instanceof SetAsideLog && got.aside.at === 1790000000500 && got.aside.why === got.why").asBoolean());
+        assertEquals("[\"{\\\"seq\\\":1,\\\"at\\\":1790000000500,\\\"event\\\":{\\\"type\\\":\\\"TabOpened\\\",\\\"id\\\":\\\"tab-1\\\",\\\"kind\\\":\\\"note\\\",\\\"title\\\":\\\"Note\\\","
+                + "\\\"host\\\":{\\\"type\\\":\\\"InRegion\\\",\\\"id\\\":\\\"main\\\"},\\\"index\\\":0}}\",\"{\\\"seq\\\":2,\\\"at\\\":7,\\\"event\\\":{\\\"type\\\":\\\"TabGone\\\",\\\"id\\\":\\\"tab-1\\\"}}\"]",
+                js.eval("js", "JSON.stringify(got.aside.lines)").asString(), "the lines as they were kept, the one that does not read among them");
+        assertEquals(0, js.eval("js", "got.left").asInt(), "the log is left empty");
+        assertTrue(js.eval("js", "got.second === null").asBoolean(), "an empty log has nothing to set aside");
+        assertEquals("[3]", js.eval("js", "JSON.stringify(got.on)").asString(), "the log logs on, its numbers climbing past what was set aside");
+        assertEquals(1, js.eval("js", "got.asides.length").asInt());
+
+        String text = js.eval("js", "WorkspaceLogExport.asideText(got.aside)").asString();
+        var err = new java.io.ByteArrayOutputStream();
+        assertEquals(ValidateWorkspaceLog.INVALID, ValidateWorkspaceLog.validate("aside", text, System.out, new java.io.PrintStream(err)));
+        assertTrue(err.toString().contains("line 3"), err.toString());
+        assertEquals("demo-" + js.eval("js", "kept.header.workspaceId.id").asString() + ".aside-1790000000500.workspace.log",
+                js.eval("js", "WorkspaceLogExport.asideFileName(got.aside)").asString());
+
+        js.eval("js", "kept.discardAsides().then((n) => { got.discarded = n; return kept.asides(); }).then((all) => { got.after = all.length; });");
+        assertEquals(1, js.eval("js", "got.discarded").asInt());
+        assertEquals(0, js.eval("js", "got.after").asInt());
+    }
+
     @Test
     void theIdentityIsTheAddressesOrTheKindsOwn() {
         assertEquals(WorkspaceInstanceId.placeholderFor(WorkspaceKind.of("demo")).toString(),

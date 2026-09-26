@@ -52,8 +52,8 @@ class WorkspaceLogJsGenTest extends JsModuleTestBase {
             for (String x : m.exports()) assertTrue(global(x).canInstantiate() || global(x).hasMembers(), x);
         }
         assertEquals(List.of("LogIdsModule", "ScaledModule", "HostModule", "LayoutModule", "TabEventModule", "RegionEventModule",
-                "FloatEventModule", "WorkspaceEventModule", "LoggedEventModule", "LogHeaderModule", "WorkspaceStateModule",
-                "FoldedStateModule"), names);
+                "FloatEventModule", "WorkspaceEventModule", "LoggedEventModule", "LogHeaderModule", "SetAsideLogModule",
+                "WorkspaceStateModule", "FoldedStateModule"), names);
     }
 
     /** Imports run one way: a module imports only what comes before it, the family of families its families. */
@@ -99,6 +99,10 @@ class WorkspaceLogJsGenTest extends JsModuleTestBase {
         }
         String header = "{\"format\":\"homing.workspace.log\",\"version\":2,\"kind\":\"focus-lab\",\"workspaceId\":\"7f1b6c2e-5000-9000-7f1b-6c2e00000001\"}";
         assertEquals(header, roundTrip("LogHeaderCodec", header));
+        // a set-aside log keeps its lines as strings, whatever they hold
+        String aside = "{\"header\":" + header + ",\"at\":1790000000099,\"why\":\"seq 3: no variant \\\"TabGone\\\"\","
+                + "\"lines\":[\"{\\\"seq\\\":3,\\\"at\\\":1,\\\"event\\\":{\\\"type\\\":\\\"TabGone\\\"}}\",\"not even JSON\"]}";
+        assertEquals(aside, roundTrip("SetAsideLogCodec", aside));
     }
 
     @Test

@@ -12,6 +12,7 @@ import hue.captains.singapura.js.homing.site.mpa.MpaStyles;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceKind;
 import hue.captains.singapura.js.homing.workspace.log.fold.WorkspaceFoldModule;
 import hue.captains.singapura.js.homing.workspace.log.store.IndexedDbLogModule;
+import hue.captains.singapura.js.homing.workspace.log.store.MemoryLogModule;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogIdentityModule;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogStoreModule;
 
@@ -78,6 +79,7 @@ public record WorkspaceApp() implements AppModule<WorkspaceApp.Params, Workspace
                 .add(new ModuleImports<>(List.of(new WorkspaceLogStoreModule.WorkspaceLogStore()), WorkspaceLogStoreModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceLogIdentityModule.WorkspaceLogIdentity()), WorkspaceLogIdentityModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new IndexedDbLogModule.IndexedDbLog()), IndexedDbLogModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new MemoryLogModule.MemoryLog()), MemoryLogModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceFoldModule.WorkspaceFold()), WorkspaceFoldModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new FakeWidgetsModule.FakeNote(), new FakeWidgetsModule.FakeCounter(),
                                                  new FakeWidgetsModule.FakeField()), FakeWidgetsModule.INSTANCE))
