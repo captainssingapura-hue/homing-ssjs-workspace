@@ -50,6 +50,13 @@
             <version>${homing.components.version}</version>
         </dependency>
 
+        <!-- The Focus lab's monitors: the steward's lamp and the focus tree. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ui-focus</artifactId>
+            <version>${homing.components.version}</version>
+        </dependency>
+
         <!-- The button the demo counter is built from. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>

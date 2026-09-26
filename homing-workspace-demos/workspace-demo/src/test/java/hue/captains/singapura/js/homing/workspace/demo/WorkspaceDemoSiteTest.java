@@ -51,6 +51,17 @@ class WorkspaceDemoSiteTest {
         assertTrue(html.contains("\"ws_kind\":\"diagnostics\""), "a route of its own");
     }
 
+    /** The Focus lab offers its forms, summoner and monitor, and the picture and counter beside them, on a route of its own. */
+    @Test
+    void theFocusLabKindOffersTheLabsWidgets() {
+        String html = pageAt("/focus-lab");
+        var offered = WorkspaceSpecRegistry.INSTANCE.get("focus-lab").orElseThrow().widgetEntries().stream()
+                .map(e -> e.widgetClass()).toList();
+        assertEquals(List.of(DemoFormWidget.class, DemoSummonerWidget.class, DemoMonitorWidget.class,
+                             DemoPictureWidget.class, DemoCounterWidget.class), offered);
+        assertTrue(html.contains("\"ws_kind\":\"focus-lab\""), "a route of its own");
+    }
+
     /** The demo kind offers every widget the demo has, in the picker's order. */
     @Test
     void theDemoKindOffersEveryDemoWidget() {

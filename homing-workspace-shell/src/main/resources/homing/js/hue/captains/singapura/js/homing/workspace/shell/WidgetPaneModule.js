@@ -6,10 +6,11 @@
 //     onTitle   (text) the widget named itself: the holder puts it on the tab
 //     parties   the parties the workspace exposes to its widgets, by name
 //   room.root                  the element a dock shows, and a desk floats
-//   room.focus                 the room's membership of the focus party
+//   room.focus                 the room's membership of the focus party: it holds a branch,
+//                              where the widget's own logical members join
 //   room.branchFor(name)       a branch for the widget, under the room's own
 //   room.host()                the widget's HOST: what it may say to where it runs, handed to
-//                              it at construction - { title(text), parties }
+//                              it at construction - { title(text), parties, focus }
 //   room.setWidget(widget)     put a widget in the room; the one before goes
 //   room.widget()              the widget in the room, or null
 //   room.say(text)             a status line as the tenant, until a widget arrives
@@ -19,6 +20,10 @@
 // handle to where it runs, the same for every widget:
 //   host.title(text)      its name, now: the tab says so. Its icon is its kind's.
 //   host.parties.<name>   a party the workspace exposes to its widgets
+//   host.focus            the room's branch of the focus party, for a widget whose inner parts
+//                         are logical members of their own (RFC 0066 E3, keyboard §17.1): they
+//                         join it, claim on their own roots, and leave when the widget goes. A
+//                         yield from one of them is caught by the room
 //
 // What a widget may offer, all of it optional:
 //   keyDown(ev)   a key the room holds, handed on; true when taken
@@ -39,13 +44,14 @@
 // widget that wants keys offers keyDown(ev), and the room hands them on.
 //
 // A widget of NATIVE controls - a grid, a tree, a form - has keys of its own,
-// on elements that take the browser's focus. The room wires the seam, as a
-// panel wires the controls it holds (§14): it says its keys are LENT while
-// something inside it has the focus, and an Escape the control did not want
-// takes the focus out - the room, the holder, has the keys again - so the next
-// Escape is the room's and gives them back to the dock. The widget is told
-// when the room comes to hold, by activate(), and puts the focus where its
-// keys work; it never claims anything, having nothing to claim with.
+// on elements that take the browser's focus. Where the focus is, is the
+// steward's (RFC 0066 E3, keyboard §17.5): the browser's focus arriving on a
+// control inside makes the room the holder, its keys LENT - the steward's mark
+// on the room's root, never the room's - and an Escape the control did not
+// want takes the focus out, so the room has the keys again and the next Escape
+// is the room's, giving them back to the dock. The widget is told when the
+// room comes to hold by a press or a call, by activate(), and puts the focus
+// where its keys work; when the focus itself arrived, it is already there.
 //
 // The room owns a branch of its own, under the holder's and not the dock's, so
 // it TRAVELS: a dock that lets a tab go takes the room's root out of its panel
@@ -65,7 +71,7 @@ class WidgetPane {
 
     constructor(branch, opts) {
         if (!branch) throw new Error("[WidgetPane] a branch of its own is required");
-        if (!opts || !opts.focus || typeof opts.focus.join !== "function") {
+        if (!opts || !opts.focus || typeof opts.focus.createBranch !== "function") {
             throw new Error("[WidgetPane] opts.focus must be the dock's focus branch");
         }
         branch.activate(_roomOwner);
@@ -78,37 +84,17 @@ class WidgetPane {
 
         var root = branch.createElement("room", "div");
         css.addClass(root, wp_host);
-        // -1: never in the Tab order - a tab is reached by its chip or the
-        // dock's keys, never by tabbing into the middle of a workspace - but
-        // able to take focus when the dock rests the keys here.
-        root.setAttribute("tabindex", "-1");
+        // NO TABINDEX: the room is only ever logically focused, never natively
+        // (RFC 0066 E3, keyboard §17.1). A root with the browser's focus would
+        // be a focused element, whose keys the steward leaves to the native
+        // world - keyDown would never run, while the room still said held. A
+        // press claims it; its keys come through the party; the browser's
+        // focus is only ever on a control of the widget's inside it.
         this.root = root;
 
-        this.focus = opts.focus.join(branch.name, this);
+        this._inner = opts.focus.createBranch(branch.name, this);   // the room's own branch: its widget's logical members join it
+        this.focus = this._inner.owner;
         this._off = Keys.claimOn(root, this.focus);
-
-        // The seam with the native world inside. An Escape out of a focused
-        // control that the control did not take: the focus leaves it, and the
-        // keys are the room's again.
-        var self = this;
-        root.addEventListener("keydown", function (ev) {
-            if (ev.key !== "Escape" || ev.defaultPrevented || ev.target === root || !root.contains(ev.target)) return;
-            if (typeof ev.target.blur === "function") ev.target.blur();
-            ev.preventDefault();
-            ev.stopPropagation();
-            self._mark();
-        });
-        // Held, or lent to a control inside: said again whenever the focus moves.
-        root.addEventListener("focusin", function () { self._mark(); });
-        root.addEventListener("focusout", function () { setTimeout(function () { self._mark(); }, 0); });
-    }
-
-    /** Held, or lent while something inside has the browser's focus - only while the room has the keys at all. */
-    _mark() {
-        var was = this.root.getAttribute("data-keys");
-        if (was !== "held" && was !== "lent") return;
-        var a = typeof document === "undefined" ? null : document.activeElement;
-        this.root.setAttribute("data-keys", a && a !== this.root && a !== document.body && this.root.contains(a) ? "lent" : "held");
     }
 
     /**
@@ -124,7 +110,8 @@ class WidgetPane {
                     if (text == null || !String(text).trim() || !self._onTitle) return;
                     self._onTitle(String(text));
                 },
-                parties: this._parties
+                parties: this._parties,
+                focus: this._inner
             });
         }
         return this._host;
@@ -173,6 +160,9 @@ class WidgetPane {
     /** Told to by the dock: the room claims the keys. What the widget does with them, it is told when they arrive. */
     activate() { Keys.claim(this.focus); }
 
+    /** A yield from a logical member of the widget's: the room holds, and its own Escape gives the keys to the dock. */
+    wouldHold() { return true; }
+
     /** The steward routed a key here: the widget's if it takes it, Escape gives them back. */
     keyDown(ev) {
         var w = this._widget;
@@ -181,16 +171,16 @@ class WidgetPane {
         return false;
     }
 
-    /** The keys are the room's: the widget hears so, and may put the focus where its own keys work. */
-    granted() {
-        this.root.setAttribute("data-keys", "held");
+    /**
+     * The keys are the room's: the widget hears so, and may put the focus where its own keys work - unless the
+     * browser's focus arriving inside is what made the room the holder ("native"): it is where the user, or a
+     * script, put it, and moving it would take it from them.
+     */
+    granted(by) {
+        if (by === "native") return;
         var w = this._widget;
         if (w && typeof w.activate === "function") { try { w.activate(); } catch (e) { console.error("[WidgetPane] widget activate threw", e); } }
-        this._mark();
     }
-    taken()     { this.root.removeAttribute("data-keys"); }
-    offered()   { if (this.root.getAttribute("data-keys") === null) this.root.setAttribute("data-keys", "candidate"); }
-    withdrawn() { if (this.root.getAttribute("data-keys") === "candidate") this.root.removeAttribute("data-keys"); }
 
     /** A widget that keeps a lifecycle hears whether its tab is the one showing. */
     setActive(on) {

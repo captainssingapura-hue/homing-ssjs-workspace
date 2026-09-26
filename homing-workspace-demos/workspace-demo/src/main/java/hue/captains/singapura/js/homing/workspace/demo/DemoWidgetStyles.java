@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import static hue.captains.singapura.js.homing.design.Box.Container;
+import static hue.captains.singapura.js.homing.design.Interaction.Current;
 import static hue.captains.singapura.js.homing.design.DesignClass.of;
 import static hue.captains.singapura.js.homing.design.Layer.Inverted;
 import static hue.captains.singapura.js.homing.design.Layer.Raised;
@@ -60,6 +61,59 @@ public record DemoWidgetStyles() implements CssGroup<DemoWidgetStyles> {
     public record dw_hint() implements CssClass<DemoWidgetStyles> {
         @Override public List<? extends Wearable> wears() { return List.of(of(Muted.class, Color.Ink.class), of(Caption.class, Type.Scale.class)); }
         @Override public String body() { return "max-width: 48ch;"; }
+    }
+
+    // ── The Focus lab ─────────────────────────────────────────────────────
+
+    /** A lab widget: its parts in a column, with air around them. */
+    public record dw_lab() implements CssClass<DemoWidgetStyles> {
+        @Override public String body() { return """
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            padding: 16px 20px;
+            """; }
+    }
+
+    /**
+     * A logical member of a lab widget's — a form's fields, its list — as a
+     * panel: the container's edge and rule, which is where a design answers
+     * the steward's mark, held, lent or offered.
+     */
+    public record dw_lab_group() implements CssClass<DemoWidgetStyles> {
+        @Override public List<? extends Wearable> wears() {
+            return List.of(of(Container.Panel.class, Shape.Corner.class), of(Container.Panel.class, Shape.Rule.class),
+                           of(Container.Panel.class, Color.Edge.class), of(Raised.class, Color.Edge.class));
+        }
+        @Override public String body() { return """
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 10px 12px;
+            """; }
+    }
+
+    /** A row: a form's name and what the summoner may do to it. */
+    public record dw_lab_row() implements CssClass<DemoWidgetStyles> {
+        @Override public String body() { return """
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            """; }
+    }
+
+    /** An item of the lab's list. */
+    public record dw_lab_item() implements CssClass<DemoWidgetStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Body.class, Color.Ink.class)); }
+        @Override public String body() { return "padding: 2px 8px;"; }
+    }
+
+    /** The list's choice: the current surface. */
+    public record dw_lab_item_on() implements CssClass<DemoWidgetStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Current.class, Color.Surface.class)); }
+        @Override public String body() { return ""; }
     }
 
     // ── The views: a widget that takes the whole room ─────────────────────
@@ -183,6 +237,7 @@ public record DemoWidgetStyles() implements CssGroup<DemoWidgetStyles> {
     @Override
     public List<CssClass<DemoWidgetStyles>> cssClasses() {
         return List.of(new dw_note(), new dw_counter(), new dw_count(), new dw_row(), new dw_hint(),
+                new dw_lab(), new dw_lab_group(), new dw_lab_row(), new dw_lab_item(), new dw_lab_item_on(),
                 new dw_fill(), new dw_host(), new dw_picture(), new dw_plate(), new dw_plate_sun(),
                 new dw_plate_far(), new dw_plate_near(), new dw_plate_ground(), new dw_picture_note());
     }

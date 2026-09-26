@@ -62,7 +62,8 @@ class WidgetPaneTest extends JsModuleTestBase {
         };
         var membership = { in: true, left: 0, leave: function () { this.left++; this.in = false; } };
         var joined = [];
-        var dockFocus = { join: function (name, member) { joined.push({ name: name, member: member }); return membership; } };
+        var inner = { owner: membership, name: 'inner' };
+        var dockFocus = { createBranch: function (name, holder) { joined.push({ name: name, member: holder }); return inner; } };
         var titles = [];
         var parties = { chat: { name: 'chat' } };
         var roomBranch = fakeBranch('room1');
@@ -98,8 +99,11 @@ class WidgetPaneTest extends JsModuleTestBase {
         assertTrue(eval("roomBranch.active").asBoolean(), "the room activates the branch it is handed");
         assertEquals("room1", eval("joined[0].name").asString(), "a member of the dock's focus branch, by the branch's name");
         assertTrue(eval("joined[0].member === r && r.focus === membership").asBoolean());
+        assertTrue(eval("r.host().focus === inner && r.wouldHold() === true").asBoolean(),
+                "the room holds a branch its widget's own logical members join, and catches their yield");
         assertEquals("claimOn", log(), "a press on the room claims it");
-        assertEquals("-1", eval("r.root.getAttribute('tabindex')").asString(), "never in the Tab order, but able to take the focus");
+        assertTrue(eval("r.root.getAttribute('tabindex') === null").asBoolean(),
+                "no tabindex: the room is only ever logically focused, never natively (RFC 0066 E3, keyboard §17.1)");
         assertTrue(eval("r.root.classList.has('wp_host')").asBoolean());
     }
 
@@ -157,30 +161,23 @@ class WidgetPaneTest extends JsModuleTestBase {
         eval("var r = room(); var heard = 0; r.setWidget(widget('grid', { activate: function () { heard++; } })); r.activate()");
         assertTrue(eval("claimed.length === 1 && claimed[0] === membership").asBoolean(), "the room claims; a widget has nothing to claim with");
         assertEquals(0, eval("heard").asInt(), "the widget is told when the keys ARRIVE, not when they are asked for");
-        eval("r.granted()");
+        eval("r.granted('claim')");
         assertEquals(1, eval("heard").asInt());
-        assertEquals("held", eval("r.root.getAttribute('data-keys')").asString());
+        eval("r.granted('native')");
+        assertEquals(1, eval("heard").asInt(), "the browser's focus arriving inside made it the holder: the focus is where it was put, and the widget is not asked to move it");
     }
 
+    /**
+     * Where the focus is — held, lent, candidate — is the steward's, marked on the root it enrolled, and so is
+     * an Escape a native control did not take (RFC 0066 E3, keyboard §17.5): the room writes no mark and
+     * listens to no focus and no key.
+     */
     @Test
-    void theKeysAreLentWhileANativeControlInsideHasTheFocus() {
-        eval("var r = room(); var w = widget('form'); var input = el('input'); w.root.appendChild(input); r.setWidget(w)");
-        eval("w.activate = function () { document.activeElement = input; }; r.granted()");
-        assertEquals("lent", eval("r.root.getAttribute('data-keys')").asString(), "the widget put the focus in its own control");
-        eval("document.activeElement = document.body; r.root.fire('focusin', {})");
-        assertEquals("held", eval("r.root.getAttribute('data-keys')").asString(), "and back to held when the focus leaves it");
-        eval("r.taken(); document.activeElement = input; r.root.fire('focusin', {})");
-        assertEquals("null", String.valueOf(eval("r.root.getAttribute('data-keys')")), "a room without the keys marks nothing, whatever has the focus");
-    }
-
-    @Test
-    void itSaysWhenItIsOfferedTheKeys_withoutOverruling_heldOrLent() {
-        eval("var r = room(); r.offered()");
-        assertEquals("candidate", eval("r.root.getAttribute('data-keys')").asString());
-        eval("r.withdrawn()");
-        assertEquals("null", String.valueOf(eval("r.root.getAttribute('data-keys')")));
-        eval("r.granted(); r.offered(); r.withdrawn()");
-        assertEquals("held", eval("r.root.getAttribute('data-keys')").asString(), "an offer does not overrule the keys held");
+    void theRoomMarksNothing_andListensToNoFocusAndNoKey() {
+        eval("var r = room(); var w = widget('form'); var input = el('input'); w.root.appendChild(input); r.setWidget(w); r.granted('claim')");
+        assertEquals("null", String.valueOf(eval("r.root.getAttribute('data-keys')")), "the mark is the steward's");
+        assertEquals(0, eval("(r.root.listeners.focusin || []).length + (r.root.listeners.focusout || []).length + (r.root.listeners.keydown || []).length").asInt());
+        assertTrue(eval("typeof r.offered === 'undefined' && typeof r.withdrawn === 'undefined' && typeof r.taken === 'undefined'").asBoolean(), "nothing to say about an offer or a loss");
     }
 
     @Test
@@ -199,29 +196,6 @@ class WidgetPaneTest extends JsModuleTestBase {
         eval("var r = room(); r.setWidget(widget('note'))");
         assertTrue(eval("r.keyDown(ev('Escape'))").asBoolean());
         assertEquals(1, eval("yielded.length").asInt());
-    }
-
-    // ── the seam with a widget's native controls ────────────────────────────
-
-    @Test
-    void anEscapeANativeControlDidNotTake_takesTheFocusOutOfIt() {
-        eval("var r = room(); var w = widget('grid'); var cell = el('td'); w.root.appendChild(cell); r.setWidget(w); r.granted(); document.activeElement = cell");
-        eval("var e = ev('Escape', cell); r.root.fire('keydown', e)");
-        assertTrue(eval("e.prevented && e.stopped").asBoolean(), "the room takes that Escape");
-        assertTrue(log().contains("blur:td"), "the control lets the focus go");
-        assertEquals("held", eval("r.root.getAttribute('data-keys')").asString(), "the keys are the room's again; the next Escape is the room's own");
-    }
-
-    @Test
-    void anEscapeTheControlTook_orOneOnTheRoomItself_isLeftAlone() {
-        eval("var r = room(); var w = widget('grid'); var input = el('input'); w.root.appendChild(input); r.setWidget(w)");
-        eval("var taken = ev('Escape', input, true); r.root.fire('keydown', taken)");
-        assertFalse(eval("taken.prevented || taken.stopped").asBoolean(), "an Escape the control prevented (an editor cancelling) is the control's");
-        eval("var own = ev('Escape', r.root); r.root.fire('keydown', own)");
-        assertFalse(eval("own.prevented || own.stopped").asBoolean(), "an Escape on the room itself goes to the steward, the room's keyDown");
-        eval("var other = ev('Enter', input); r.root.fire('keydown', other)");
-        assertFalse(eval("other.prevented").asBoolean(), "only Escape is the seam's");
-        assertFalse(log().contains("blur"), "nothing was blurred");
     }
 
     // ── the rest ────────────────────────────────────────────────────────────

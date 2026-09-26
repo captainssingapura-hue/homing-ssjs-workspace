@@ -24,6 +24,11 @@ import java.util.List;
  * graph workbench. A kind of their own, so a workspace for work is not handed
  * the tools for looking at the machinery.</p>
  *
+ * <p>The FOCUS LAB kind stresses the steward's marker (RFC 0066 E3, keyboard
+ * §17.5): forms of native fields and a logical list, a summoner focusing them
+ * by script, a monitor, and the picture and the counter beside them — the
+ * picture's room the case of a focusable scroller.</p>
+ *
  * <p>The DEMO kind offers every widget the demo has: the note and the counter,
  * and three views — the books as a relation grid, the same books as shelves
  * in a relation tree (one store, so the two agree live), and a picture.</p>
@@ -41,6 +46,9 @@ public final class WorkspaceDemoSpecs {
     /** The shell's diagnostics: the party monitor and the CSS graph. */
     public static final WorkspaceSpec DIAGNOSTICS = new Diagnostics();
 
+    /** The Focus lab: forms, a summoner, a monitor, a picture and a counter. */
+    public static final WorkspaceSpec FOCUS_LAB = new FocusLab();
+
     private static boolean registered;
 
     /**
@@ -54,6 +62,7 @@ public final class WorkspaceDemoSpecs {
         WorkspaceSpecRegistry.INSTANCE.register(DEMO);
         WorkspaceSpecRegistry.INSTANCE.register(NOTES);
         WorkspaceSpecRegistry.INSTANCE.register(DIAGNOSTICS);
+        WorkspaceSpecRegistry.INSTANCE.register(FOCUS_LAB);
     }
 
     private static final WidgetGroup DEMO_GROUP = WidgetGroup.of("Demo");
@@ -114,6 +123,32 @@ public final class WorkspaceDemoSpecs {
         @Override public String kind()  { return "diagnostics"; }
         @Override public String title() { return "Diagnostics"; }
         @Override public List<WidgetEntry> widgetEntries() { return List.of(partyMonitor(), cssGraph()); }
+    }
+
+    private static final WidgetGroup LAB_GROUP = WidgetGroup.of("Focus lab");
+
+    private static WidgetEntry form() {
+        return WidgetEntry.of(DemoFormWidget.class, WidgetLabel.of("Form"))
+                .withIcon(new WidgetIcon.Emoji("🧾"))
+                .withGroup(LAB_GROUP);
+    }
+
+    private static WidgetEntry summoner() {
+        return WidgetEntry.of(DemoSummonerWidget.class, WidgetLabel.of("Summoner"))
+                .withIcon(new WidgetIcon.Emoji("🪄"))
+                .withGroup(LAB_GROUP);
+    }
+
+    private static WidgetEntry monitor() {
+        return WidgetEntry.of(DemoMonitorWidget.class, WidgetLabel.of("Focus monitor"))
+                .withIcon(new WidgetIcon.Emoji("🔭"))
+                .withGroup(LAB_GROUP);
+    }
+
+    private static final class FocusLab implements WorkspaceSpec {
+        @Override public String kind()  { return "focus-lab"; }
+        @Override public String title() { return "Focus lab"; }
+        @Override public List<WidgetEntry> widgetEntries() { return List.of(form(), summoner(), monitor(), picture(), counter()); }
     }
 
     private static final class Notes implements WorkspaceSpec {

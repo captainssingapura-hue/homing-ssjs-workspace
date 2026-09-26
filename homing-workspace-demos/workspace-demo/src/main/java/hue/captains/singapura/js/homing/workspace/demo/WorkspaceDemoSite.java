@@ -50,6 +50,8 @@ public record WorkspaceDemoSite() implements Site {
             MPA.page(WorkspaceApp.INSTANCE, new WorkspaceApp.Params(WorkspaceDemoSpecs.NOTES.kind()));
     static final AppPage<?, ?> DIAGNOSTICS =
             MPA.page(WorkspaceApp.INSTANCE, new WorkspaceApp.Params(WorkspaceDemoSpecs.DIAGNOSTICS.kind()));
+    static final AppPage<?, ?> FOCUS_LAB =
+            MPA.page(WorkspaceApp.INSTANCE, new WorkspaceApp.Params(WorkspaceDemoSpecs.FOCUS_LAB.kind()));
 
     @Override public String name() { return "workspace"; }
 
@@ -59,6 +61,7 @@ public record WorkspaceDemoSite() implements Site {
             case ""      -> path.isRoot() ? Optional.of(DEMO) : Optional.empty();
             case "notes" -> path.depth() == 1 ? Optional.of(placed(NOTES, "Notes", path)) : Optional.empty();
             case "diagnostics" -> path.depth() == 1 ? Optional.of(placed(DIAGNOSTICS, "Diagnostics", path)) : Optional.empty();
+            case "focus-lab" -> path.depth() == 1 ? Optional.of(placed(FOCUS_LAB, "Focus lab", path)) : Optional.empty();
             default      -> Optional.empty();
         };
     }
