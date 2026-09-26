@@ -5,24 +5,28 @@
 // Nothing here spells an event by hand; a value the class refuses is not
 // recorded, and says so.
 //
-//   new WorkspaceRecorder({ store, isRegion, kindOf, onCount? })
+//   new WorkspaceRecorder({ store, isRegion, isFloat, kindOf, onCount? })
 //     store     a WorkspaceLogStore
-//     isRegion  (slotId) → whether a host is one of the grid's regions; a float
-//               is not, and a tab afloat is, to the log, where it left
+//     isRegion  (slotId) → whether a host is one of the grid's regions
+//     isFloat   (slotId) → whether a host is one of the desk's floats
 //     kindOf    (tabId) → the kind a tab holds: the tab source's
 //     onCount   (n) → told how many it has recorded, after each
-//   recorder.hear(report)       a desk's, a dock's or the grid's report
+//   recorder.hear(report)       a desk's, a dock's, a float's or the grid's report
 //   recorder.became(tp, kindId) a tab became another kind (the source's onBecame)
 //   recorder.stop()             nothing more is recorded: before the workspace
 //                               is taken down, whose closing is not the user's
 //
-// The reports, and what each is in the log:
-//   TabAdded in a region        TabOpened, with the kind the source made it
-//   TabMoved into a region      TabMoved; into a float, nothing
+// A tab is always somewhere: a Host, in a region or in a float — a float is a
+// state the workspace comes back to. The reports, and what each is in the log:
+//   TabAdded                    TabOpened in its host, with the kind the source made it
+//   TabMoved                    TabMoved to its host: a region, a float, its own
+//   TabRenamed                  TabRenamed
 //   TabRemoved                  TabClosed
-//   TabActivated in a region    TabShown
+//   TabActivated                TabShown in its host
 //   Subdivided / Removed        RegionParted / RegionRemoved
 //   TracksChanged               TracksChanged, each share an exact millionth
+//   Opened / Moved / Resized    FloatOpened / FloatMoved / FloatResized, whole pixels
+//   Raised / Closed             FloatRaised / FloatClosed
 // =============================================================================
 
 function _title(tab) { return typeof tab.title === "function" ? tab.title() : tab.title; }
@@ -31,9 +35,12 @@ class WorkspaceRecorder {
     constructor(opts) {
         var o = opts || {};
         if (!o.store) throw new Error("[WorkspaceRecorder] opts.store is required");
-        if (typeof o.isRegion !== "function" || typeof o.kindOf !== "function") throw new Error("[WorkspaceRecorder] opts.isRegion and opts.kindOf are required");
+        if (typeof o.isRegion !== "function" || typeof o.isFloat !== "function" || typeof o.kindOf !== "function") {
+            throw new Error("[WorkspaceRecorder] opts.isRegion, opts.isFloat and opts.kindOf are required");
+        }
         this._store = o.store;
         this._isRegion = o.isRegion;
+        this._isFloat = o.isFloat;
         this._kindOf = o.kindOf;
         this._onCount = typeof o.onCount === "function" ? o.onCount : null;
         this._count = 0;
@@ -58,28 +65,33 @@ class WorkspaceRecorder {
 
     count() { return this._count; }
 
+    /** The host a slot is: a region, a float — or neither, which the log does not know. */
+    _host(slotId) {
+        if (this._isRegion(slotId)) return new InRegion(new RegionId(slotId));
+        if (this._isFloat(slotId)) return new InFloat(new FloatId(slotId));
+        throw new Error("'" + slotId + "' is neither a region nor a float");
+    }
+
     _of(r) {
         switch (r.kind) {
             case "TabAdded": {
-                if (!this._isRegion(r.slotId)) return null;
                 var kind = this._kindOf(r.tab.id);
                 if (!kind) throw new Error("tab '" + r.tab.id + "' was not made by the tab source: its kind is not known");
-                return new TabOpened(new TabId(r.tab.id), new WidgetKind(kind), new WidgetTitle(_title(r.tab)), new RegionId(r.slotId), r.index);
+                return new TabOpened(new TabId(r.tab.id), new WidgetKind(kind), new WidgetTitle(_title(r.tab)), this._host(r.slotId), r.index);
             }
-            case "TabMoved":
-                return this._isRegion(r.destSlotId) ? new TabMoved(new TabId(r.tab.id), new RegionId(r.destSlotId), r.destIndex) : null;
-            case "TabRemoved":
-                return new TabClosed(new TabId(r.tab.id));
-            case "TabActivated":
-                return this._isRegion(r.slotId) ? new TabShown(new RegionId(r.slotId), new TabId(r.tabId)) : null;
-            case "Subdivided":
-                return new RegionParted(new RegionId(r.cellId), new RegionId(r.newCellId), Side.of(String(r.side).toUpperCase()));
-            case "Removed":
-                return new RegionRemoved(new RegionId(r.cellId));
-            case "TracksChanged":
-                return new TracksChanged(new SplitPath(r.path), WorkspaceRecorder.shares(r.ratios));
-            default:
-                return null;
+            case "TabMoved":     return new TabMoved(new TabId(r.tab.id), this._host(r.destSlotId), r.destIndex);
+            case "TabRenamed":   return new TabRenamed(new TabId(r.tabId), new WidgetTitle(r.title));
+            case "TabRemoved":   return new TabClosed(new TabId(r.tab.id));
+            case "TabActivated": return new TabShown(this._host(r.slotId), new TabId(r.tabId));
+            case "Subdivided":   return new RegionParted(new RegionId(r.cellId), new RegionId(r.newCellId), Side.of(String(r.side).toUpperCase()));
+            case "Removed":      return new RegionRemoved(new RegionId(r.cellId));
+            case "TracksChanged": return new TracksChanged(new SplitPath(r.path), WorkspaceRecorder.shares(r.ratios));
+            case "Opened":       return new FloatOpened(new FloatId(r.id), r.x, r.y, r.w, r.h);
+            case "Moved":        return new FloatMoved(new FloatId(r.id), r.x, r.y);
+            case "Resized":      return new FloatResized(new FloatId(r.id), r.w, r.h);
+            case "Raised":       return new FloatRaised(new FloatId(r.id));
+            case "Closed":       return new FloatClosed(new FloatId(r.id));
+            default:             return null;
         }
     }
 

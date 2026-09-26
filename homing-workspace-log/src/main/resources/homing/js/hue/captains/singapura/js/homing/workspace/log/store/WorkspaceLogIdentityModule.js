@@ -15,7 +15,7 @@ class WorkspaceLogIdentity {
     static header(kind, search) {
         var asked = WorkspaceLogIdentity._asked(search);
         var id = asked || WorkspaceLogIdentity.placeholder(kind);
-        return new LogHeader("homing.workspace.log", 1, new WorkspaceSpecKind(kind), new WorkspaceInstanceId(id));
+        return new LogHeader(LogHeader.FORMAT, LogHeader.VERSION, new WorkspaceSpecKind(kind), new WorkspaceInstanceId(id));
     }
 
     static _asked(search) {

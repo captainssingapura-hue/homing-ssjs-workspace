@@ -2,7 +2,7 @@
 // WorkspaceLogStore — one workspace's log, in the browser: the same store the
 // Java side keeps in memory. It takes TYPED events only — instances of the
 // generated WorkspaceEvent classes, never a plain object — keeps each as its
-// codec's wire form, numbered by the backend from one and stamped to the
+// codec's wire form, numbered by the backend, climbing and never reused, stamped to the
 // millisecond, and gives them back typed, through the same codecs.
 //
 //   new WorkspaceLogStore({ header, backend, now? })

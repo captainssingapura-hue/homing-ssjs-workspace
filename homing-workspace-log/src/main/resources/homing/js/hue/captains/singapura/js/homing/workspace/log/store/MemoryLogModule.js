@@ -1,6 +1,6 @@
 // =============================================================================
 // MemoryLog — a WorkspaceLogStore's rows kept in memory, as IndexedDbLog keeps
-// them in the database: numbered from one, never reused, looked up by kind and
+// them in the database: numbered climbing, never reused, looked up by kind and
 // workspace. For a page that must not keep anything, and for tests.
 //
 //   new MemoryLog()

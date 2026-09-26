@@ -7,7 +7,7 @@ import java.util.Objects;
 
 /**
  * One line of a workspace log: an event, where it falls in the log and when it
- * was written. The sequence is the store's — counted from one, never reused —
+ * was written. The sequence is the store's — climbing, never reused —
  * and the time is to the millisecond, the precision both languages keep.
  *
  * @param seq   from 1 to 2^53 − 1

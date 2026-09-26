@@ -7,7 +7,9 @@
 //
 //   new FakeNote(branch, params)      a paragraph: holds a place, and nothing else
 //   new FakeCounter(branch, params)   native − and + buttons; ↑ ↓ count while it holds
-//   new FakeField(branch, params)     a native input it puts the focus in when it holds
+//   new FakeField(branch, params)     a native input it puts the focus in when it holds, and a
+//                                     button naming its tab after what is in it: a rename, the
+//                                     widget's own, through the tab's handle it was given
 //     params: TabSource's - { focus, id, title, pane, tab }
 // =============================================================================
 
@@ -83,6 +85,11 @@ class FakeField {
         input.setAttribute("aria-label", "a fake field");
         label.appendChild(input);
         root.appendChild(label);
+        var name = branch.createElement("name", "button");
+        name.type = "button";
+        name.textContent = "Name the tab";
+        name.addEventListener("click", function () { if (params.tab && input.value.trim()) params.tab.title(input.value.trim()); });
+        root.appendChild(name);
         this.root = root;
         this._input = input;
         _join(this, branch, params);

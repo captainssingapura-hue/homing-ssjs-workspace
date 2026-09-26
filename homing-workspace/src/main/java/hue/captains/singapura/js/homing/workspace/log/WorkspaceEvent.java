@@ -10,23 +10,26 @@ import java.util.Objects;
 /**
  * What the workspace log records: every change of the workspace's arrangement
  * that outlives the page, one variant apiece, spelled as the components report
- * it — a tab opened, turned into another kind, moved, shown or closed; a region
- * parted, removed; a split's tracks re-shared. Declared here and only here: the
- * JavaScript classes and both languages' codecs are generated from these records.
+ * it — a tab opened, turned into another kind, renamed, moved, shown or closed;
+ * a region parted, removed; a split's tracks re-shared; a float opened, moved,
+ * resized, raised, closed. Declared here and only here: the JavaScript classes
+ * and both languages' codecs are generated from these records.
  *
- * <p>A float is not a place the log knows: floating is transient, and a tab
- * afloat is, as far as the log goes, still where it left. A merge is the moves
- * the merge made, then the region it emptied removed.</p>
+ * <p>A tab is always somewhere — a {@link Host}: a region's dock or a float. A
+ * float is a state the workspace comes back to, recorded like a region: where
+ * it lies and how big, in whole pixels of the desk, and which is on top. A
+ * merge is the moves the merge made, then the region it emptied removed; a
+ * float that empties closes, after the move that emptied it.</p>
  */
 public sealed interface WorkspaceEvent {
 
-    /** A tab was opened in a region, at an index there, holding a widget of a kind, under a title. */
-    record TabOpened(TabId id, WidgetKind kind, WidgetTitle title, RegionId region, int index) implements WorkspaceEvent {
+    /** A tab was opened in a host, at an index there, holding a widget of a kind, under a title. */
+    record TabOpened(TabId id, WidgetKind kind, WidgetTitle title, Host host, int index) implements WorkspaceEvent {
         public TabOpened {
             Objects.requireNonNull(id, "TabOpened.id");
             Objects.requireNonNull(kind, "TabOpened.kind");
             Objects.requireNonNull(title, "TabOpened.title");
-            Objects.requireNonNull(region, "TabOpened.region");
+            Objects.requireNonNull(host, "TabOpened.host");
             if (index < 0) throw new IllegalArgumentException("TabOpened.index " + index + " — non-negative");
         }
     }
@@ -40,19 +43,27 @@ public sealed interface WorkspaceEvent {
         }
     }
 
-    /** A tab moved to an index in a region: another region's, or its own. */
-    record TabMoved(TabId id, RegionId region, int index) implements WorkspaceEvent {
+    /** A tab was renamed where it is: by its widget, its holder or its pane. */
+    record TabRenamed(TabId id, WidgetTitle title) implements WorkspaceEvent {
+        public TabRenamed {
+            Objects.requireNonNull(id, "TabRenamed.id");
+            Objects.requireNonNull(title, "TabRenamed.title");
+        }
+    }
+
+    /** A tab moved to an index in a host: another host — a region, a float — or its own. */
+    record TabMoved(TabId id, Host host, int index) implements WorkspaceEvent {
         public TabMoved {
             Objects.requireNonNull(id, "TabMoved.id");
-            Objects.requireNonNull(region, "TabMoved.region");
+            Objects.requireNonNull(host, "TabMoved.host");
             if (index < 0) throw new IllegalArgumentException("TabMoved.index " + index + " — non-negative");
         }
     }
 
-    /** A region came to show a tab. */
-    record TabShown(RegionId region, TabId id) implements WorkspaceEvent {
+    /** A host came to show a tab. */
+    record TabShown(Host host, TabId id) implements WorkspaceEvent {
         public TabShown {
-            Objects.requireNonNull(region, "TabShown.region");
+            Objects.requireNonNull(host, "TabShown.host");
             Objects.requireNonNull(id, "TabShown.id");
         }
     }
@@ -105,6 +116,43 @@ public sealed interface WorkspaceEvent {
             long p = 1;
             for (int i = 0; i < n; i++) p *= 10;
             return p;
+        }
+    }
+
+    /** A float was opened on the desk: where it lies and how big, in whole pixels of the desk; on top. Its tabs come to it after. */
+    record FloatOpened(FloatId id, int x, int y, int w, int h) implements WorkspaceEvent {
+        public FloatOpened {
+            Objects.requireNonNull(id, "FloatOpened.id");
+            if (w <= 0 || h <= 0) throw new IllegalArgumentException("FloatOpened " + w + "×" + h + " — a measure above zero");
+        }
+    }
+
+    /** A float came to rest somewhere else. */
+    record FloatMoved(FloatId id, int x, int y) implements WorkspaceEvent {
+        public FloatMoved {
+            Objects.requireNonNull(id, "FloatMoved.id");
+        }
+    }
+
+    /** A float has another measure. */
+    record FloatResized(FloatId id, int w, int h) implements WorkspaceEvent {
+        public FloatResized {
+            Objects.requireNonNull(id, "FloatResized.id");
+            if (w <= 0 || h <= 0) throw new IllegalArgumentException("FloatResized " + w + "×" + h + " — a measure above zero");
+        }
+    }
+
+    /** A float came on top of the others. */
+    record FloatRaised(FloatId id) implements WorkspaceEvent {
+        public FloatRaised {
+            Objects.requireNonNull(id, "FloatRaised.id");
+        }
+    }
+
+    /** A float was closed: emptied by a move, or closed with what it held, those closes said first. */
+    record FloatClosed(FloatId id) implements WorkspaceEvent {
+        public FloatClosed {
+            Objects.requireNonNull(id, "FloatClosed.id");
         }
     }
 }

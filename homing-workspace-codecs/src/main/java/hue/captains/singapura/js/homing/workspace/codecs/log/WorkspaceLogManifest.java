@@ -1,6 +1,8 @@
 package hue.captains.singapura.js.homing.workspace.codecs.log;
 
 import hue.captains.singapura.js.homing.workspace.events.contract.EventSeq;
+import hue.captains.singapura.js.homing.workspace.log.FloatId;
+import hue.captains.singapura.js.homing.workspace.log.Host;
 import hue.captains.singapura.js.homing.workspace.log.LogHeader;
 import hue.captains.singapura.js.homing.workspace.log.LoggedEvent;
 import hue.captains.singapura.js.homing.workspace.log.RegionId;
@@ -32,6 +34,7 @@ public final class WorkspaceLogManifest {
             // identifiers: one scalar each, bare on the wire
             LogCodecEntry.id(TabId.class),
             LogCodecEntry.id(RegionId.class),
+            LogCodecEntry.id(FloatId.class),
             LogCodecEntry.id(WidgetKind.class),
             LogCodecEntry.id(WidgetTitle.class),
             LogCodecEntry.id(SplitPath.class),
@@ -41,16 +44,26 @@ public final class WorkspaceLogManifest {
             // values
             LogCodecEntry.enumeration(Side.class),
             LogCodecEntry.record(Scaled.class),
+            // where a tab is: a region's dock or a float
+            LogCodecEntry.sealed(Host.class),
+            LogCodecEntry.record(Host.InRegion.class),
+            LogCodecEntry.record(Host.InFloat.class),
             // the events: the family, then each of its variants
             LogCodecEntry.sealed(WorkspaceEvent.class),
             LogCodecEntry.record(WorkspaceEvent.TabOpened.class),
             LogCodecEntry.record(WorkspaceEvent.TabBecame.class),
+            LogCodecEntry.record(WorkspaceEvent.TabRenamed.class),
             LogCodecEntry.record(WorkspaceEvent.TabMoved.class),
             LogCodecEntry.record(WorkspaceEvent.TabShown.class),
             LogCodecEntry.record(WorkspaceEvent.TabClosed.class),
             LogCodecEntry.record(WorkspaceEvent.RegionParted.class),
             LogCodecEntry.record(WorkspaceEvent.RegionRemoved.class),
             LogCodecEntry.record(WorkspaceEvent.TracksChanged.class),
+            LogCodecEntry.record(WorkspaceEvent.FloatOpened.class),
+            LogCodecEntry.record(WorkspaceEvent.FloatMoved.class),
+            LogCodecEntry.record(WorkspaceEvent.FloatResized.class),
+            LogCodecEntry.record(WorkspaceEvent.FloatRaised.class),
+            LogCodecEntry.record(WorkspaceEvent.FloatClosed.class),
             // the lines of a log
             LogCodecEntry.record(LoggedEvent.class),
             LogCodecEntry.record(LogHeader.class));

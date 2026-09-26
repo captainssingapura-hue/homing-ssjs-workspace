@@ -24,6 +24,8 @@ public record WorkspaceLogCodecsModule() implements DomModule<WorkspaceLogCodecs
     public record TabIdCodec()          implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record RegionId()            implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record RegionIdCodec()       implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record FloatId() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record FloatIdCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record WidgetKind()          implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record WidgetKindCodec()     implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record WidgetTitle()         implements Exportable._Class<WorkspaceLogCodecsModule> {}
@@ -41,6 +43,13 @@ public record WorkspaceLogCodecsModule() implements DomModule<WorkspaceLogCodecs
     public record SideCodec()           implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record Scaled()              implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record ScaledCodec()         implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    // where a tab is
+    public record Host() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record HostCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record InRegion() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record InRegionCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record InFloat() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record InFloatCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
     // the events
     public record WorkspaceEvent()      implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record WorkspaceEventCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
@@ -48,6 +57,8 @@ public record WorkspaceLogCodecsModule() implements DomModule<WorkspaceLogCodecs
     public record TabOpenedCodec()      implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record TabBecame()           implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record TabBecameCodec()      implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record TabRenamed() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record TabRenamedCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record TabMoved()            implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record TabMovedCodec()       implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record TabShown()            implements Exportable._Class<WorkspaceLogCodecsModule> {}
@@ -60,6 +71,16 @@ public record WorkspaceLogCodecsModule() implements DomModule<WorkspaceLogCodecs
     public record RegionRemovedCodec()  implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record TracksChanged()       implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record TracksChangedCodec()  implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record FloatOpened() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record FloatOpenedCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record FloatMoved() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record FloatMovedCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record FloatResized() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record FloatResizedCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record FloatRaised() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record FloatRaisedCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record FloatClosed() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record FloatClosedCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
     // the lines of a log
     public record LoggedEvent()         implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record LoggedEventCodec()    implements Exportable._Class<WorkspaceLogCodecsModule> {}
@@ -74,6 +95,7 @@ public record WorkspaceLogCodecsModule() implements DomModule<WorkspaceLogCodecs
         return new ExportsOf<>(INSTANCE, List.of(
                 new TabId(),               new TabIdCodec(),
                 new RegionId(),            new RegionIdCodec(),
+                new FloatId(),             new FloatIdCodec(),
                 new WidgetKind(),          new WidgetKindCodec(),
                 new WidgetTitle(),         new WidgetTitleCodec(),
                 new SplitPath(),           new SplitPathCodec(),
@@ -82,15 +104,24 @@ public record WorkspaceLogCodecsModule() implements DomModule<WorkspaceLogCodecs
                 new WorkspaceInstanceId(), new WorkspaceInstanceIdCodec(),
                 new Side(),                new SideCodec(),
                 new Scaled(),              new ScaledCodec(),
+                new Host(),                new HostCodec(),
+                new InRegion(),            new InRegionCodec(),
+                new InFloat(),             new InFloatCodec(),
                 new WorkspaceEvent(),      new WorkspaceEventCodec(),
                 new TabOpened(),           new TabOpenedCodec(),
                 new TabBecame(),           new TabBecameCodec(),
+                new TabRenamed(),          new TabRenamedCodec(),
                 new TabMoved(),            new TabMovedCodec(),
                 new TabShown(),            new TabShownCodec(),
                 new TabClosed(),           new TabClosedCodec(),
                 new RegionParted(),        new RegionPartedCodec(),
                 new RegionRemoved(),       new RegionRemovedCodec(),
                 new TracksChanged(),       new TracksChangedCodec(),
+                new FloatOpened(),         new FloatOpenedCodec(),
+                new FloatMoved(),          new FloatMovedCodec(),
+                new FloatResized(),        new FloatResizedCodec(),
+                new FloatRaised(),         new FloatRaisedCodec(),
+                new FloatClosed(),         new FloatClosedCodec(),
                 new LoggedEvent(),         new LoggedEventCodec(),
                 new LogHeader(),           new LogHeaderCodec()));
     }

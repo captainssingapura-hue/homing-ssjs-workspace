@@ -1,7 +1,8 @@
 // =============================================================================
 // IndexedDbLog — where a WorkspaceLogStore keeps its rows in the browser: the
 // IndexedDB database "homing.workspace.log", one object store of rows numbered
-// by the database from one, looked up by (kind, workspaceId, seq). A row is
+// by the database, climbing and never reused - a clear does not wind the count
+// back - looked up by (kind, workspaceId, seq). A row is
 // { seq, kind, workspaceId, at, event }, the event in its codec's wire form —
 // plain data, which is all the database keeps faithfully.
 //

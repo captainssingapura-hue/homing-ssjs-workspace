@@ -1,7 +1,10 @@
 package hue.captains.singapura.js.homing.workspace.shell;
 
 import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
+import hue.captains.singapura.js.homing.workspace.log.FloatId;
+import hue.captains.singapura.js.homing.workspace.log.Host;
 import hue.captains.singapura.js.homing.workspace.log.LoggedEvent;
+import hue.captains.singapura.js.homing.workspace.log.TabId;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
 import hue.captains.singapura.js.homing.workspace.log.store.ValidateWorkspaceLog;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogFile;
@@ -35,7 +38,8 @@ class WorkspaceRecorderTest extends JsModuleTestBase {
                 var store = new WorkspaceLogStore({ header: WorkspaceLogIdentity.header("demo", ""), backend: new MemoryLog(),
                                                     now: (() => { let t = 1790000000000; return () => t++; })() });
                 var regions = { main: true, "cell-2": true }, kinds = { "tab-1": "opener", "tab-2": "note" }, counted = [];
-                var rec = new WorkspaceRecorder({ store: store, isRegion: (s) => !!regions[s], kindOf: (id) => kinds[id] || null,
+                var floats = { "float-1": true };
+                var rec = new WorkspaceRecorder({ store: store, isRegion: (s) => !!regions[s], isFloat: (s) => !!floats[s], kindOf: (id) => kinds[id] || null,
                                                   onCount: (n) => counted.push(n) });
                 function tab(id, title) { return { id: id, title: () => title }; }
                 var got = {};
@@ -57,20 +61,37 @@ class WorkspaceRecorderTest extends JsModuleTestBase {
                 rec.hear({ kind: "AddRequested", slotId: "main" });
                 rec.hear({ kind: "Subdivided", cellId: "main", newCellId: "cell-2", side: "right" });
                 rec.hear({ kind: "TracksChanged", path: "", ratios: [1 / 3, 2 / 3] });
-                rec.hear({ kind: "TabMoved", srcSlotId: "main", tab: tab("tab-1", "Note"), srcIndex: 0, destSlotId: "float-1", destIndex: 0 });
-                rec.hear({ kind: "TabMoved", srcSlotId: "float-1", tab: tab("tab-1", "Note"), srcIndex: 0, destSlotId: "cell-2", destIndex: 0 });
+                rec.hear({ kind: "TabRenamed", slotId: "main", tabId: "tab-1", title: "Groceries" });
+                rec.hear({ kind: "Opened", id: "float-1", title: "", x: 40, y: 60, w: 320, h: 220 });
+                rec.hear({ kind: "TabMoved", srcSlotId: "main", tab: tab("tab-1", "Groceries"), srcIndex: 0, destSlotId: "float-1", destIndex: 0 });
                 rec.hear({ kind: "TabActivated", slotId: "float-1", tabId: "tab-1" });
-                rec.hear({ kind: "TabMoved", srcSlotId: "cell-2", tab: tab("tab-1", "Note"), srcIndex: 0, destSlotId: "main", destIndex: 0 });
+                rec.hear({ kind: "Moved", id: "float-1", x: 400, y: 90 });
+                rec.hear({ kind: "Resized", id: "float-1", w: 480, h: 300 });
+                rec.hear({ kind: "Raised", id: "float-1" });
+                rec.hear({ kind: "TabMoved", srcSlotId: "float-1", tab: tab("tab-1", "Groceries"), srcIndex: 0, destSlotId: "cell-2", destIndex: 0 });
+                rec.hear({ kind: "Closed", id: "float-1" });
+                rec.hear({ kind: "TabMoved", srcSlotId: "cell-2", tab: tab("tab-1", "Groceries"), srcIndex: 0, destSlotId: "main", destIndex: 0 });
                 rec.hear({ kind: "Removed", cellId: "cell-2" });
-                rec.hear({ kind: "TabRemoved", slotId: "main", tab: tab("tab-1", "Note"), fromIndex: 0 });
+                rec.hear({ kind: "TabRemoved", slotId: "main", tab: tab("tab-1", "Groceries"), fromIndex: 0 });
                 """);
         String text = exported();
         assertEquals(ValidateWorkspaceLog.VALID, ValidateWorkspaceLog.validate("recorded", text, System.out, System.err));
         List<WorkspaceEvent> events = WorkspaceLogFile.read(text).events().stream().map(LoggedEvent::event).toList();
-        assertEquals(List.of("TabOpened", "TabShown", "TabBecame", "RegionParted", "TracksChanged", "TabMoved", "TabMoved", "RegionRemoved", "TabClosed"),
-                events.stream().map(e -> e.getClass().getSimpleName()).toList(), "floats and requests are nowhere in it");
+        assertEquals(List.of("TabOpened", "TabShown", "TabBecame", "RegionParted", "TracksChanged", "TabRenamed",
+                             "FloatOpened", "TabMoved", "TabShown", "FloatMoved", "FloatResized", "FloatRaised", "TabMoved", "FloatClosed",
+                             "TabMoved", "RegionRemoved", "TabClosed"),
+                events.stream().map(e -> e.getClass().getSimpleName()).toList(), "a float is recorded like a region; a request is nowhere");
+        assertEquals(new WorkspaceEvent.TabMoved(TabId.of("tab-1"), Host.floating("float-1"), 0), events.get(7), "the tab afloat is in its float");
+        assertEquals(new WorkspaceEvent.TabShown(Host.floating("float-1"), TabId.of("tab-1")), events.get(8));
+        assertEquals(new WorkspaceEvent.FloatOpened(FloatId.of("float-1"), 40, 60, 320, 220), events.get(6));
         assertEquals("[333333, 666667]", ((WorkspaceEvent.TracksChanged) events.get(4)).shares().stream().map(s -> s.units()).toList().toString());
-        assertEquals(9, js.eval("js", "counted[counted.length - 1]").asInt());
+        assertEquals(17, js.eval("js", "counted[counted.length - 1]").asInt());
+    }
+
+    @Test
+    void aHostThatIsNeitherARegionNorAFloatIsNotRecorded() {
+        js.eval("js", "rec.hear({ kind: 'TabActivated', slotId: 'elsewhere', tabId: 'tab-1' });");
+        assertTrue(exported().split("\n").length == 1, "only the header");
     }
 
     @Test

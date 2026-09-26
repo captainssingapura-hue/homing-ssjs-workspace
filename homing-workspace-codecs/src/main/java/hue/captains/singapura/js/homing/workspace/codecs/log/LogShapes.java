@@ -60,6 +60,30 @@ final class LogShapes {
     /** Pattern syntax Java and JavaScript read alike: literals, classes, groups, quantifiers, alternation, \d. */
     private static final Pattern SAFE_GRAMMAR = Pattern.compile("(?:[A-Za-z0-9_\\-\\[\\]()?*+|/ ]|\\\\d)*");
 
+    /**
+     * The type's public constants a JavaScript reader needs as much as a Java one
+     * — public static final strings, ints, longs and booleans, a long only when
+     * it is a safe integer — as {@code static NAME = literal;} lines, in the order
+     * declared. Anything else a type keeps static is Java's alone.
+     */
+    static String jsConstants(Class<?> type) {
+        var sb = new StringBuilder();
+        for (Field f : type.getDeclaredFields()) {
+            int m = f.getModifiers();
+            if (!Modifier.isPublic(m) || !Modifier.isStatic(m) || !Modifier.isFinal(m)) continue;
+            Object v;
+            try { v = f.get(null); }
+            catch (IllegalAccessException e) { throw new IllegalStateException("cannot read " + type.getName() + "." + f.getName(), e); }
+            String literal;
+            if (f.getType() == String.class) literal = LogSlot.javaString((String) v);
+            else if (f.getType() == int.class || f.getType() == boolean.class) literal = String.valueOf(v);
+            else if (f.getType() == long.class && Math.abs((Long) v) <= 9_007_199_254_740_991L) literal = String.valueOf(v);
+            else continue;
+            sb.append("    static ").append(f.getName()).append(" = ").append(literal).append(";\n");
+        }
+        return sb.toString();
+    }
+
     static String simple(Class<?> t) { return t.getSimpleName(); }
 
     static String codec(Class<?> t) { return t.getSimpleName() + "Codec"; }

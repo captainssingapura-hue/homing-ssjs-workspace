@@ -54,6 +54,8 @@ final class RecordCodeGen {
             var sb = new StringBuilder();
             sb.append("/** Generated from ").append(t.getName()).append(" — do not edit. */\n");
             sb.append("class ").append(n).append(parent != null ? " extends " + simple(parent) : "").append(" {\n");
+            String constants = LogShapes.jsConstants(t);
+            if (!constants.isEmpty()) sb.append(constants).append("\n");
             sb.append("    constructor(");
             for (int i = 0; i < cs.size(); i++) sb.append(i > 0 ? ", " : "").append(cs.get(i).name());
             sb.append(") {\n");

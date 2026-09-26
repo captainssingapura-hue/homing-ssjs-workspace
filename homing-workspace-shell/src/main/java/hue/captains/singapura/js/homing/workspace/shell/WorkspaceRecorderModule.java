@@ -24,14 +24,18 @@ public record WorkspaceRecorderModule() implements DomModule<WorkspaceRecorderMo
     public ImportsFor<WorkspaceRecorderModule> imports() {
         return ImportsFor.<WorkspaceRecorderModule>builder()
                 .add(new ModuleImports<>(List.of(
-                        new WorkspaceLogCodecsModule.TabId(), new WorkspaceLogCodecsModule.RegionId(),
+                        new WorkspaceLogCodecsModule.TabId(), new WorkspaceLogCodecsModule.RegionId(), new WorkspaceLogCodecsModule.FloatId(),
+                        new WorkspaceLogCodecsModule.InRegion(), new WorkspaceLogCodecsModule.InFloat(),
                         new WorkspaceLogCodecsModule.WidgetKind(), new WorkspaceLogCodecsModule.WidgetTitle(),
                         new WorkspaceLogCodecsModule.SplitPath(), new WorkspaceLogCodecsModule.Side(),
                         new WorkspaceLogCodecsModule.Scaled(),
-                        new WorkspaceLogCodecsModule.TabOpened(), new WorkspaceLogCodecsModule.TabBecame(),
+                        new WorkspaceLogCodecsModule.TabOpened(), new WorkspaceLogCodecsModule.TabBecame(), new WorkspaceLogCodecsModule.TabRenamed(),
                         new WorkspaceLogCodecsModule.TabMoved(), new WorkspaceLogCodecsModule.TabShown(),
                         new WorkspaceLogCodecsModule.TabClosed(), new WorkspaceLogCodecsModule.RegionParted(),
-                        new WorkspaceLogCodecsModule.RegionRemoved(), new WorkspaceLogCodecsModule.TracksChanged()),
+                        new WorkspaceLogCodecsModule.RegionRemoved(), new WorkspaceLogCodecsModule.TracksChanged(),
+                        new WorkspaceLogCodecsModule.FloatOpened(), new WorkspaceLogCodecsModule.FloatMoved(),
+                        new WorkspaceLogCodecsModule.FloatResized(), new WorkspaceLogCodecsModule.FloatRaised(),
+                        new WorkspaceLogCodecsModule.FloatClosed()),
                         WorkspaceLogCodecsModule.INSTANCE))
                 .build();
     }

@@ -35,9 +35,9 @@ class WorkspaceLogStoreTest extends JsModuleTestBase {
     @Test
     void typedEventsGoInAndComeOutTyped() {
         js.eval("js", """
-                const t = new TabId("tab-1"), r = new RegionId("main");
-                store.append(new TabOpened(t, new WidgetKind("note"), new WidgetTitle("Note"), r, 0))
-                    .then(() => store.append(new TabShown(r, t)))
+                const t = new TabId("tab-1"), r = new RegionId("main"), h = new InRegion(r);
+                store.append(new TabOpened(t, new WidgetKind("note"), new WidgetTitle("Note"), h, 0))
+                    .then(() => store.append(new TabShown(h, t)))
                     .then((logged) => { got.last = logged; return store.events(); })
                     .then((events) => { got.events = events; });
                 """);
@@ -59,8 +59,8 @@ class WorkspaceLogStoreTest extends JsModuleTestBase {
     @Test
     void itsExportPassesTheJavaValidator() {
         js.eval("js", """
-                const t = new TabId("tab-1"), r = new RegionId("main");
-                store.append(new TabOpened(t, new WidgetKind("counter"), new WidgetTitle("Counter \\u00e9 \\"2\\""), r, 0))
+                const t = new TabId("tab-1"), r = new RegionId("main"), h = new InRegion(r);
+                store.append(new TabOpened(t, new WidgetKind("counter"), new WidgetTitle("Counter \\u00e9 \\"2\\""), h, 0))
                     .then(() => store.append(new RegionParted(r, new RegionId("cell-2"), Side.RIGHT)))
                     .then(() => store.append(new TracksChanged(new SplitPath(""), [new Scaled(400000, 6), new Scaled(600000, 6)])))
                     .then(() => store.append(new TabClosed(t)))

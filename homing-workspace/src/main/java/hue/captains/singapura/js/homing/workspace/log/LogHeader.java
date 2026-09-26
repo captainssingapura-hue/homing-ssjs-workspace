@@ -17,7 +17,8 @@ import java.util.Objects;
 public record LogHeader(String format, int version, WorkspaceSpecKind kind, WorkspaceInstanceId workspaceId) {
 
     public static final String FORMAT = "homing.workspace.log";
-    public static final int VERSION = 1;
+    /** 2: a tab is in a Host - a region or a float - and floats and renames are recorded. */
+    public static final int VERSION = 2;
 
     public LogHeader {
         Objects.requireNonNull(format, "LogHeader.format");

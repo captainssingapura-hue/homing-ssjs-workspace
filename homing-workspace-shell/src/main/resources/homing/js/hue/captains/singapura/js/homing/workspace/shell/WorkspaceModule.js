@@ -13,7 +13,8 @@
 //     menus     the page's ContextMenuSteward, else one of its own
 //     budget    the most tabs the workspace holds at once: the desk's
 //     log       a WorkspaceLogStore: what the components report is recorded
-//               in it, as the WorkspaceEvents declared in Java, and a bar along
+//               in it, as the WorkspaceEvents declared in Java - regions, floats,
+//               every tab in one or the other - and a bar along
 //               the foot of the floor says how many and exports the file
 //   ws.root .desk .docks .source .recorder .logBar
 //   ws.dispose()
@@ -61,13 +62,14 @@ class Workspace {
               make: function (b, p) { return new TabOpener(b, { focus: p.focus, tab: p.tab, source: self.source }); } } ]) });
         // THE REGIONS: a cell of the grid and a dock in it, parted, merged and closed from the dock's own tab bar
         this.docks = new DockGrid(branch.createBranch("docks"), { host: floor, desk: this.desk, menus: this._menus, onEvent: report, dock: { addable: true } });
-        // THE LOG: the regions are the grid's, a tab's kind the source's; floats are nowhere to it
+        // THE LOG: a tab is in a region, the grid's, or in a float, the desk's; its kind is the source's
         this.recorder = null;
         this.logBar = null;
         if (o.log) {
             this.logBar = new WorkspaceLogBar(branch.createBranch("log"), { host: floor, store: o.log });
             this.recorder = new WorkspaceRecorder({ store: o.log,
                 isRegion: function (slotId) { return !!self.docks.region(slotId); },
+                isFloat: function (slotId) { return !self.docks.region(slotId) && self.desk.docks().some(function (d) { return d.slotId === slotId; }); },
                 kindOf: function (tabId) { return self.source.kindOf(tabId); },
                 onCount: function (n) { self.logBar.count(n); } });
         }

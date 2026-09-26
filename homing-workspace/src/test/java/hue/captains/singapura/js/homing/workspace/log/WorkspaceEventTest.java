@@ -36,7 +36,17 @@ class WorkspaceEventTest {
     @Test
     void anIndexIsNeverNegative() {
         assertThrows(IllegalArgumentException.class,
-                () -> new TabOpened(T, WidgetKind.of("note"), WidgetTitle.of("Note"), MAIN, -1));
+                () -> new TabOpened(T, WidgetKind.of("note"), WidgetTitle.of("Note"), new Host.InRegion(MAIN), -1));
+    }
+
+    @Test
+    void aTabIsInARegionOrAFloat_andAFloatHasAMeasure() {
+        assertEquals(new Host.InFloat(FloatId.of("float-1")), Host.floating("float-1"));
+        assertThrows(IllegalArgumentException.class, () -> FloatId.of("float 1"));
+        assertThrows(IllegalArgumentException.class, () -> new WorkspaceEvent.FloatOpened(FloatId.of("float-1"), 10, 10, 0, 200));
+        assertThrows(IllegalArgumentException.class, () -> new WorkspaceEvent.FloatResized(FloatId.of("float-1"), 300, -1));
+        assertDoesNotThrow(() -> new WorkspaceEvent.FloatMoved(FloatId.of("float-1"), -20, 0));
+        assertThrows(NullPointerException.class, () -> new WorkspaceEvent.TabMoved(T, null, 0));
     }
 
     @Test
@@ -75,7 +85,7 @@ class WorkspaceEventTest {
     void aHeaderSaysWhatItIs() {
         var id = WorkspaceInstanceId.fresh();
         assertThrows(IllegalArgumentException.class, () -> new LogHeader("other", 1, WorkspaceSpecKind.of("demo"), id));
-        assertThrows(IllegalArgumentException.class, () -> new LogHeader(LogHeader.FORMAT, 2, WorkspaceSpecKind.of("demo"), id));
+        assertThrows(IllegalArgumentException.class, () -> new LogHeader(LogHeader.FORMAT, 1, WorkspaceSpecKind.of("demo"), id));
         assertEquals(LogHeader.FORMAT, LogHeader.of(WorkspaceSpecKind.of("demo"), id).format());
     }
 }
