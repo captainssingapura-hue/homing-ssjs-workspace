@@ -1,20 +1,12 @@
 // =============================================================================
 // WorkspaceApp - the workspace as a page of a standard MPA.
 //
-// The MPA's chrome made the page and handed us the slot; we fill it. Three
-// steps, and none of them is workspace-specific: say the slot lays itself out
-// (a shell of panes is not a reading column), pick the spec the address asked
-// for, and hand it to mountWorkspaceShell with a branch of our own. Everything
-// that IS a workspace - the arrangement, the panes, the ribbon and footer, the
-// parties, persistence, the event log, replay, checkpoints, the write lock -
-// is behind that one call, exactly as it is behind the studio's mounting.
-//
-// The branch is ours and activated here because nothing above made one for us:
-// under the studio a widget was handed an activated branch, and here there is
-// no widget - the app is the thing.
+// The MPA's chrome made the page and handed us the slot; we fill it: say the
+// slot lays itself out (a workspace is not a reading column), pick the spec the
+// address asked for, and build the Workspace in it - the desk and its docks,
+// as the gallery's docking page builds them (RFC 0066 E3, the workspace
+// detour). Step one of the rebuild: no event store yet, and no widgets.
 // =============================================================================
-
-const _owner = Object.freeze({ toString: () => "workspaceApp" });
 
 function appMain(el, params) {
     var kind = (params && params.ws_kind) || "";
@@ -28,9 +20,8 @@ function appMain(el, params) {
         return;
     }
     css.addClass(el, mpa_main_full);
-    var branch = domOpsParty.createBranch("workspace");
-    branch.activate(_owner);
     // The page made one keyboard steward for the document and handed it in the
     // params; everything under here that takes keys takes THAT one.
-    mountWorkspaceShell(branch, el, spec, params && params.keyboard);
+    new Workspace(domOpsParty.createBranch("workspace"), { host: el, keyboard: params && params.keyboard,
+                                                           menus: params && params.menus, budget: spec.maxTabs || 16 });
 }

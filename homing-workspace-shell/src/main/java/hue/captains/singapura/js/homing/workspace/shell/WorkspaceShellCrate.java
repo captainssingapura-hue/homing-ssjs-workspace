@@ -66,6 +66,11 @@ public final class WorkspaceShellCrate implements Crate {
                 // registry stamped into a module it can import.
                 CrateEntry.of(WorkspaceSpecsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WorkspaceApp.INSTANCE, StandardJsModuleType.CONSUMER),
+                // The workspace, built as the gallery's docking page is (RFC 0066 E3, the workspace
+                // detour): a desk and its dock grid on a floor. What follows below it is the old
+                // shell, unwired, kept until its headless parts are ported.
+                CrateEntry.of(WorkspaceModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                CrateEntry.of(WorkspaceStyles.INSTANCE),
                 CrateEntry.of(LayoutCodecModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(PartyBootstrapModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(PersistenceAttacherModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),

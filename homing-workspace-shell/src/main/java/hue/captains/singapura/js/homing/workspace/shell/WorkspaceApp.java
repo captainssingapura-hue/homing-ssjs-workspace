@@ -71,8 +71,7 @@ public record WorkspaceApp() implements AppModule<WorkspaceApp.Params, Workspace
                 // shell of panes says otherwise.
                 .add(new ModuleImports<>(List.of(new MpaStyles.mpa_main_full()), MpaStyles.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceSpecsModule.SPECS()), WorkspaceSpecsModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(new WorkspaceShellChromeModule.mountWorkspaceShell()),
-                        WorkspaceShellChromeModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceModule.Workspace()), WorkspaceModule.INSTANCE))
                 .build();
     }
 

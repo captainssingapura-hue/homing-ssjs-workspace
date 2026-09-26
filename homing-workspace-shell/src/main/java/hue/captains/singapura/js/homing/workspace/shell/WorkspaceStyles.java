@@ -1,0 +1,39 @@
+package hue.captains.singapura.js.homing.workspace.shell;
+
+import hue.captains.singapura.js.homing.core.CssClass;
+import hue.captains.singapura.js.homing.core.CssGroup;
+import hue.captains.singapura.js.homing.core.Wearable;
+
+import java.util.List;
+
+import static hue.captains.singapura.js.homing.design.DesignClass.of;
+import static hue.captains.singapura.js.homing.design.Layer.Recessed;
+import static hue.captains.singapura.js.homing.design.Target.Color;
+
+/** The workspace's floor: the one box it draws, as the gallery's docking page draws its own. */
+public record WorkspaceStyles() implements CssGroup<WorkspaceStyles> {
+
+    public static final WorkspaceStyles INSTANCE = new WorkspaceStyles();
+
+    /**
+     * The floor: fills what holds it, and is where the desk's floats lie and the grid's regions sit. NO FRAME
+     * OF ITS OWN, as the docking page's box has none: the grid draws its own outer line in the width and the
+     * colour of the lines between its rooms, and a frame here would be that line drawn twice.
+     */
+    public record ws_floor() implements CssClass<WorkspaceStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Recessed.class, Color.Surface.class)); }
+        @Override public String body() { return """
+            position: relative;
+            flex: 1 1 auto;
+            min-width: 0;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            """;
+        }
+    }
+
+    @Override
+    public List<CssClass<WorkspaceStyles>> cssClasses() { return List.of(new ws_floor()); }
+}
