@@ -46,6 +46,7 @@ public final class DomOpsPartyMonitorWidget
     @Override
     protected List<String> constructBodyJs() {
         return List.of(
+                "    branch.activate(Object.freeze({ toString: function () { return 'domOpsPartyMonitor'; } }));   // handed unactivated: the widget's own",
                 "    var host = branch.createElement('host', 'div');",
                 "    var monitor = renderPartyMonitor(branch, host, { selfName: branch.name });",
                 "",

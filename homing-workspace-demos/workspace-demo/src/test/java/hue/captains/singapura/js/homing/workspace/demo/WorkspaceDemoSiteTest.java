@@ -2,6 +2,8 @@ package hue.captains.singapura.js.homing.workspace.demo;
 
 import hue.captains.singapura.js.homing.site.Path;
 import hue.captains.singapura.js.homing.site.Query;
+import hue.captains.singapura.js.homing.workspace.shell.CssGraphWorkbenchWidget;
+import hue.captains.singapura.js.homing.workspace.shell.DomOpsPartyMonitorWidget;
 import hue.captains.singapura.js.homing.workspace.shell.WorkspaceApp;
 import hue.captains.singapura.js.homing.workspace.shell.WorkspaceSpecRegistry;
 import org.junit.jupiter.api.Test;
@@ -31,11 +33,22 @@ class WorkspaceDemoSiteTest {
     }
 
     @Test
-    void bothKindsAreRegistered() {
+    void theKindsAreRegistered() {
         // The site's static block fills the registry; touching INSTANCE is what runs it.
         assertEquals(WorkspaceDemoSite.INSTANCE, WorkspaceDemoSite.INSTANCE);
         assertTrue(WorkspaceSpecRegistry.INSTANCE.get("demo").isPresent());
         assertTrue(WorkspaceSpecRegistry.INSTANCE.get("notes").isPresent());
+        assertTrue(WorkspaceSpecRegistry.INSTANCE.get("diagnostics").isPresent());
+    }
+
+    /** The diagnostics kind offers the shell's two instruments, and nothing of the demo's. */
+    @Test
+    void theDiagnosticsKindOffersTheShellsTwoInstruments() {
+        String html = pageAt("/diagnostics");   // the site first: its static block fills the registry
+        var offered = WorkspaceSpecRegistry.INSTANCE.get("diagnostics").orElseThrow().widgetEntries().stream()
+                .map(e -> e.widgetClass()).toList();
+        assertEquals(List.of(DomOpsPartyMonitorWidget.class, CssGraphWorkbenchWidget.class), offered);
+        assertTrue(html.contains("\"ws_kind\":\"diagnostics\""), "a route of its own");
     }
 
     /** The demo kind offers every widget the demo has, in the picker's order. */

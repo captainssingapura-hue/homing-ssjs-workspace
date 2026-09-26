@@ -4,6 +4,8 @@ import hue.captains.singapura.js.homing.workspace.WidgetEntry;
 import hue.captains.singapura.js.homing.workspace.WidgetGroup;
 import hue.captains.singapura.js.homing.workspace.WidgetIcon;
 import hue.captains.singapura.js.homing.workspace.WidgetLabel;
+import hue.captains.singapura.js.homing.workspace.shell.CssGraphWorkbenchWidget;
+import hue.captains.singapura.js.homing.workspace.shell.DomOpsPartyMonitorWidget;
 import hue.captains.singapura.js.homing.workspace.shell.WorkspaceSpec;
 import hue.captains.singapura.js.homing.workspace.shell.WorkspaceSpecRegistry;
 
@@ -12,11 +14,15 @@ import java.util.List;
 /**
  * The demo's workspaces, built from the demo's own widgets only.
  *
- * <p>Both widgets are written to the new contract — handed a branch, they give
- * back {@code { root }} and touch nothing else — so everything this demo shows
- * about panes, splitting, floating and docking is shown on widgets that know
- * nothing about any of it. The workspace's older widgets are not here on
- * purpose: they run through an adapter that comes later.</p>
+ * <p>The demo's widgets are written to the new contract — handed a branch, they
+ * give back {@code { root }} and touch nothing else — so everything this demo
+ * shows about panes, splitting, floating and docking is shown on widgets that
+ * know nothing about any of it.</p>
+ *
+ * <p>The DIAGNOSTICS kind is the workspace's own two instruments, which the
+ * shell ships and nothing else offers: the DomOpsParty monitor and the CSS
+ * graph workbench. A kind of their own, so a workspace for work is not handed
+ * the tools for looking at the machinery.</p>
  *
  * <p>The DEMO kind offers every widget the demo has: the note and the counter,
  * and three views — the books as a relation grid, the same books as shelves
@@ -32,10 +38,13 @@ public final class WorkspaceDemoSpecs {
     /** Notes only. */
     public static final WorkspaceSpec NOTES = new Notes();
 
+    /** The shell's diagnostics: the party monitor and the CSS graph. */
+    public static final WorkspaceSpec DIAGNOSTICS = new Diagnostics();
+
     private static boolean registered;
 
     /**
-     * Register both, once. The registry is process-wide and populated at boot,
+     * Register them, once. The registry is process-wide and populated at boot,
      * so a site loaded twice in one JVM — a test and then a server — must not
      * register twice: the second is a duplicate-kind error, correctly.
      */
@@ -44,6 +53,7 @@ public final class WorkspaceDemoSpecs {
         registered = true;
         WorkspaceSpecRegistry.INSTANCE.register(DEMO);
         WorkspaceSpecRegistry.INSTANCE.register(NOTES);
+        WorkspaceSpecRegistry.INSTANCE.register(DIAGNOSTICS);
     }
 
     private static final WidgetGroup DEMO_GROUP = WidgetGroup.of("Demo");
@@ -84,6 +94,26 @@ public final class WorkspaceDemoSpecs {
         @Override public String kind()  { return "demo"; }
         @Override public String title() { return "Demo"; }
         @Override public List<WidgetEntry> widgetEntries() { return List.of(note(), counter(), books(), shelves(), picture()); }
+    }
+
+    private static final WidgetGroup DIAGNOSTICS_GROUP = WidgetGroup.of("Diagnostics");
+
+    private static WidgetEntry partyMonitor() {
+        return WidgetEntry.of(DomOpsPartyMonitorWidget.class, WidgetLabel.of("Party monitor"))
+                .withIcon(new WidgetIcon.Emoji("🌳"))
+                .withGroup(DIAGNOSTICS_GROUP);
+    }
+
+    private static WidgetEntry cssGraph() {
+        return WidgetEntry.of(CssGraphWorkbenchWidget.class, WidgetLabel.of("CSS graph"))
+                .withIcon(new WidgetIcon.Emoji("🎨"))
+                .withGroup(DIAGNOSTICS_GROUP);
+    }
+
+    private static final class Diagnostics implements WorkspaceSpec {
+        @Override public String kind()  { return "diagnostics"; }
+        @Override public String title() { return "Diagnostics"; }
+        @Override public List<WidgetEntry> widgetEntries() { return List.of(partyMonitor(), cssGraph()); }
     }
 
     private static final class Notes implements WorkspaceSpec {

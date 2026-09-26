@@ -37,6 +37,7 @@ public final class CssGraphWorkbenchWidget
     @Override
     protected List<String> constructBodyJs() {
         return List.of(
+                "    branch.activate(Object.freeze({ toString: function () { return 'cssGraphWorkbench'; } }));   // handed unactivated: the widget's own",
                 "    var host = branch.createElement('host', 'div');",
                 "    var bench = renderCssGraph(branch, host, {});",
                 "    return {",

@@ -21,8 +21,8 @@ import java.util.Optional;
  * here — no catalogue, no doc kinds, no studio shell — and the workspace still
  * mounts, because {@link WorkspaceApp} is an {@code AppModule} like any other
  * and {@code StandardMpa.page} is all a page needs. The site declares a brand,
- * the themes it wears and the crate whose modules it serves, and routes two
- * paths at two kinds.</p>
+ * the themes it wears and the crate whose modules it serves, and routes three
+ * paths at three kinds.</p>
  *
  * <p>The MPA also serves the flat address {@code /app?app=workspace&ws_kind=…}
  * for free, which is where a change of kind inside the workspace navigates —
@@ -48,6 +48,8 @@ public record WorkspaceDemoSite() implements Site {
 
     static final AppPage<?, ?> NOTES =
             MPA.page(WorkspaceApp.INSTANCE, new WorkspaceApp.Params(WorkspaceDemoSpecs.NOTES.kind()));
+    static final AppPage<?, ?> DIAGNOSTICS =
+            MPA.page(WorkspaceApp.INSTANCE, new WorkspaceApp.Params(WorkspaceDemoSpecs.DIAGNOSTICS.kind()));
 
     @Override public String name() { return "workspace"; }
 
@@ -56,6 +58,7 @@ public record WorkspaceDemoSite() implements Site {
         return path -> switch (path.head().orElse("")) {
             case ""      -> path.isRoot() ? Optional.of(DEMO) : Optional.empty();
             case "notes" -> path.depth() == 1 ? Optional.of(placed(NOTES, "Notes", path)) : Optional.empty();
+            case "diagnostics" -> path.depth() == 1 ? Optional.of(placed(DIAGNOSTICS, "Diagnostics", path)) : Optional.empty();
             default      -> Optional.empty();
         };
     }
