@@ -5,6 +5,8 @@
 //   new WorkspacePanes(branch, { host, layout, budget?, onEvent?, keyboard?,
 //                                keyboardId?, menus?, stripMenu?, keys?,
 //                                seam?, thickness?, parties? })
+//     budget     the most tabs the workspace holds at once - the DESK'S limit, the
+//                spec's maxTabs: a pane has none of its own, its bar scrolls
 //     seam       the lattice drawn - every splitter and the grid's edge; on
 //                unless said false
 //     thickness  its lines, in pixels; 1 unless said
@@ -108,6 +110,7 @@ class WorkspacePanes {
         // docks are the cells' panes.
         this._desk = new Desk(branch.createBranch("desk"), {
             host: opts.host,
+            budget: opts.budget,
             focusName: "workspace-desk",
             menus: opts.menus || null,
             keyboard: opts.keyboard || null,
@@ -149,7 +152,6 @@ class WorkspacePanes {
         var pane = new MultiTabPane(this._branch.createBranch("pane-" + cellId), {
             host: this._grid.cell(cellId),
             slotId: cellId,
-            budget: o.budget,
             keys: o.keys,
             menus: o.menus || null,
             stripMenu: o.stripMenu || null,

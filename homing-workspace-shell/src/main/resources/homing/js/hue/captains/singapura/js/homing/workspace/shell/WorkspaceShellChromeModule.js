@@ -507,7 +507,8 @@ class WorkspaceShellChrome {
             layout: initialLayout,
             // RFC 0047 - the tab budget is the WorkspaceSpec's, so a dense
             // workspace can raise it and a focused one lower it. 16 for a spec
-            // that predates the knob.
+            // that predates the knob. It is the whole workspace's - the desk's:
+            // a pane has no limit of its own, its bar scrolls.
             budget: this._spec.maxTabs || 16,
             keyboard:   this._keyboard,
             keyboardId: 'workspace',
