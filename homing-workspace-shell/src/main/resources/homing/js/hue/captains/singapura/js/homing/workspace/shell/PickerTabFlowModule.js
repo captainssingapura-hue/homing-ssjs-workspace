@@ -8,12 +8,13 @@
 //        ├─ mount WidgetPicker into the tab's room with
 //        │     entries     = spec.entries minus pinned
 //        │     disabledIds = current singletons (one per kind)
-//        │     onPick(entry, params)  → mutate tab in place OR focus existing
+//        │     onPick(entry, params)  → mutate tab in place OR go to the one open
 //        │     onCancel()             → mtp.removeTab
 //        └─ done (sync)
 //
 //   2. picker.onPick(entry, params)
-//        ├─ if params === null  → SINGLETON focus-existing path
+//        ├─ if params === null  → the singleton already open: the user confirmed
+//        │                         going to it in the picker's redirector (§17.3)
 //        └─ else                → _mutateIntoWidget: same tabId, swap content
 //
 //   3. _mutateIntoWidget(slotId, tabId, entry, params, holder)
@@ -97,7 +98,7 @@ class PickerTabFlow {
             entries:     this._spec.entries || [],
             disabledIds: this._liveSingletons(),
             onPick:      function (entry, params) {
-                if (params === null) self._focusExistingSingleton(entry, slotId, tabId);
+                if (params === null) self._goToOpenSingleton(entry, slotId, tabId);
                 else self._mutateIntoWidget(slotId, tabId, entry, params);
             },
             onCancel:    function () { self._mtp.removeTab(slotId, tabId); }
@@ -115,17 +116,21 @@ class PickerTabFlow {
     }
 
 
-    /** SINGLETON focus-existing path: dispose picker tab, focus the live one. */
-    _focusExistingSingleton(entry, slotId, tabId) {
-        const existingId = this._liveSingletons()[entry.simpleName];
-        if (existingId) {
-            const liveSlot = this.findSlotForTab(existingId);
-            if (liveSlot && this._mtp.switchTab) {
-                this._mtp.switchTab(liveSlot, existingId);
-                if (this._mtp.land) this._mtp.land(liveSlot, existingId);
-            }
+    /**
+     * The user asked to go to the singleton already open: the picker's
+     * redirector, confirmed (RFC 0066 E3, keyboard §17.3) — so the keys may
+     * follow. The live one is found now, not remembered: it may have moved or
+     * closed since the chooser opened. Found: shown where it is and handed the
+     * keys, and the chooser's tab closes. Gone: opened here instead, in the
+     * chooser's own tab, as a pick of it would have been.
+     */
+    _goToOpenSingleton(entry, slotId, tabId) {
+        const openId = this._liveSingletons()[entry.simpleName];
+        if (openId && this._mtp.goTo && this._mtp.goTo(openId)) {
+            this._mtp.removeTab(slotId, tabId);
+            return;
         }
-        this._mtp.removeTab(slotId, tabId);
+        this._mutateIntoWidget(slotId, tabId, entry, entry.defaults || {});
     }
 
     /**
@@ -232,18 +237,6 @@ class PickerTabFlow {
             if (hit && single[hit.widgetKind]) out[hit.widgetKind] = this._tabRegistry.tabIdOf(uuid) || uuid;
         }
         return out;
-    }
-
-    findSlotForTab(tabId) {
-        if (!this._mtp.getState) return null;
-        const state = this._mtp.getState();
-        for (const slotId in state.tabs) {
-            if (!state.tabs.hasOwnProperty(slotId)) continue;
-            for (const t of state.tabs[slotId].tabs) {
-                if (t.id === tabId) return slotId;
-            }
-        }
-        return null;
     }
 
     /** Finds the live tab descriptor by id. Reaches through MTP's

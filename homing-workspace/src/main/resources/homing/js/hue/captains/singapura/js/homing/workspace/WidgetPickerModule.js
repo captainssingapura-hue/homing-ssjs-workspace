@@ -7,8 +7,14 @@
 //
 //   onPick(entry, params)   params {} for a tile with no fields, the filled
 //                           object for one with, and NULL for a tile that is
-//                           disabled because its widget is already open —
-//                           "I want that one" rather than "make another".
+//                           greyed because its widget is already open, once the
+//                           user has said so — "take me to that one" rather
+//                           than "make another".
+//
+// A GREYED TILE IS A REDIRECTOR (RFC 0066 E3, keyboard §17.3). Picked, it asks
+// first, here in the picker: "Books is already open. Go to it?" — Cancel, back
+// to the tiles; Go to it, delivered. Going to it moves the keys, and a move of
+// the keys is only ever the user's to ask for, so nothing jumps on a pick.
 //
 // A TILE IS A DESIGN WORD. Box.Control.Tile: one BOX of a grid, picked, where
 // an Option is one ROW of a list. The word carries the box — extent and
@@ -60,6 +66,8 @@ class WidgetPicker {
         this._at          = -1;      // the cursor
         this._delivered   = false;
         this._gridEl      = null;
+        this._redirect    = null;    // { entry, branch, box } while the redirector asks
+        this._asks        = 0;       // its branches, redirect1, redirect2 …: a name is freed only by a dissolve
 
         if (this._kb) {
             var self = this;
@@ -177,6 +185,11 @@ class WidgetPicker {
     /** The member's door: the steward routed a key here while the picker holds them. */
     keyDown(ev) {
         if (ev.altKey || ev.ctrlKey || ev.metaKey) return false;   // a chord is somebody else's
+        if (this._redirect) {                                        // the redirector asks: Enter goes, Escape comes back
+            if (ev.key === "Enter") { this._deliver(this._redirect.entry, null); return true; }
+            if (ev.key === "Escape") { this._backToTiles(); return true; }
+            return false;
+        }
         switch (ev.key) {
             case "ArrowRight": this._step(1);      return true;
             case "ArrowLeft":  this._step(-1);     return true;
@@ -196,9 +209,8 @@ class WidgetPicker {
     _pickAt(i) {
         if (i < 0 || i >= this._tiles.length) return;
         var t = this._tiles[i];
-        // A disabled tile means "that one is already open": the caller focuses
-        // the live instance rather than making a second.
-        if (t.disabled) { this._deliver(t.entry, null); return; }
+        // A greyed tile means "that one is already open": it asks before anything moves.
+        if (t.disabled) { this._ask(t.entry); return; }
         var fields = t.entry.paramsFields;
         if (fields && fields.length) this._showForm(t.entry);
         else this._deliver(t.entry, {});
@@ -222,6 +234,50 @@ class WidgetPicker {
     dispose() {
         this._release();
         try { this._branch.dissolve(); } catch (e) {}
+    }
+
+    // ── The redirector ──────────────────────────────────────────────────────
+
+    /** In place of the tiles, on a branch of its own so it can be asked again: Cancel, or Go to it. */
+    _ask(entry) {
+        var self = this, host = this._host;
+        var b = this._branch.createBranch("redirect" + (++this._asks));
+        b.activate(_pickerOwner);
+        var box = b.createElement("box", "div");
+        css.addClass(box, hwp_form);
+        box.setAttribute("role", "alertdialog");
+        var say = b.createElement("say", "div");
+        css.addClass(say, hwp_form_label);
+        say.textContent = entry.label + " is already open. Go to it?";
+        var acts = b.createElement("acts", "div");
+        css.addClass(acts, hwp_form_actions);
+        var back = b.createElement("back", "button");
+        css.addClass(back, hwp_form_btn);
+        back.setAttribute("type", "button");
+        back.textContent = "Cancel";
+        back.addEventListener("click", function () { self._backToTiles(); });
+        var go = b.createElement("go", "button");
+        css.addClass(go, hwp_form_btn, hwp_form_btn_primary);
+        go.setAttribute("type", "button");
+        go.textContent = "Go to it";
+        go.addEventListener("click", function () { self._deliver(entry, null); });
+        acts.appendChild(back);
+        acts.appendChild(go);
+        box.appendChild(say);
+        box.appendChild(acts);
+        if (this._gridEl && this._gridEl.parentNode === host) host.removeChild(this._gridEl);
+        host.appendChild(box);
+        this._redirect = { entry: entry, branch: b, box: box };
+    }
+
+    /** The redirector gone, its branch with it; the tiles back as they were, the cursor where it was. */
+    _backToTiles() {
+        var r = this._redirect;
+        if (!r) return;
+        this._redirect = null;
+        if (r.box.parentNode) r.box.parentNode.removeChild(r.box);
+        try { r.branch.dissolve(); } catch (e) {}
+        this._host.appendChild(this._gridEl);
     }
 
     // ── The params form ─────────────────────────────────────────────────────

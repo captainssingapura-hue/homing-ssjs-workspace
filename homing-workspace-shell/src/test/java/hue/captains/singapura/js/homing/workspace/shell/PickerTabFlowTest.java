@@ -74,6 +74,8 @@ class PickerTabFlowTest extends JsModuleTestBase {
                 retitle(tabId, title) { this.retitled.push({ tabId, title }); }
                 setIcon(tabId, icon) { this.iconed.push({ tabId, icon }); }
                 land(slotId, tabId) { this.landed.push({ slotId, tabId }); }
+                // the workspace's goTo: shows a tab wherever it is and hands its widget the keys; false when none of that id is held
+                goTo(tabId) { (this.wentTo = this.wentTo || []).push(tabId); return this.tabOf(tabId) !== null; }
                 activeTabOf(slotId) {
                     const s = this._tabsBySlot.get(slotId);
                     return s && s.tabs.length ? s.tabs[s.tabs.length - 1].id : null;
@@ -251,6 +253,55 @@ class PickerTabFlowTest extends JsModuleTestBase {
         // What is LIVE, asked of the registry, rather than a tally kept on the side.
         assertEquals(0, snap.getMember("singletons").getMemberKeys().size());
         assertEquals(2, snap.getMember("tabsIssued").asInt());
+    }
+
+    /**
+     * THE REDIRECTOR CONFIRMED (RFC 0066 E3, keyboard §17.3): the picker delivers
+     * "that one" only once the user said Go to it, and the flow takes them there —
+     * the live one found at that moment, shown and handed the keys where it is —
+     * and closes the chooser's tab.
+     */
+    @Test
+    void goToIt_takesTheUserToTheOpenSingleton_andTheChooserCloses() {
+        Value setup = newSingletonFlow();
+        js.eval("js", "var s = globalThis._setup; s.mtp.openTab('right', { title: 'Books' }); var chooser = s.flow.openInSlot('left');"
+                    + "_lastPicker.opts.onPick(s.spec.entries[0], null);");
+        assertEquals("tab-1", js.eval("js", "s.mtp.wentTo.join()").asString(), "to the one open, by its tab");
+        assertEquals("tab-2", js.eval("js", "s.mtp.removedTabs.map(function (r) { return r.tabId; }).join()").asString(), "and the chooser's tab closes");
+        assertEquals("tab-2", js.eval("js", "String(_lastPicker.opts.disabledIds.Books === 'tab-1' ? chooser : 'no')").asString(), "offered greyed, as the one open");
+    }
+
+    /** Gone in the meantime: opened here instead, in the chooser's own tab, as a pick of it would have been. */
+    @Test
+    void goToIt_whenItHasGoneMeanwhile_opensItHere() {
+        Value setup = newSingletonFlow();
+        js.eval("js", "var s = globalThis._setup; var chooser = s.flow.openInSlot('left'); s.open['Books:1'].tab = 'tab-9';"   // a stale record: no tab-9 is held
+                    + "_lastPicker.opts.onPick(s.spec.entries[0], null);");
+        assertEquals("tab-9", js.eval("js", "s.mtp.wentTo.join()").asString(), "asked for, not found");
+        assertEquals("", js.eval("js", "s.mtp.removedTabs.map(function (r) { return r.tabId; }).join()").asString(), "the chooser's tab stays");
+        assertEquals("Books", js.eval("js", "s.mtp.retitled.map(function (r) { return r.title; }).join()").asString(), "and becomes Books, here");
+    }
+
+    /** A flow whose Books is a singleton, and a registry that says which of its kinds are open. */
+    private Value newSingletonFlow() {
+        return js.eval("js", """
+                (() => {
+                    const mtp = new StubMtp();
+                    const spec = { entries: [ { simpleName: 'Books', moduleUrl: '/b', label: 'Books', lifecycleHint: 'SINGLETON' },
+                                              { simpleName: 'Note',  moduleUrl: '/n', label: 'Note' } ] };
+                    // widget id -> its kind and the tab it is open in: an exact id, so a fresh one minted is free
+                    const open = { 'Books:1': { kind: 'Books', tab: 'tab-1' } };
+                    const tabRegistry = {
+                        uuids: function () { return Object.keys(open); },
+                        lookup: function (uuid) { return open[uuid] ? { widgetKind: open[uuid].kind } : null; },
+                        tabIdOf: function (uuid) { return open[uuid] ? open[uuid].tab : null; },
+                        register: function () {}
+                    };
+                    const mounter = { resolve: function () { return new Promise(function () {}); } };   // never lands: the mount is not what is tested
+                    const flow = new PickerTabFlow({ mtp, widgetsBranch: new StubBranch('widgets'), spec, WidgetPickerCtor: StubPicker, mounter, tabRegistry });
+                    globalThis._setup = { mtp, spec, flow, open };
+                    return globalThis._setup;
+                })()""");
     }
 
     /** Build a fresh PickerTabFlow + stub MTP. Spec: 2 declared entries. */

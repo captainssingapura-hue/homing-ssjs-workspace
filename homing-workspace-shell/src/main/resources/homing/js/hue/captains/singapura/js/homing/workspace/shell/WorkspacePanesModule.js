@@ -345,6 +345,19 @@ class WorkspacePanes {
     }
 
     /**
+     * Take the user to a tab, wherever it is — its pane shows it, a float
+     * holding it is raised — and hand its widget the keys. Only ever at the
+     * user's own asking (RFC 0066 E3, keyboard §17.2): the chooser's
+     * redirector, confirmed. False when no tab of that id is held anywhere.
+     */
+    goTo(tabId) {
+        var host = this._desk.show(this._desk.register.get(tabId));
+        if (!host) return false;
+        if (typeof host.land === "function") host.land(tabId);
+        return true;
+    }
+
+    /**
      * Rest the keys in a pane's showing tab. What the coordinator called
      * entering deep, said by the party: the dock blurs whatever had native
      * focus and activates the widget it is showing.
