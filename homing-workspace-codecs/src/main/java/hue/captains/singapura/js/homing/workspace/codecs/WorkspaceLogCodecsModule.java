@@ -34,8 +34,8 @@ public record WorkspaceLogCodecsModule() implements DomModule<WorkspaceLogCodecs
     public record SplitPathCodec()      implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record EventSeq()            implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record EventSeqCodec()       implements Exportable._Class<WorkspaceLogCodecsModule> {}
-    public record WorkspaceSpecKind()   implements Exportable._Class<WorkspaceLogCodecsModule> {}
-    public record WorkspaceSpecKindCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record WorkspaceKind()       implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record WorkspaceKindCodec()  implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record WorkspaceInstanceId() implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record WorkspaceInstanceIdCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
     // values
@@ -121,7 +121,7 @@ public record WorkspaceLogCodecsModule() implements DomModule<WorkspaceLogCodecs
                 new WidgetTitle(),         new WidgetTitleCodec(),
                 new SplitPath(),           new SplitPathCodec(),
                 new EventSeq(),            new EventSeqCodec(),
-                new WorkspaceSpecKind(),   new WorkspaceSpecKindCodec(),
+                new WorkspaceKind(),   new WorkspaceKindCodec(),
                 new WorkspaceInstanceId(), new WorkspaceInstanceIdCodec(),
                 new Side(),                new SideCodec(),
                 new Scaled(),              new ScaledCodec(),

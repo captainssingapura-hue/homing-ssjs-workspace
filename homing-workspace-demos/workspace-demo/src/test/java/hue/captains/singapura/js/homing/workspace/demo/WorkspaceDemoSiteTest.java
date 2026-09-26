@@ -1,17 +1,16 @@
 package hue.captains.singapura.js.homing.workspace.demo;
 
+import hue.captains.singapura.js.homing.core.ParamCodec.Decoded;
 import hue.captains.singapura.js.homing.site.Path;
 import hue.captains.singapura.js.homing.site.Query;
-import hue.captains.singapura.js.homing.workspace.shell.CssGraphWorkbenchWidget;
-import hue.captains.singapura.js.homing.workspace.shell.DomOpsPartyMonitorWidget;
 import hue.captains.singapura.js.homing.workspace.shell.WorkspaceApp;
-import hue.captains.singapura.js.homing.workspace.shell.WorkspaceSpecRegistry;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -33,45 +32,6 @@ class WorkspaceDemoSiteTest {
     }
 
     @Test
-    void theKindsAreRegistered() {
-        // The site's static block fills the registry; touching INSTANCE is what runs it.
-        assertEquals(WorkspaceDemoSite.INSTANCE, WorkspaceDemoSite.INSTANCE);
-        assertTrue(WorkspaceSpecRegistry.INSTANCE.get("demo").isPresent());
-        assertTrue(WorkspaceSpecRegistry.INSTANCE.get("notes").isPresent());
-        assertTrue(WorkspaceSpecRegistry.INSTANCE.get("diagnostics").isPresent());
-    }
-
-    /** The diagnostics kind offers the shell's two instruments, and nothing of the demo's. */
-    @Test
-    void theDiagnosticsKindOffersTheShellsTwoInstruments() {
-        String html = pageAt("/diagnostics");   // the site first: its static block fills the registry
-        var offered = WorkspaceSpecRegistry.INSTANCE.get("diagnostics").orElseThrow().widgetEntries().stream()
-                .map(e -> e.widgetClass()).toList();
-        assertEquals(List.of(DomOpsPartyMonitorWidget.class, CssGraphWorkbenchWidget.class), offered);
-        assertTrue(html.contains("\"ws_kind\":\"diagnostics\""), "a route of its own");
-    }
-
-    /** The Focus lab offers its forms, summoner and monitor, and the picture and counter beside them, on a route of its own. */
-    @Test
-    void theFocusLabKindOffersTheLabsWidgets() {
-        String html = pageAt("/focus-lab");
-        var offered = WorkspaceSpecRegistry.INSTANCE.get("focus-lab").orElseThrow().widgetEntries().stream()
-                .map(e -> e.widgetClass()).toList();
-        assertEquals(List.of(DemoFormWidget.class, DemoSummonerWidget.class, DemoMonitorWidget.class,
-                             DemoPictureWidget.class, DemoCounterWidget.class), offered);
-        assertTrue(html.contains("\"ws_kind\":\"focus-lab\""), "a route of its own");
-    }
-
-    /** The demo kind offers every widget the demo has, in the picker's order. */
-    @Test
-    void theDemoKindOffersEveryDemoWidget() {
-        var offered = WorkspaceSpecRegistry.INSTANCE.get("demo").orElseThrow().widgetEntries().stream()
-                .map(e -> e.widgetClass()).toList();
-        assertEquals(List.of(DemoNoteWidget.class, DemoCounterWidget.class,
-                             DemoBooksWidget.class, DemoShelvesWidget.class, DemoPictureWidget.class), offered);
-    }
-
-    @Test
     void theRootIsTheDemoWorkspace() {
         String html = pageAt("/");
         assertTrue(html.contains("\"ws_kind\":\"demo\""), "the kind is stamped into the page");
@@ -85,6 +45,14 @@ class WorkspaceDemoSiteTest {
         String html = pageAt("/notes");
         assertTrue(html.contains("\"ws_kind\":\"notes\""));
         assertTrue(html.contains("Notes"), "the router told the page its trail");
+    }
+
+    /** A kind is a name, not a spec: the address may name any, but only a kind-shaped one. */
+    @Test
+    void theAddressNamesAKind_andOnlyAKindShapedOne() {
+        assertTrue(WorkspaceApp.CODEC.from(Map.of("ws_kind", List.of("scratch-2"))).isOk());
+        assertInstanceOf(Decoded.Missing.class, WorkspaceApp.CODEC.from(Map.of()));
+        assertInstanceOf(Decoded.Malformed.class, WorkspaceApp.CODEC.from(Map.of("ws_kind", List.of("no spaces"))));
     }
 
     /**
@@ -102,5 +70,7 @@ class WorkspaceDemoSiteTest {
     @Test
     void anUnknownPathIsNotAPage() {
         assertTrue(WorkspaceDemoSite.INSTANCE.router().resolve(Path.parse("/nope")).isEmpty());
+        assertTrue(WorkspaceDemoSite.INSTANCE.router().resolve(Path.parse("/diagnostics")).isEmpty(),
+                "the old kinds' routes left with the widgets they offered");
     }
 }

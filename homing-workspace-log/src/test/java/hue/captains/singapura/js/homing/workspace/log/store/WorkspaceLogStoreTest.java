@@ -1,8 +1,8 @@
 package hue.captains.singapura.js.homing.workspace.log.store;
 
 import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
-import hue.captains.singapura.js.homing.workspace.state.WorkspaceInstanceId;
-import hue.captains.singapura.js.homing.workspace.state.WorkspaceKind;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceInstanceId;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceKind;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -75,10 +75,10 @@ class WorkspaceLogStoreTest extends JsModuleTestBase {
 
     @Test
     void theIdentityIsTheAddressesOrTheKindsOwn() {
-        assertEquals(WorkspaceInstanceId.placeholderFor(WorkspaceKind.of("Demo")).toString(),
-                js.eval("js", "WorkspaceLogIdentity.placeholder('Demo')").asString());
-        assertEquals(WorkspaceInstanceId.placeholderFor(WorkspaceKind.of("FocusLab2")).toString(),
-                js.eval("js", "WorkspaceLogIdentity.placeholder('FocusLab2')").asString());
+        assertEquals(WorkspaceInstanceId.placeholderFor(WorkspaceKind.of("demo")).toString(),
+                js.eval("js", "WorkspaceLogIdentity.placeholder('demo')").asString());
+        assertEquals(WorkspaceInstanceId.placeholderFor(WorkspaceKind.of("Focus-Lab_2")).toString(),
+                js.eval("js", "WorkspaceLogIdentity.placeholder('Focus-Lab_2')").asString());
         assertEquals("0f1b6c2e-5000-9000-7f1b-6c2e00000001",
                 js.eval("js", "WorkspaceLogIdentity.header('demo', '?x=1&workspace=0F1B6C2E-5000-9000-7F1B-6C2E00000001').workspaceId.id").asString());
         assertEquals(js.eval("js", "WorkspaceLogIdentity.placeholder('demo')").asString(),

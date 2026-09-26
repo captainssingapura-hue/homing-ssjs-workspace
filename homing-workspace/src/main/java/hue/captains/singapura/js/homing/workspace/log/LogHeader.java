@@ -1,6 +1,5 @@
 package hue.captains.singapura.js.homing.workspace.log;
 
-import hue.captains.singapura.js.homing.workspace.state.WorkspaceInstanceId;
 
 import java.util.Objects;
 
@@ -14,7 +13,7 @@ import java.util.Objects;
  * @param kind        the workspace's kind
  * @param workspaceId the workspace
  */
-public record LogHeader(String format, int version, WorkspaceSpecKind kind, WorkspaceInstanceId workspaceId) {
+public record LogHeader(String format, int version, WorkspaceKind kind, WorkspaceInstanceId workspaceId) {
 
     public static final String FORMAT = "homing.workspace.log";
     /** 2: a tab is in a Host - a region or a float - and floats and renames are recorded. */
@@ -28,7 +27,7 @@ public record LogHeader(String format, int version, WorkspaceSpecKind kind, Work
         if (version != VERSION) throw new IllegalArgumentException("LogHeader.version " + version + " — this reads " + VERSION);
     }
 
-    public static LogHeader of(WorkspaceSpecKind kind, WorkspaceInstanceId workspaceId) {
+    public static LogHeader of(WorkspaceKind kind, WorkspaceInstanceId workspaceId) {
         return new LogHeader(FORMAT, VERSION, kind, workspaceId);
     }
 }

@@ -1,7 +1,7 @@
 package hue.captains.singapura.js.homing.workspace.log.store;
 
 import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
-import hue.captains.singapura.js.homing.workspace.events.contract.EventSeq;
+import hue.captains.singapura.js.homing.workspace.log.EventSeq;
 import hue.captains.singapura.js.homing.workspace.log.FloatId;
 import hue.captains.singapura.js.homing.workspace.log.Host;
 import hue.captains.singapura.js.homing.workspace.log.LogHeader;
@@ -11,12 +11,12 @@ import hue.captains.singapura.js.homing.workspace.log.Scaled;
 import hue.captains.singapura.js.homing.workspace.log.Side;
 import hue.captains.singapura.js.homing.workspace.log.TabId;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceSpecKind;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceKind;
 import hue.captains.singapura.js.homing.workspace.log.json.Json;
-import hue.captains.singapura.js.homing.workspace.state.SplitPath;
-import hue.captains.singapura.js.homing.workspace.state.WidgetKind;
-import hue.captains.singapura.js.homing.workspace.state.WidgetTitle;
-import hue.captains.singapura.js.homing.workspace.state.WorkspaceInstanceId;
+import hue.captains.singapura.js.homing.workspace.log.SplitPath;
+import hue.captains.singapura.js.homing.workspace.log.WidgetKind;
+import hue.captains.singapura.js.homing.workspace.log.WidgetTitle;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceInstanceId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -83,7 +83,7 @@ class WorkspaceLogParityTest extends JsModuleTestBase {
     }
 
     private static LogHeader header() {
-        return LogHeader.of(WorkspaceSpecKind.of("focus-lab"), WorkspaceInstanceId.parse("0f1b6c2e-5000-9000-7f1b-6c2e00000001"));
+        return LogHeader.of(WorkspaceKind.of("focus-lab"), WorkspaceInstanceId.parse("0f1b6c2e-5000-9000-7f1b-6c2e00000001"));
     }
 
     /** JavaScript reads a file into its classes and writes it back. */
@@ -109,7 +109,7 @@ class WorkspaceLogParityTest extends JsModuleTestBase {
     void aFileJavaScriptWritesJavaWritesBackTheSame() {
         String text = js.eval("js", """
                 (() => {
-                    const header = new LogHeader(LogHeader.FORMAT, LogHeader.VERSION, new WorkspaceSpecKind("demo"),
+                    const header = new LogHeader(LogHeader.FORMAT, LogHeader.VERSION, new WorkspaceKind("demo"),
                                                  new WorkspaceInstanceId("7f1b6c2e-5000-9000-7f1b-6c2e00000001"));
                     const t = new TabId("tab-7"), r = new RegionId("main");
                     const ev = [

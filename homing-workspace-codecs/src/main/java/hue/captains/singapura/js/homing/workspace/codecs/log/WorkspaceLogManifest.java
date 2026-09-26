@@ -1,6 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.codecs.log;
 
-import hue.captains.singapura.js.homing.workspace.events.contract.EventSeq;
+import hue.captains.singapura.js.homing.workspace.log.EventSeq;
 import hue.captains.singapura.js.homing.workspace.log.Axis;
 import hue.captains.singapura.js.homing.workspace.log.FloatId;
 import hue.captains.singapura.js.homing.workspace.log.FloatState;
@@ -18,11 +18,11 @@ import hue.captains.singapura.js.homing.workspace.log.Scaled;
 import hue.captains.singapura.js.homing.workspace.log.Side;
 import hue.captains.singapura.js.homing.workspace.log.TabId;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceSpecKind;
-import hue.captains.singapura.js.homing.workspace.state.SplitPath;
-import hue.captains.singapura.js.homing.workspace.state.WidgetKind;
-import hue.captains.singapura.js.homing.workspace.state.WidgetTitle;
-import hue.captains.singapura.js.homing.workspace.state.WorkspaceInstanceId;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceKind;
+import hue.captains.singapura.js.homing.workspace.log.SplitPath;
+import hue.captains.singapura.js.homing.workspace.log.WidgetKind;
+import hue.captains.singapura.js.homing.workspace.log.WidgetTitle;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceInstanceId;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -47,7 +47,7 @@ public final class WorkspaceLogManifest {
             LogCodecEntry.id(WidgetTitle.class),
             LogCodecEntry.id(SplitPath.class),
             LogCodecEntry.id(EventSeq.class),
-            LogCodecEntry.id(WorkspaceSpecKind.class),
+            LogCodecEntry.id(WorkspaceKind.class),
             LogCodecEntry.id(WorkspaceInstanceId.class),
             // values
             LogCodecEntry.enumeration(Side.class),

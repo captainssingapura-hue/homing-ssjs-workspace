@@ -12,23 +12,13 @@
     <artifactId>homing-workspace</artifactId>
 
     <description>
-        RFC 0025 — Workspace + Dynamic Widget Management: a registry of
-        WorkspaceWidget types, a controller that loads modules on user pick,
-        a picker UI, and the layout frame they sit in.
-
-        No studio. The frame fills what holds it and names no page class; the
-        AppModule base that used to tie this together was the studio's page
-        model, and a WorkspaceSpec says what it used to say.
-
-        Studios that don't need workspace capabilities (catalogue browsers,
-        doc readers, single-widget viewers) leave this dependency off and pay
-        nothing for the machinery. Studios that want workspace add this dep.
-
-        The WorkspaceWidget contract is distinct from RFC 0024's Widget — see
-        the Rfc0025Ext1Doc for the design and the rationale. Both contracts
-        coexist; a WorkspaceWidget can be hosted in a non-workspace context
-        by wrapping it in a degenerate mini-workspace (one widget, no picker,
-        no layout management).
+        The workspace's value objects, declared in Java (package log): the
+        events a workspace log carries, the state they fold to, the header
+        and the lines of its file, and the JSON they are written in. Every
+        other form of them - their JavaScript classes, their codecs in both
+        languages - is generated from these declarations
+        (homing-workspace-codecs). Plain records: nothing here needs more
+        than the JDK.
     </description>
 
     <properties>
@@ -38,59 +28,9 @@
     </properties>
 
     <dependencies>
-        <!-- What this module actually imports, and used to reach through
-             studio-base: core and its js substrate, the Party primitive, and
-             the server's CSS manager. The studio never owned any of it - it
-             merely happened to be between here and there. -->
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-core-js</artifactId>
-            <version>${homing.core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-component-base</artifactId>
-            <version>${homing.core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-server</artifactId>
-            <version>${homing.core.version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-design-core</artifactId>
-            <version>${homing.core.version}</version>
-        </dependency>
-        <!-- Meta-Function ontology — interfaces for code-generated codecs.
-             Value-Object-specific codec implementations co-located with the
-             records they serve (e.g. state/codec/PaneIdJsDefinition). -->
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-codec</artifactId>
-            <version>${homing.core.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <!-- RFC 0028 cycle 6 phase 2 — pure-JS test fixtures (GraalVM-backed
-             SecretaryTestBase + JsModuleTestBase). Shipped as an ordinary
-             Maven artifact so we and any public downstream consumer wire it
-             in with a one-liner; no test-jar classifier ceremony. -->
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-ssjs-test-fixtures</artifactId>
-            <version>${homing.core.version}</version>
-            <scope>test</scope>
-        </dependency>
-            <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-conformance-rules</artifactId>
-            <version>${homing.core.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

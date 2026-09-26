@@ -1,6 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.log.store;
 
-import hue.captains.singapura.js.homing.workspace.events.contract.EventSeq;
+import hue.captains.singapura.js.homing.workspace.log.EventSeq;
 import hue.captains.singapura.js.homing.workspace.log.LogHeader;
 import hue.captains.singapura.js.homing.workspace.log.LoggedEvent;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;

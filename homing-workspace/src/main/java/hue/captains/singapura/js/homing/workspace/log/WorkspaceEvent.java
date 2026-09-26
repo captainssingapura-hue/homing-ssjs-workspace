@@ -1,8 +1,5 @@
 package hue.captains.singapura.js.homing.workspace.log;
 
-import hue.captains.singapura.js.homing.workspace.state.SplitPath;
-import hue.captains.singapura.js.homing.workspace.state.WidgetKind;
-import hue.captains.singapura.js.homing.workspace.state.WidgetTitle;
 
 import java.util.List;
 import java.util.Objects;

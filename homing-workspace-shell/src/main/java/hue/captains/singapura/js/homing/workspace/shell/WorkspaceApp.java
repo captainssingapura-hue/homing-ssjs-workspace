@@ -9,6 +9,7 @@ import hue.captains.singapura.js.homing.core.QueryString;
 import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
 import hue.captains.singapura.js.homing.core.js.domOpsParty;
 import hue.captains.singapura.js.homing.site.mpa.MpaStyles;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceKind;
 import hue.captains.singapura.js.homing.workspace.log.fold.WorkspaceFoldModule;
 import hue.captains.singapura.js.homing.workspace.log.store.IndexedDbLogModule;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogIdentityModule;
@@ -25,35 +26,34 @@ import java.util.Map;
  * {@code AppModule} like any other — the MPA hands it the slot and its params,
  * it fills the slot — so the workspace is a page anywhere the framework's page
  * model reaches, and a standalone workspace application is a site with one
- * route. (The studio mounting this repo was copied with — a workspace as a
- * studio page — is gone from here; the studio keeps its own, on core's copy of
- * this stack.)</p>
+ * route.</p>
  *
- * <p>{@code ws_kind} is required and selects a registered {@link WorkspaceSpec}
- * from {@link WorkspaceSpecRegistry}, as it always did — the URL contract is
- * the same one, so a catalogue entry or a link that named a kind still names
- * it. Adding a workspace is still registering a spec: no new app, no new
- * widget, no new route.</p>
+ * <p>{@code ws_kind} is required: it is the {@link WorkspaceKind} the page's log
+ * is kept under, each kind a workspace of its own. Nothing has to be registered
+ * for it — a kind is a name, not a spec.</p>
  */
 public record WorkspaceApp() implements AppModule<WorkspaceApp.Params, WorkspaceApp> {
 
     public static final WorkspaceApp INSTANCE = new WorkspaceApp();
 
-    /** The kind to mount: a registered {@link WorkspaceSpec}'s {@code kind()}. */
+    /** The kind to mount: a {@link WorkspaceKind}'s value. */
     public record Params(String ws_kind) implements AppModule._Param {}
 
     record appMain() implements AppModule._AppMain<Params, WorkspaceApp> {}
 
     /**
-     * RFC 0051 — the kind is required. This app mounts a registered spec by
-     * kind and there is no sensible default to fall back to, so an absent kind
-     * is a malformed request rather than a page.
+     * RFC 0051 — the kind is required, and kind-shaped. There is no sensible
+     * default to fall back to, so an absent kind is a malformed request rather
+     * than a page; and a kind the log could not be kept under is refused here,
+     * where the address is read, not in the browser.
      */
     public static final ParamCodec<Params> CODEC = new ParamCodec<>() {
 
         @Override public Decoded<Params> from(Map<String, List<String>> query) {
             String kind = QueryString.first(query, "ws_kind");
             if (kind == null || kind.isBlank()) return Decoded.missing("ws_kind");
+            try { WorkspaceKind.of(kind); }
+            catch (IllegalArgumentException e) { return Decoded.malformed("ws_kind", kind, "a kind (letters, digits, hyphen, underscore)"); }
             return Decoded.ok(new Params(kind));
         }
 
@@ -74,7 +74,6 @@ public record WorkspaceApp() implements AppModule<WorkspaceApp.Params, Workspace
                 // The slot is a reading column until an app says otherwise; a
                 // shell of panes says otherwise.
                 .add(new ModuleImports<>(List.of(new MpaStyles.mpa_main_full()), MpaStyles.INSTANCE))
-                .add(new ModuleImports<>(List.of(new WorkspaceSpecsModule.SPECS()), WorkspaceSpecsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceModule.Workspace()), WorkspaceModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceLogStoreModule.WorkspaceLogStore()), WorkspaceLogStoreModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceLogIdentityModule.WorkspaceLogIdentity()), WorkspaceLogIdentityModule.INSTANCE))

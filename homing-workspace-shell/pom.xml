@@ -12,31 +12,16 @@
     <artifactId>homing-workspace-shell</artifactId>
 
     <description>
-        Universal workspace chrome substrate — the orchestrator and its
-        sub-classes that every WorkspaceShell-derived AppModule shares.
+        The workspace as a page of any standard MPA (WorkspaceApp), built
+        as the gallery's docking page is (RFC 0066 E3, the workspace
+        detour): a desk and its dock grid on a floor, the tabs stand-ins
+        for now. Its log is recorded as the workspace changes, restored
+        on every load and read back to prove it (WorkspaceRecorder,
+        WorkspaceProjection), and exported from the bar along its foot.
 
-        Born from a refactor: prior to this module, the entire workspace
-        boot sequence (WorkspaceLayout mount, MTP wiring, picker plumbing,
-        persistence attach, identity resolution, event-log + replay,
-        checkpoint store, Web Lock + read-only fence) lived as ~2,100 lines
-        of JS-as-Java-string-literals inside per-workspace chrome widgets
-        (e.g. AnimalsPlaygroundChrome.bodyJs() in homing-demo). This
-        module promotes that mass into proper ES modules — one class per
-        responsibility, each independently testable.
-
-        Doctrines made concrete:
-
-        - Modest File Size: every class sits comfortably under the cap.
-        - Generated and Hand-Written Live Apart: JS lives in .js files,
-          not Java string-literal lists.
-        - Functional Objects: each JS class has explicit state, pure
-          behaviour, inspect() output (extended from the Java doctrine).
-        - Diligent Secretaries: every component is testable in isolation
-          via the GraalVM harness without a DOM.
-
-        Position in the dep graph: sits above homing-workspace-persistence
-        (the highest workspace utility module) so it can compose every
-        substrate piece below.
+        The old shell this repo was copied with - chrome, switcher,
+        checkpoints, replay, write lock - is gone from here; each part is
+        ported when it is needed, from core's copy.
     </description>
 
     <properties>
@@ -93,14 +78,24 @@
             <version>${homing.components.version}</version>
         </dependency>
 
-        <!-- The Dialog component the switcher opens: the first of the studio's
-             UI this stack swapped out. -->
+        <!-- The substrate: core's js (the party), the keys, the server's CSS manager. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-ui-dialog</artifactId>
-            <version>${homing.components.version}</version>
+            <artifactId>homing-core-js</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-component-base</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-server</artifactId>
+            <version>${homing.core.version}</version>
         </dependency>
 
+        <!-- The workspace's value objects: the kind a page's log is kept under. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
             <artifactId>homing-workspace</artifactId>
@@ -114,11 +109,6 @@
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
             <artifactId>homing-workspace-log</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
-            <artifactId>homing-workspace-persistence</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>

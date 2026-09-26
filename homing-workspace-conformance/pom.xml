@@ -10,11 +10,10 @@
     </parent>
     <artifactId>homing-workspace-conformance</artifactId>
     <description>
-        The workspace's conformance, graded: this repo's crates - the workspace,
-        its codecs, its log, the old persistence, the shell, the demo - by the
-        framework's policy (the shell under its own baseline), the report
-        exported on every build. Local, for development and review; not
-        published. The studio that shows the report is
+        The workspace's conformance, graded: this repo's crates - the log's
+        generated types, the log, the shell - by the framework's policy,
+        strictly (there is no baseline), the report exported on every build.
+        Local, for development and review; not published. The studio that shows the report is
         homing-workspace-conformance-studio, a module apart: it runs on core's
         studio stack, which carries a copy of the workspace of its own under the
         same names, so this repo's crates are never on its classpath.
@@ -30,11 +29,6 @@
         <!-- THIS REPO'S CRATES: what is graded. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
-            <artifactId>homing-workspace</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
             <artifactId>homing-workspace-codecs</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
@@ -45,17 +39,7 @@
         </dependency>
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
-            <artifactId>homing-workspace-persistence</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
             <artifactId>homing-workspace-shell</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
-            <artifactId>workspace-demo</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
 
@@ -100,7 +84,6 @@
                             <mainClass>hue.captains.singapura.js.homing.workspace.conformance.WorkspaceConformanceExport</mainClass>
                             <arguments>
                                 <argument>${project.build.outputDirectory}/conformance-report</argument>
-                                <argument>${project.basedir}/../homing-workspace-shell/src/test/resources/shell-conformance-baseline.txt</argument>
                             </arguments>
                             <classpathScope>compile</classpathScope>
                         </configuration>

@@ -1,6 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.log.fold;
 
-import hue.captains.singapura.js.homing.workspace.events.contract.EventSeq;
+import hue.captains.singapura.js.homing.workspace.log.EventSeq;
 import hue.captains.singapura.js.homing.workspace.log.FloatId;
 import hue.captains.singapura.js.homing.workspace.log.FloatState;
 import hue.captains.singapura.js.homing.workspace.log.FoldedState;

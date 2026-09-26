@@ -12,22 +12,14 @@
     <artifactId>homing-workspace-codecs</artifactId>
 
     <description>
-        Generated JS codecs for the workspace's typed records. Doctrine —
-        "Generated and Hand-Written Live Apart": this module's
-        src/main/resources is empty; all served JS is produced by
-        WorkspaceCodecGen.main() into target/classes during the
-        generate-resources phase via the Maven exec plugin.
-
-        The manifest of records-to-be-codeced is declared in
-        WorkspaceStateCodecsManifest as a typed List of
-        ObjectDefinition&lt;?&gt; instances. The Java DomModule
-        (WorkspaceStateCodecsModule) declares the matching Exportable._Class
-        records so the framework's EsModuleWriter can wire imports across
-        the JS module boundary.
-
-        Cycle A — foundation slice. Manifest contains PaneId only; subsequent
-        cycles expand to all 18 workspace records and add specialised
-        codegens for sealed sums, enums, collections, Optionals, and Instant.
+        The workspace log's generators, and the JS they generate. Every type
+        the log carries is declared in Java (homing-workspace, package log);
+        WorkspaceLogManifest pairs each with its own generators, and
+        WorkspaceLogJsGen writes their JS classes and codecs into
+        target/classes at process-classes - generated code never lives in
+        src/main/resources. WorkspaceLogCodecsModule is the DomModule that
+        serves them; WorkspaceLogJavaGen writes the Java codecs, into
+        homing-workspace-log-codec.
     </description>
 
     <properties>
@@ -49,11 +41,6 @@
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-codec</artifactId>
-            <version>${homing.core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-codec-ecma</artifactId>
             <version>${homing.core.version}</version>
         </dependency>
         <dependency>
@@ -82,35 +69,14 @@
 
     <build>
         <plugins>
-            <!-- Run WorkspaceCodecGen.main() during generate-resources so the
-                 produced .js files are in target/classes by the time the jar
-                 is packaged. The doctrine: generated code never lives in
-                 src/main/resources; only in target/. -->
+            <!-- The generated .js lands in target/classes before the jar is
+                 packaged. process-classes: the generator must be compiled
+                 before its main() can run. -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.5.0</version>
                 <executions>
-                    <execution>
-                        <id>generate-workspace-codecs</id>
-                        <!-- process-classes runs immediately after compile.
-                             The generator class itself must be compiled first
-                             before we can invoke its main(), so generate-resources
-                             (which runs BEFORE compile) wouldn't work. -->
-                        <phase>process-classes</phase>
-                        <goals><goal>java</goal></goals>
-                        <configuration>
-                            <mainClass>hue.captains.singapura.js.homing.workspace.codecs.WorkspaceCodecGen</mainClass>
-                            <arguments>
-                                <argument>${codecs.output.dir}</argument>
-                            </arguments>
-                            <!-- The generator must run in a classloader that already
-                                 has homing-codec-ecma + homing-workspace on it. Maven
-                                 exec uses the project's compile classpath by default,
-                                 which is what we want — every dep above is reachable. -->
-                            <classpathScope>compile</classpathScope>
-                        </configuration>
-                    </execution>
                     <execution>
                         <!-- The workspace log's types (WorkspaceLogManifest): their classes and codecs. -->
                         <id>generate-workspace-log-codecs</id>

@@ -1,14 +1,9 @@
 package hue.captains.singapura.js.homing.workspace.log;
 
-import hue.captains.singapura.js.homing.workspace.events.contract.EventSeq;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent.RegionParted;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent.TabClosed;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent.TabOpened;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent.TracksChanged;
-import hue.captains.singapura.js.homing.workspace.state.SplitPath;
-import hue.captains.singapura.js.homing.workspace.state.WidgetKind;
-import hue.captains.singapura.js.homing.workspace.state.WidgetTitle;
-import hue.captains.singapura.js.homing.workspace.state.WorkspaceInstanceId;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -29,8 +24,8 @@ class WorkspaceEventTest {
     void idsKeepTheirGrammar() {
         assertThrows(IllegalArgumentException.class, () -> TabId.of("tab 1"));
         assertThrows(IllegalArgumentException.class, () -> RegionId.of(""));
-        assertThrows(IllegalArgumentException.class, () -> WorkspaceSpecKind.of("focus lab"));
-        assertDoesNotThrow(() -> WorkspaceSpecKind.of("focus-lab"));
+        assertThrows(IllegalArgumentException.class, () -> WorkspaceKind.of("focus lab"));
+        assertDoesNotThrow(() -> WorkspaceKind.of("focus-lab"));
     }
 
     @Test
@@ -84,8 +79,8 @@ class WorkspaceEventTest {
     @Test
     void aHeaderSaysWhatItIs() {
         var id = WorkspaceInstanceId.fresh();
-        assertThrows(IllegalArgumentException.class, () -> new LogHeader("other", 1, WorkspaceSpecKind.of("demo"), id));
-        assertThrows(IllegalArgumentException.class, () -> new LogHeader(LogHeader.FORMAT, 1, WorkspaceSpecKind.of("demo"), id));
-        assertEquals(LogHeader.FORMAT, LogHeader.of(WorkspaceSpecKind.of("demo"), id).format());
+        assertThrows(IllegalArgumentException.class, () -> new LogHeader("other", 1, WorkspaceKind.of("demo"), id));
+        assertThrows(IllegalArgumentException.class, () -> new LogHeader(LogHeader.FORMAT, 1, WorkspaceKind.of("demo"), id));
+        assertEquals(LogHeader.FORMAT, LogHeader.of(WorkspaceKind.of("demo"), id).format());
     }
 }

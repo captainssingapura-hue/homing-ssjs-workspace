@@ -18,7 +18,6 @@ import java.nio.file.Path;
 /**
  * Build-time: this repo's crates graded, the report written in the studio's
  * layout under the directory given — where the served studio reads it back.
- * The second argument is the shell's baseline file.
  *
  * <p>Then the studio's own crate views — the crate tree, the crate graph, the
  * crate conformance — are run here, over this repo's crates, and their answers
@@ -37,11 +36,10 @@ public final class WorkspaceConformanceExport {
             { "/crate-conformance", "crate-conformance.json" } };
 
     public static void main(String[] args) throws IOException {
-        if (args.length < 1 || args.length > 2) throw new IllegalArgumentException("Usage: WorkspaceConformanceExport <output-directory> [<baseline>]");
+        if (args.length != 1) throw new IllegalArgumentException("Usage: WorkspaceConformanceExport <output-directory>");
         Path dir = Path.of(args[0]);
-        Path baseline = args.length == 2 ? Path.of(args[1]) : null;
         ConformanceRun run = new ConformanceEngine(WorkspaceConformance.POLICY, new ServedModuleRenderer())
-                .assemble(WorkspaceConformance.TOP_LEVEL, WorkspaceConformance.grader(baseline));
+                .assemble(WorkspaceConformance.TOP_LEVEL, WorkspaceConformance.grader());
         new ConformanceReportWriter().write(dir, run);
         System.out.println("[WorkspaceConformanceExport] wrote report to " + dir
                 + " (" + run.modules().size() + " modules, "

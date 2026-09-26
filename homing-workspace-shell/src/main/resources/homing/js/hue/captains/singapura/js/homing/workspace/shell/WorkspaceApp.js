@@ -2,14 +2,17 @@
 // WorkspaceApp - the workspace as a page of a standard MPA.
 //
 // The MPA's chrome made the page and handed us the slot; we fill it: say the
-// slot lays itself out (a workspace is not a reading column), pick the spec the
-// address asked for, and build the Workspace in it - the desk and its docks,
-// as the gallery's docking page builds them (RFC 0066 E3, the workspace
-// detour). Its log is kept in IndexedDB, typed; the page comes back to what the
-// log folds to, and goes on logging. A log that cannot be read or folded - an
-// older format, a gap - is cleared, said, and the page starts afresh. What a tab
-// may hold is, for now, a fake.
+// slot lays itself out (a workspace is not a reading column) and build the
+// Workspace in it - the desk and its docks, as the gallery's docking page
+// builds them (RFC 0066 E3, the workspace detour). The address names the kind,
+// and the kind names the log: kept in IndexedDB, typed; the page comes back to what the log folds
+// to, and goes on logging. A log that cannot be read or folded - an older
+// format, a gap - is cleared, said, and the page starts afresh. What a tab may
+// hold is, for now, a fake.
 // =============================================================================
+
+/** How many tabs the desk holds at once: the desk's budget, the same for every kind for now. */
+var _BUDGET = 16;
 
 /** What a tab may hold while the tabs are built: the fakes, as the tab source's kinds. */
 var _KINDS = [
@@ -19,14 +22,13 @@ var _KINDS = [
 ];
 
 function appMain(el, params) {
-    var kind = (params && params.ws_kind) || "";
-    var spec = SPECS[kind];
-    if (!spec) {
-        // The codec refuses an absent kind, so getting here means a kind that
-        // is not registered in THIS runtime - worth saying which are.
-        el.textContent = "Unknown workspace kind: \"" + kind + "\""
-                       + " (registered: " + Object.keys(SPECS).join(", ") + ")";
-        console.error("[workspaceApp] no spec for kind '" + kind + "'");
+    var kind = params && params.ws_kind;
+    if (!kind) {
+        // A routed page always stamps its kind. The MPA's flat /app hands the
+        // app no params when the codec refused the address's - a kind absent,
+        // or not kind-shaped - and there is then no log to keep.
+        el.textContent = "No workspace kind: the address names none, or none a log can be kept under.";
+        console.error("[workspaceApp] no ws_kind in the page's params");
         return;
     }
     css.addClass(el, mpa_main_full);
@@ -35,7 +37,7 @@ function appMain(el, params) {
     // params; everything under here that takes keys takes THAT one.
     function build(state, logged) {
         new Workspace(domOpsParty.createBranch("workspace"), { host: el, kinds: _KINDS, keyboard: params && params.keyboard, menus: params && params.menus,
-                                                               budget: spec.maxTabs || 16, log: log, state: state, logged: logged });
+                                                               budget: _BUDGET, log: log, state: state, logged: logged });
     }
     function afresh(why) { console.warn("[workspaceApp] the stored log is cleared: " + why); log.clear(); build(null, 0); }
     // what the log folds to, and the page built back to it; a log that will not fold starts the page afresh

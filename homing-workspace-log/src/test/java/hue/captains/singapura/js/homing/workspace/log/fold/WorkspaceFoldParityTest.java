@@ -1,7 +1,7 @@
 package hue.captains.singapura.js.homing.workspace.log.fold;
 
 import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
-import hue.captains.singapura.js.homing.workspace.events.contract.EventSeq;
+import hue.captains.singapura.js.homing.workspace.log.EventSeq;
 import hue.captains.singapura.js.homing.workspace.log.FloatId;
 import hue.captains.singapura.js.homing.workspace.log.FloatState;
 import hue.captains.singapura.js.homing.workspace.log.Host;
@@ -17,16 +17,16 @@ import hue.captains.singapura.js.homing.workspace.log.TabState;
 import hue.captains.singapura.js.homing.workspace.log.Track;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent.*;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceSpecKind;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceKind;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
 import hue.captains.singapura.js.homing.workspace.log.codec.FoldedStateCodec;
 import hue.captains.singapura.js.homing.workspace.log.json.JsonText;
 import hue.captains.singapura.js.homing.workspace.log.store.ValidateWorkspaceLog;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogFile;
-import hue.captains.singapura.js.homing.workspace.state.SplitPath;
-import hue.captains.singapura.js.homing.workspace.state.WidgetKind;
-import hue.captains.singapura.js.homing.workspace.state.WidgetTitle;
-import hue.captains.singapura.js.homing.workspace.state.WorkspaceInstanceId;
+import hue.captains.singapura.js.homing.workspace.log.SplitPath;
+import hue.captains.singapura.js.homing.workspace.log.WidgetKind;
+import hue.captains.singapura.js.homing.workspace.log.WidgetTitle;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceInstanceId;
 import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class WorkspaceFoldParityTest extends JsModuleTestBase {
 
     private static final String DIR = "/homing/js/hue/captains/singapura/js/homing/workspace/";
-    private static final LogHeader HEADER = LogHeader.of(WorkspaceSpecKind.of("demo"), WorkspaceInstanceId.parse("7f1b6c2e-5000-9000-7f1b-6c2e00000001"));
+    private static final LogHeader HEADER = LogHeader.of(WorkspaceKind.of("demo"), WorkspaceInstanceId.parse("7f1b6c2e-5000-9000-7f1b-6c2e00000001"));
 
     private Value stateOf;
 

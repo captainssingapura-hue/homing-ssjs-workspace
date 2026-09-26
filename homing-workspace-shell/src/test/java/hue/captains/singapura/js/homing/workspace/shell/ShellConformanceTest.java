@@ -3,7 +3,6 @@ package hue.captains.singapura.js.homing.workspace.shell;
 import hue.captains.singapura.js.homing.component.keyboard.KeyboardRegistry;
 import hue.captains.singapura.js.homing.conformance.engine.ConformanceEngine;
 import hue.captains.singapura.js.homing.conformance.engine.ServedModuleRenderer;
-import hue.captains.singapura.js.homing.conformance.rules.Baseline;
 import hue.captains.singapura.js.homing.conformance.rules.CrateClosure;
 import hue.captains.singapura.js.homing.conformance.rules.CrateConformance;
 import hue.captains.singapura.js.homing.conformance.rules.CssConformance;
@@ -18,14 +17,9 @@ import hue.captains.singapura.js.homing.design.Design;
 import hue.captains.singapura.js.homing.designs.HomingDesigns;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,32 +31,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <ol>
  *   <li><b>crate integrity</b>: every served module declared, every cross-crate
  *       import required;</li>
- *   <li><b>the lanes</b>: the served artifact of every module, graded by the
- *       framework's policy under the role its crate declares — against a
- *       committed BASELINE of the debt the shell was copied with, a ratchet
- *       both ways: a finding not in it fails, and a line in it no longer found
- *       fails too, so the ledger is always exactly the debt;</li>
+ *   <li><b>the lanes</b>: the served artifact of every module, graded strictly by
+ *       the framework's policy under the role its crate declares. There is no
+ *       baseline: the debt the shell was copied with left with the old shell,
+ *       and there is no ledger to file a new finding in;</li>
  *   <li><b>the CSS graph laws</b>, strict;</li>
  *   <li><b>the substrate</b>: every one of the framework's designs binds every
  *       pair the shell's sheets wear, strict;</li>
- *   <li><b>the keys</b>: every module that listens for keys declares them, and
- *       none captures them on the document but the steward — the modules not
- *       yet there are held here by name, so the list only shrinks.</li>
+ *   <li><b>the keys</b>: no module listens for keys undeclared, and none
+ *       captures them on the document but the steward.</li>
  * </ol>
- *
- * <p>The baseline is re-recorded deliberately, never to silence a fresh
- * finding: {@code mvn test -Dtest=ShellConformanceTest -Dconformance.record=true}
- * writes it (UTF-8 — a mangled em dash once emptied a baseline silently).</p>
  */
 class ShellConformanceTest {
 
     private static final List<Crate> TOP = List.of(WorkspaceShellCrate.INSTANCE);
-    private static final Path BASELINE = Path.of("src/test/resources/shell-conformance-baseline.txt");
-
-    /** Listens for keys without declaring them: the switcher's own native regions, the lock banner, the layout. To be migrated. */
-    private static final List<String> UNDECLARED_LISTENERS = List.of("WorkspaceSwitcherModule", "WriteLockGuardModule", "WorkspaceLayoutModule");
-    /** Captures keys on the document: the layout's fullscreen Escape. To be migrated. */
-    private static final List<String> DOCUMENT_CAPTURES = List.of("WorkspaceLayoutModule");
 
     private static Set<String> own() {
         return TOP.stream().flatMap(c -> c.entries().stream()).map(e -> e.moduleClass()).collect(Collectors.toSet());
@@ -76,27 +58,11 @@ class ShellConformanceTest {
     }
 
     @Test
-    void everyServedModuleKeepsItsLane_andTheDebtOnlyShrinks() throws IOException {
+    void everyServedModuleKeepsItsLane_strictly() {
         List<Finding> raw = new ConformanceEngine(DefaultJsRulePolicy.INSTANCE, new ServedModuleRenderer()).checkCrates(TOP);
-        if (Boolean.getBoolean("conformance.record")) {
-            var lines = new ArrayList<String>();
-            lines.add("# homing-workspace-shell - the conformance debt it was copied with. A ratchet: it only shrinks.");
-            lines.add("# Re-record deliberately (-Dconformance.record=true), never to silence a new finding.");
-            lines.addAll(Baseline.record(raw));
-            Files.write(BASELINE, lines, StandardCharsets.UTF_8);
-            return;
-        }
-        Baseline baseline = Baseline.of(Files.readAllLines(BASELINE, StandardCharsets.UTF_8));
-        assertTrue(baseline.size() > 0, "the baseline loaded (an unreadable file loads empty and hides nothing)");
-
-        List<GradedFinding> errors = FindingGrader.STRICT.withBaseline(baseline).allowingPreExisting(true)
-                .grade(raw).stream().filter(GradedFinding::isError).toList();
-        assertEquals(List.of(), errors.stream().map(g -> describe(g.finding())).toList(), "NEW conformance findings - fix them, do not file them");
-
-        var found = new TreeSet<String>(Baseline.record(raw));
-        var stale = new TreeSet<String>(baseline.fingerprints());
-        stale.removeAll(found);
-        assertEquals(Set.of(), stale, "debt paid off: remove these lines from the baseline, so it stays exactly the debt");
+        List<GradedFinding> errors = FindingGrader.STRICT.grade(raw).stream().filter(GradedFinding::isError).toList();
+        assertEquals(List.of(), errors.stream().map(g -> describe(g.finding())).toList(),
+                "the shell carries no debt - fix these, there is no ledger to file them in");
     }
 
     @Test
@@ -111,7 +77,7 @@ class ShellConformanceTest {
     void everyDesignBindsEveryPairTheShellWears() {
         var groups = new ArrayList<CssGroup<?>>();
         for (var e : WorkspaceShellCrate.INSTANCE.entries()) if (e.module() instanceof CssGroup<?> g) groups.add(g);
-        assertTrue(groups.size() >= 4, "the shell's sheets: switcher, panes, party monitor, css graph; found " + groups.size());
+        assertTrue(groups.size() >= 1, "the shell's sheet; found " + groups.size());
         var worn = Deployment.wornBy(groups);
         for (var t : HomingDesigns.REGISTRY.themes()) {
             var r = Deployment.of(worn, Deployment.scaledBy(groups), Deployment.grownBy(groups), (Design) t).resolve();
@@ -119,14 +85,16 @@ class ShellConformanceTest {
         }
     }
 
-    /** The room and the panes take their keys through the party; the list of those that do not yet only shrinks. */
+    /** The shell's modules take their keys through the party: none listens undeclared, none captures on the document. */
     @Test
-    void keysComeThroughTheParty_andTheMigrationListOnlyShrinks() {
-        assertEquals(UNDECLARED_LISTENERS, KeyboardRegistry.undeclaredListeners(TOP),
-                "a module that listens for keys declares them (NeedKeyboard); the ones not yet migrated are named here, and the list only shrinks");
-        var captures = KeyboardRegistry.validate(TOP);
-        assertEquals(DOCUMENT_CAPTURES.size(), captures.size(), "only the steward captures keys on the document: " + captures);
-        for (String m : DOCUMENT_CAPTURES) assertTrue(captures.stream().anyMatch(s -> s.contains(m)), m + " still captures on the document");
+    void keysComeThroughTheParty() {
+        Set<String> ownNames = WorkspaceShellCrate.INSTANCE.entries().stream()
+                .map(e -> e.module().getClass().getSimpleName()).collect(Collectors.toSet());
+        assertEquals(List.of(), KeyboardRegistry.undeclaredListeners(TOP).stream().filter(ownNames::contains).toList(),
+                "a module that listens for keys declares them (NeedKeyboard)");
+        assertEquals(List.of(), KeyboardRegistry.validate(TOP).stream()
+                .filter(s -> ownNames.stream().anyMatch(s::contains)).toList(),
+                "only the steward captures keys on the document");
     }
 
     private static String describe(Finding f) {

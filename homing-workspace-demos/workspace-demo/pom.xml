@@ -12,12 +12,10 @@
     <artifactId>workspace-demo</artifactId>
 
     <description>
-        The workspace, standing up on its own: a site with one page, the
-        shell mounted on it, a spec to fill it, and a server to answer.
-
-        Empty of application for now, and deliberately so — the front door is
-        this stage's work, and the module exists first so that everything
-        after it has somewhere to land and something to fail in.
+        The workspace, standing up on its own: a site whose pages are
+        workspaces, the shell mounted on each, and a server to answer.
+        Each page is a kind of workspace, and each kind keeps a log of
+        its own.
     </description>
 
     <dependencies>
@@ -50,38 +48,6 @@
             <version>${homing.components.version}</version>
         </dependency>
 
-        <!-- The Focus lab's monitors: the steward's lamp and the focus tree. -->
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-ui-focus</artifactId>
-            <version>${homing.components.version}</version>
-        </dependency>
-
-        <!-- The button the demo counter is built from. -->
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-ui-elements</artifactId>
-            <version>${homing.components.version}</version>
-        </dependency>
-
-        <!-- The relation grid and tree the demo's Books and Shelves views are
-             built on, and the protocol the tree's relation answers in. -->
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.ssjs</groupId>
-            <artifactId>rel-grid</artifactId>
-            <version>${homing.relgrid.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.ssjs</groupId>
-            <artifactId>rel-tree</artifactId>
-            <version>${homing.relgrid.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.ssjs</groupId>
-            <artifactId>rel-grid-protocol</artifactId>
-            <version>${homing.relgrid.version}</version>
-        </dependency>
-
         <!-- The designs the page wears: the framework's, and nothing legacy. A
              theme registry is a SITE's choice; this one is HomingDesigns.REGISTRY. -->
         <dependency>
@@ -90,22 +56,6 @@
             <version>${homing.core.version}</version>
         </dependency>
 
-        <!-- The gate, headless. NOT homing-conformance-studio: that one is
-             itself a workspace application, and taking it here would pull
-             core's copy of this very stack onto the classpath beside ours. -->
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-conformance-rules</artifactId>
-            <version>${homing.core.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <!-- ...and the engine that grades the served artifacts (DemoConformanceTest). -->
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-conformance-engine</artifactId>
-            <version>${homing.core.version}</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

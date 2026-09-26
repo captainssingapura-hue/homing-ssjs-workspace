@@ -12,9 +12,9 @@ import hue.captains.singapura.js.homing.workspace.log.Track;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent.*;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
-import hue.captains.singapura.js.homing.workspace.state.SplitPath;
-import hue.captains.singapura.js.homing.workspace.state.WidgetKind;
-import hue.captains.singapura.js.homing.workspace.state.WidgetTitle;
+import hue.captains.singapura.js.homing.workspace.log.SplitPath;
+import hue.captains.singapura.js.homing.workspace.log.WidgetKind;
+import hue.captains.singapura.js.homing.workspace.log.WidgetTitle;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
