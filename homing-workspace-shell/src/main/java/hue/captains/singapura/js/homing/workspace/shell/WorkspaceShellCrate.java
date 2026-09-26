@@ -50,6 +50,8 @@ public final class WorkspaceShellCrate implements Crate {
                 UiMenuCrate.INSTANCE,
                 WorkspaceCrate.INSTANCE,
                 WorkspaceCodecsCrate.INSTANCE,
+                // The workspace log: its store, where it keeps its rows, its export.
+                hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogCrate.INSTANCE,
                 WorkspacePersistenceCrate.INSTANCE,
                 // The design substrate its sheets wear words of. No legacy palette:
                 // nothing here reads a --color-* or a legacy font token.
@@ -70,6 +72,9 @@ public final class WorkspaceShellCrate implements Crate {
                 // detour): a desk and its dock grid on a floor. What follows below it is the old
                 // shell, unwired, kept until its headless parts are ported.
                 CrateEntry.of(WorkspaceModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                // Its log: the recorder (headless) and the bar that exports it.
+                CrateEntry.of(WorkspaceRecorderModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(WorkspaceLogBarModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(WorkspaceStyles.INSTANCE),
                 // Stand-ins for the widgets while the tabs are built.
                 CrateEntry.of(FakeWidgetsModule.INSTANCE, StandardJsModuleType.CONSUMER),

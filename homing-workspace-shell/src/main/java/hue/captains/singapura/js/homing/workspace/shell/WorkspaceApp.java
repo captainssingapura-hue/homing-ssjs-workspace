@@ -9,6 +9,9 @@ import hue.captains.singapura.js.homing.core.QueryString;
 import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
 import hue.captains.singapura.js.homing.core.js.domOpsParty;
 import hue.captains.singapura.js.homing.site.mpa.MpaStyles;
+import hue.captains.singapura.js.homing.workspace.log.store.IndexedDbLogModule;
+import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogIdentityModule;
+import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogStoreModule;
 
 import java.util.List;
 import java.util.Map;
@@ -72,6 +75,9 @@ public record WorkspaceApp() implements AppModule<WorkspaceApp.Params, Workspace
                 .add(new ModuleImports<>(List.of(new MpaStyles.mpa_main_full()), MpaStyles.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceSpecsModule.SPECS()), WorkspaceSpecsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceModule.Workspace()), WorkspaceModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceLogStoreModule.WorkspaceLogStore()), WorkspaceLogStoreModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceLogIdentityModule.WorkspaceLogIdentity()), WorkspaceLogIdentityModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new IndexedDbLogModule.IndexedDbLog()), IndexedDbLogModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new FakeWidgetsModule.FakeNote(), new FakeWidgetsModule.FakeCounter(),
                                                  new FakeWidgetsModule.FakeField()), FakeWidgetsModule.INSTANCE))
                 .build();

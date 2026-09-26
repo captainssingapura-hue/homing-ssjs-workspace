@@ -5,7 +5,9 @@
 // slot lays itself out (a workspace is not a reading column), pick the spec the
 // address asked for, and build the Workspace in it - the desk and its docks,
 // as the gallery's docking page builds them (RFC 0066 E3, the workspace
-// detour). No event store yet; what a tab may hold is, for now, a fake.
+// detour). Its log is kept in IndexedDB, typed; with no replay yet, a visit's
+// log is that visit's, cleared as the page starts. What a tab may hold is, for
+// now, a fake.
 // =============================================================================
 
 /** What a tab may hold while the tabs are built: the fakes, as the tab source's kinds. */
@@ -29,6 +31,8 @@ function appMain(el, params) {
     css.addClass(el, mpa_main_full);
     // The page made one keyboard steward for the document and handed it in the
     // params; everything under here that takes keys takes THAT one.
-    new Workspace(domOpsParty.createBranch("workspace"), { host: el, kinds: _KINDS, keyboard: params && params.keyboard,
+    var log = new WorkspaceLogStore({ header: WorkspaceLogIdentity.header(kind, ""), backend: new IndexedDbLog() });
+    log.clear();
+    new Workspace(domOpsParty.createBranch("workspace"), { host: el, kinds: _KINDS, keyboard: params && params.keyboard, log: log,
                                                            menus: params && params.menus, budget: spec.maxTabs || 16 });
 }

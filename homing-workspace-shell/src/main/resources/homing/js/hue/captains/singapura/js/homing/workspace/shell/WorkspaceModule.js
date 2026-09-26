@@ -4,7 +4,7 @@
 // whole, and its docks laid out in a split grid by a DOCK GRID, on a floor
 // that fills what holds it. Nothing between them and nothing of its own.
 //
-//   new Workspace(branch, { host, kinds?, keyboard?, menus?, budget? })
+//   new Workspace(branch, { host, kinds?, keyboard?, menus?, budget?, log? })
 //     host      where the floor goes: the page's slot, which it fills
 //     kinds     what a tab may hold - TabSource's kinds, { id, label, title,
 //               make(branch, { focus, id, title, pane, tab }) } - offered by the
@@ -12,10 +12,15 @@
 //     keyboard  the page's KeyboardSteward
 //     menus     the page's ContextMenuSteward, else one of its own
 //     budget    the most tabs the workspace holds at once: the desk's
-//   ws.root .desk .docks .source
+//     log       a WorkspaceLogStore: what the components report is recorded
+//               in it, as the WorkspaceEvents declared in Java, and a bar along
+//               the foot of the floor says how many and exports the file
+//   ws.root .desk .docks .source .recorder .logBar
 //   ws.dispose()
 //
-// No event store yet (the rebuild's step two). THE TABS work as the gallery's
+// THE LOG (the rebuild's step three, its first phase): every report of the desk,
+// the docks and the grid that changes the arrangement is recorded, typed; there
+// is no replay yet. THE TABS work as the gallery's
 // docking page's do, from the same parts: every tab a tab-pane of the desk's
 // register, made by one TabSource; a dock's PLUS opens a tab holding the
 // CHOOSER (TabOpener), with the keys, and a pick turns that tab into the kind
@@ -43,17 +48,29 @@ class Workspace {
         this._menus = o.menus || new ContextMenuSteward(branch.createBranch("menus"), { types: MENUS, keyboard: kb, keyboardId: "workspace/menus" });
         this._ownMenus = o.menus ? null : this._menus;
         var self = this;
-        function report(ev) { self._answer(ev); }
+        function report(ev) { self._answer(ev); if (self.recorder) self.recorder.hear(ev); }
         // THE DESK, the whole: every tab a tab-pane of its register, its floats over the floor, the tab menu answered
         this.desk = new Desk(branch.createBranch("desk"), { host: floor, budget: o.budget == null ? 16 : o.budget, onEvent: report,
                                                             keyboard: kb, keyboardId: "workspace/desk", menus: this._menus, focusName: "workspace" });
         // WHERE THE TABS COME FROM, all of them: the kinds the page offers, and the chooser a plus opens - listed:
         // false, never one of the things it offers, and turned into what is picked in it, the same tab
-        this.source = new TabSource(branch.createBranch("source"), { desk: this.desk, kinds: (o.kinds || []).concat([
+        this.source = new TabSource(branch.createBranch("source"), { desk: this.desk,
+                                                                     onBecame: function (tp, kindId) { if (self.recorder) self.recorder.became(tp, kindId); },
+                                                                     kinds: (o.kinds || []).concat([
             { id: "opener", label: "Open…", title: "Open", listed: false,
               make: function (b, p) { return new TabOpener(b, { focus: p.focus, tab: p.tab, source: self.source }); } } ]) });
         // THE REGIONS: a cell of the grid and a dock in it, parted, merged and closed from the dock's own tab bar
         this.docks = new DockGrid(branch.createBranch("docks"), { host: floor, desk: this.desk, menus: this._menus, onEvent: report, dock: { addable: true } });
+        // THE LOG: the regions are the grid's, a tab's kind the source's; floats are nowhere to it
+        this.recorder = null;
+        this.logBar = null;
+        if (o.log) {
+            this.logBar = new WorkspaceLogBar(branch.createBranch("log"), { host: floor, store: o.log });
+            this.recorder = new WorkspaceRecorder({ store: o.log,
+                isRegion: function (slotId) { return !!self.docks.region(slotId); },
+                kindOf: function (tabId) { return self.source.kindOf(tabId); },
+                onCount: function (n) { self.logBar.count(n); } });
+        }
     }
 
     /**
@@ -71,11 +88,13 @@ class Workspace {
         }
     }
 
-    /** The desk first, since a dock is disposed only empty; then the docks and their grid; then the floor. */
+    /** The recorder stopped first - taking the workspace down is not the user's closing its tabs; the desk, since a dock is disposed only empty; then the docks and their grid; then the floor. */
     dispose() {
+        if (this.recorder) this.recorder.stop();
         this.desk.dispose();
         this.source.dispose();
         this.docks.dispose();
+        if (this.logBar) this.logBar.dispose();
         if (this._ownMenus) this._ownMenus.dispose();
         if (this.root.parentNode) this.root.parentNode.removeChild(this.root);
         try { this.branch.dissolve(); } catch (e) {}

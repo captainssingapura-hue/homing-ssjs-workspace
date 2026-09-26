@@ -22,7 +22,7 @@ import java.util.List;
  */
 public record WorkspaceModule() implements DomModule<WorkspaceModule> {
 
-    /** The class: {@code new Workspace(branch, { host, kinds?, keyboard?, menus?, budget? })}. */
+    /** The class: {@code new Workspace(branch, { host, kinds?, keyboard?, menus?, budget?, log? })}. */
     public record Workspace() implements Exportable._Class<WorkspaceModule> {}
 
     public static final WorkspaceModule INSTANCE = new WorkspaceModule();
@@ -37,6 +37,8 @@ public record WorkspaceModule() implements DomModule<WorkspaceModule> {
                 .add(new ModuleImports<>(List.of(new ContextMenuStewardModule.ContextMenuSteward()), ContextMenuStewardModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceMenus.MENUS()), WorkspaceMenus.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceStyles.ws_floor()), WorkspaceStyles.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceRecorderModule.WorkspaceRecorder()), WorkspaceRecorderModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceLogBarModule.WorkspaceLogBar()), WorkspaceLogBarModule.INSTANCE))
                 .build();
     }
 

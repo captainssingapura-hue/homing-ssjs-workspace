@@ -13,7 +13,7 @@ import static hue.captains.singapura.js.homing.design.Target.Type;
 import static hue.captains.singapura.js.homing.design.Layer.Recessed;
 import static hue.captains.singapura.js.homing.design.Target.Color;
 
-/** The workspace's floor: the one box it draws, as the gallery's docking page draws its own; and the fake widgets' structure while the tabs are built. */
+/** The workspace's floor: the one box it draws, as the gallery's docking page draws its own; its log's bar; and the fake widgets' structure while the tabs are built. */
 public record WorkspaceStyles() implements CssGroup<WorkspaceStyles> {
 
     public static final WorkspaceStyles INSTANCE = new WorkspaceStyles();
@@ -35,6 +35,31 @@ public record WorkspaceStyles() implements CssGroup<WorkspaceStyles> {
             overflow: hidden;
             """;
         }
+    }
+
+    /** The log's bar, along the foot of the floor under the grid: what is recorded, and Export. */
+    public record ws_logbar() implements CssClass<WorkspaceStyles> {
+        @Override public List<? extends Wearable> wears() {
+            return List.of(of(Recessed.class, Color.Surface.class), of(Body.class, Color.Ink.class), of(Body.class, Type.Face.class));
+        }
+        @Override public String body() { return """
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 4px 12px;
+            """;
+        }
+    }
+
+    /** What the log holds, said. */
+    public record ws_logbar_count() implements CssClass<WorkspaceStyles> {
+        @Override public String body() { return "flex: 1 1 auto;"; }
+    }
+
+    /** The link the file is handed over by: never shown. */
+    public record ws_logbar_link() implements CssClass<WorkspaceStyles> {
+        @Override public String body() { return "display: none;"; }
     }
 
     /** A fake widget: its parts down the room, with air around them. */
@@ -63,5 +88,5 @@ public record WorkspaceStyles() implements CssGroup<WorkspaceStyles> {
     }
 
     @Override
-    public List<CssClass<WorkspaceStyles>> cssClasses() { return List.of(new ws_floor(), new ws_fake(), new ws_fake_count(), new ws_fake_row()); }
+    public List<CssClass<WorkspaceStyles>> cssClasses() { return List.of(new ws_floor(), new ws_logbar(), new ws_logbar_count(), new ws_logbar_link(), new ws_fake(), new ws_fake_count(), new ws_fake_row()); }
 }
