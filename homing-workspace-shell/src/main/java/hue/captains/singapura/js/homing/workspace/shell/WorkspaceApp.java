@@ -72,6 +72,8 @@ public record WorkspaceApp() implements AppModule<WorkspaceApp.Params, Workspace
                 .add(new ModuleImports<>(List.of(new MpaStyles.mpa_main_full()), MpaStyles.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceSpecsModule.SPECS()), WorkspaceSpecsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceModule.Workspace()), WorkspaceModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new FakeWidgetsModule.FakeNote(), new FakeWidgetsModule.FakeCounter(),
+                                                 new FakeWidgetsModule.FakeField()), FakeWidgetsModule.INSTANCE))
                 .build();
     }
 

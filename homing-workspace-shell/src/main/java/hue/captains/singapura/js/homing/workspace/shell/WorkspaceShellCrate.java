@@ -71,6 +71,8 @@ public final class WorkspaceShellCrate implements Crate {
                 // shell, unwired, kept until its headless parts are ported.
                 CrateEntry.of(WorkspaceModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(WorkspaceStyles.INSTANCE),
+                // Stand-ins for the widgets while the tabs are built.
+                CrateEntry.of(FakeWidgetsModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(LayoutCodecModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(PartyBootstrapModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(PersistenceAttacherModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),

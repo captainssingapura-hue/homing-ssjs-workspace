@@ -5,8 +5,15 @@
 // slot lays itself out (a workspace is not a reading column), pick the spec the
 // address asked for, and build the Workspace in it - the desk and its docks,
 // as the gallery's docking page builds them (RFC 0066 E3, the workspace
-// detour). Step one of the rebuild: no event store yet, and no widgets.
+// detour). No event store yet; what a tab may hold is, for now, a fake.
 // =============================================================================
+
+/** What a tab may hold while the tabs are built: the fakes, as the tab source's kinds. */
+var _KINDS = [
+    { id: "note",    label: "A note",    title: "Note",    make: function (b, p) { return new FakeNote(b, p); } },
+    { id: "counter", label: "A counter", title: "Counter", make: function (b, p) { return new FakeCounter(b, p); } },
+    { id: "field",   label: "A field",   title: "Field",   make: function (b, p) { return new FakeField(b, p); } }
+];
 
 function appMain(el, params) {
     var kind = (params && params.ws_kind) || "";
@@ -22,6 +29,6 @@ function appMain(el, params) {
     css.addClass(el, mpa_main_full);
     // The page made one keyboard steward for the document and handed it in the
     // params; everything under here that takes keys takes THAT one.
-    new Workspace(domOpsParty.createBranch("workspace"), { host: el, keyboard: params && params.keyboard,
+    new Workspace(domOpsParty.createBranch("workspace"), { host: el, kinds: _KINDS, keyboard: params && params.keyboard,
                                                            menus: params && params.menus, budget: spec.maxTabs || 16 });
 }
