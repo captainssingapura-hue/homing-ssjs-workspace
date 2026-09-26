@@ -6,6 +6,7 @@ import hue.captains.singapura.js.homing.workspace.state.WidgetTitle;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * What the workspace log records: every change of the workspace's arrangement
@@ -85,10 +86,16 @@ public sealed interface WorkspaceEvent {
         }
     }
 
-    /** A region was removed from the grid, its neighbours taking its room; its tabs had already been moved. */
-    record RegionRemoved(RegionId region) implements WorkspaceEvent {
+    /**
+     * A region was removed from the grid, its tabs already moved; its room went
+     * toward the region named, as the grid was told - the one it merged into -
+     * or, none named, to the neighbour beside it. The layout after is the grid's
+     * algebra on the layout before: the log need not say it.
+     */
+    record RegionRemoved(RegionId region, Optional<RegionId> toward) implements WorkspaceEvent {
         public RegionRemoved {
             Objects.requireNonNull(region, "RegionRemoved.region");
+            Objects.requireNonNull(toward, "RegionRemoved.toward");
         }
     }
 

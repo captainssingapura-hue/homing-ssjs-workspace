@@ -1,5 +1,8 @@
 package hue.captains.singapura.js.homing.workspace.log.store;
 
+import hue.captains.singapura.js.homing.workspace.log.codec.FoldedStateCodec;
+import hue.captains.singapura.js.homing.workspace.log.fold.WorkspaceFold;
+import hue.captains.singapura.js.homing.workspace.log.json.JsonText;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -73,6 +76,34 @@ class ValidateWorkspaceLogTest {
         invalid(HEADER + "\n" + E1, "line 2: the last line is not ended by a line feed");
         invalid(HEADER + "\n\n", "line 2: an empty line");
         invalid("", "line 1: the file is empty");
+    }
+
+    @Test
+    void aLogThatCannotBeFailsAtTheEventThatCannotBe() throws IOException {
+        String shownFirst = E2.replace("\"seq\":2", "\"seq\":1").replace("\"at\":1790000000001", "\"at\":1790000000000");
+        String openedAfter = E1.replace("\"seq\":1", "\"seq\":2");
+        invalid(HEADER + "\n" + shownFirst + "\n" + openedAfter + "\n", "line 2: TabShown cannot be: the region main does not hold tab-1");
+    }
+
+    @Test
+    void theBrowsersStateIsComparedWithJavasFold() throws IOException {
+        String log = HEADER + "\n" + E1 + "\n" + E2 + "\n";
+        String java = JsonText.write(FoldedStateCodec.INSTANCE.transformTo(WorkspaceFold.fold(WorkspaceLogFile.read(log)))) + "\n";
+        Path l = dir.resolve("a.workspace.log"), s = dir.resolve("a.workspace.state");
+        Files.writeString(l, log, StandardCharsets.UTF_8);
+        Files.writeString(s, java, StandardCharsets.UTF_8);
+        var r = runArgs(l.toString(), s.toString());
+        assertEquals(ValidateWorkspaceLog.VALID, r.code(), r.err());
+        assertTrue(r.out().contains("it folds to 1 region, 0 floats, 1 tab; " + s + " is the state Java folds it to, byte for byte"), r.out());
+
+        Files.writeString(s, java.replace("\"title\":\"Note\"", "\"title\":\"Nope\""), StandardCharsets.UTF_8);
+        r = runArgs(l.toString(), s.toString());
+        assertEquals(ValidateWorkspaceLog.INVALID, r.code());
+        assertTrue(r.err().contains("part at state.tabs[0].title: \"Nope\" / \"Note\""), r.err());
+
+        Files.writeString(s, java.replace("\"through\":2", "\"through\":1"), StandardCharsets.UTF_8);
+        r = runArgs(l.toString(), s.toString());
+        assertTrue(r.err().contains("part at through: 1 / 2"), r.err());
     }
 
     @Test

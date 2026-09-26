@@ -86,6 +86,27 @@ public record WorkspaceLogCodecsModule() implements DomModule<WorkspaceLogCodecs
     public record LoggedEventCodec()    implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record LogHeader()           implements Exportable._Class<WorkspaceLogCodecsModule> {}
     public record LogHeaderCodec()      implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    // the state a log folds to
+    public record Axis() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record AxisCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record Layout() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record LayoutCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record Cell() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record CellCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record Split() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record SplitCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record Track() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record TrackCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record TabState() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record TabStateCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record RegionState() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record RegionStateCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record FloatState() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record FloatStateCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record WorkspaceState() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record WorkspaceStateCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record FoldedState() implements Exportable._Class<WorkspaceLogCodecsModule> {}
+    public record FoldedStateCodec() implements Exportable._Class<WorkspaceLogCodecsModule> {}
 
     @Override
     public ImportsFor<WorkspaceLogCodecsModule> imports() { return ImportsFor.noImports(); }
@@ -123,6 +144,16 @@ public record WorkspaceLogCodecsModule() implements DomModule<WorkspaceLogCodecs
                 new FloatRaised(),         new FloatRaisedCodec(),
                 new FloatClosed(),         new FloatClosedCodec(),
                 new LoggedEvent(),         new LoggedEventCodec(),
-                new LogHeader(),           new LogHeaderCodec()));
+                new LogHeader(),           new LogHeaderCodec(),
+                new Axis(), new AxisCodec(),
+                new Layout(), new LayoutCodec(),
+                new Cell(), new CellCodec(),
+                new Split(), new SplitCodec(),
+                new Track(), new TrackCodec(),
+                new TabState(), new TabStateCodec(),
+                new RegionState(), new RegionStateCodec(),
+                new FloatState(), new FloatStateCodec(),
+                new WorkspaceState(), new WorkspaceStateCodec(),
+                new FoldedState(), new FoldedStateCodec()));
     }
 }

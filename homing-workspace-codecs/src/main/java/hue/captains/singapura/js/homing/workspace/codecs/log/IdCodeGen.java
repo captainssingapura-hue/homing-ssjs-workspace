@@ -26,7 +26,7 @@ final class IdCodeGen {
         List<LogShapes.Component> cs = LogShapes.components(t);
         if (cs.size() != 1) throw new IllegalArgumentException(t.getName() + " is not an identifier: it has " + cs.size() + " components");
         var c = cs.get(0);
-        if (c.slot() instanceof LogSlot.Typed || c.slot() instanceof LogSlot.ListOf) {
+        if (c.slot() instanceof LogSlot.Typed || c.slot() instanceof LogSlot.ListOf || c.slot() instanceof LogSlot.Opt) {
             throw new IllegalArgumentException(t.getName() + " is not an identifier: its one component is not a scalar");
         }
         return c;

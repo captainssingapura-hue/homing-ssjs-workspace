@@ -67,7 +67,8 @@ class WorkspaceLogJsGenTest extends JsModuleTestBase {
                 "{\"seq\":11,\"at\":1790000000010,\"event\":{\"type\":\"FloatClosed\",\"id\":\"float-1\"}}",
                 "{\"seq\":12,\"at\":1790000000011,\"event\":{\"type\":\"TabClosed\",\"id\":\"tab-1\"}}",
                 "{\"seq\":13,\"at\":1790000000012,\"event\":{\"type\":\"RegionParted\",\"region\":\"main\",\"newRegion\":\"cell-2\",\"side\":\"RIGHT\"}}",
-                "{\"seq\":14,\"at\":1790000000013,\"event\":{\"type\":\"RegionRemoved\",\"region\":\"cell-2\"}}",
+                "{\"seq\":14,\"at\":1790000000013,\"event\":{\"type\":\"RegionRemoved\",\"region\":\"cell-2\",\"toward\":\"main\"}}",
+                "{\"seq\":16,\"at\":1790000000015,\"event\":{\"type\":\"RegionRemoved\",\"region\":\"cell-3\",\"toward\":null}}",
                 "{\"seq\":15,\"at\":1790000000014,\"event\":{\"type\":\"TracksChanged\",\"path\":\"0/1\",\"shares\":[{\"units\":333333,\"scale\":6},{\"units\":666667,\"scale\":6}]}}")) {
             assertEquals(line, roundTrip("LoggedEventCodec", line));
         }

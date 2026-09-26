@@ -84,6 +84,16 @@ public final class Wire {
         return u;
     }
 
+    /** An optional value: null on the wire is none; anything else is read as the value. */
+    public static <T> java.util.Optional<T> optionalOf(Json w, java.util.function.Function<Json, T> read) {
+        return w instanceof Json.Null ? java.util.Optional.empty() : java.util.Optional.of(read.apply(w));
+    }
+
+    /** An optional value written: none is null on the wire. */
+    public static <T> Json orNull(java.util.Optional<T> v, java.util.function.Function<T, Json> write) {
+        return v.isPresent() ? write.apply(v.get()) : Json.Null.INSTANCE;
+    }
+
     /** Whatever a record's constructor refused, said as the field that carried it. */
     public static <T> T build(String what, java.util.function.Supplier<T> make) {
         try { return make.get(); }

@@ -1,7 +1,15 @@
 package hue.captains.singapura.js.homing.workspace.codecs.log;
 
 import hue.captains.singapura.js.homing.workspace.events.contract.EventSeq;
+import hue.captains.singapura.js.homing.workspace.log.Axis;
 import hue.captains.singapura.js.homing.workspace.log.FloatId;
+import hue.captains.singapura.js.homing.workspace.log.FloatState;
+import hue.captains.singapura.js.homing.workspace.log.FoldedState;
+import hue.captains.singapura.js.homing.workspace.log.Layout;
+import hue.captains.singapura.js.homing.workspace.log.RegionState;
+import hue.captains.singapura.js.homing.workspace.log.TabState;
+import hue.captains.singapura.js.homing.workspace.log.Track;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
 import hue.captains.singapura.js.homing.workspace.log.Host;
 import hue.captains.singapura.js.homing.workspace.log.LogHeader;
 import hue.captains.singapura.js.homing.workspace.log.LoggedEvent;
@@ -66,7 +74,18 @@ public final class WorkspaceLogManifest {
             LogCodecEntry.record(WorkspaceEvent.FloatClosed.class),
             // the lines of a log
             LogCodecEntry.record(LoggedEvent.class),
-            LogCodecEntry.record(LogHeader.class));
+            LogCodecEntry.record(LogHeader.class),
+            // the state a log folds to: the layout, the hosts, the tabs; and the file that carries it
+            LogCodecEntry.enumeration(Axis.class),
+            LogCodecEntry.sealed(Layout.class),
+            LogCodecEntry.record(Layout.Cell.class),
+            LogCodecEntry.record(Layout.Split.class),
+            LogCodecEntry.record(Track.class),
+            LogCodecEntry.record(TabState.class),
+            LogCodecEntry.record(RegionState.class),
+            LogCodecEntry.record(FloatState.class),
+            LogCodecEntry.record(WorkspaceState.class),
+            LogCodecEntry.record(FoldedState.class));
 
     /**
      * The manifest holds together, or the build stops here: one name per type,

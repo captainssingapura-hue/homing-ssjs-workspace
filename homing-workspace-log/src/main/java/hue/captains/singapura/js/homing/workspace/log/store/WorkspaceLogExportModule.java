@@ -6,10 +6,11 @@ import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.workspace.codecs.WorkspaceLogCodecsModule;
+import hue.captains.singapura.js.homing.workspace.log.fold.WorkspaceFoldModule;
 
 import java.util.List;
 
-/** A workspace log as a file: the header and a line per event, as the Java side writes the same log. */
+/** A workspace log as a file - the header and a line per event - and its meaning as another, the state the browser folds it to: as the Java side writes both. */
 public record WorkspaceLogExportModule() implements DomModule<WorkspaceLogExportModule> {
 
     public record WorkspaceLogExport() implements Exportable._Class<WorkspaceLogExportModule> {}
@@ -19,7 +20,8 @@ public record WorkspaceLogExportModule() implements DomModule<WorkspaceLogExport
     @Override
     public ImportsFor<WorkspaceLogExportModule> imports() {
         return ImportsFor.<WorkspaceLogExportModule>builder()
-                .add(new ModuleImports<>(List.of(new WorkspaceLogCodecsModule.LogHeaderCodec(), new WorkspaceLogCodecsModule.LoggedEventCodec()), WorkspaceLogCodecsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceLogCodecsModule.LogHeaderCodec(), new WorkspaceLogCodecsModule.LoggedEventCodec(), new WorkspaceLogCodecsModule.FoldedStateCodec()), WorkspaceLogCodecsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceFoldModule.WorkspaceFold()), WorkspaceFoldModule.INSTANCE))
                 .build();
     }
 

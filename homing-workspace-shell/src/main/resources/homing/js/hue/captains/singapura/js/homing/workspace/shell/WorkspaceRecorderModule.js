@@ -23,7 +23,7 @@
 //   TabRenamed                  TabRenamed
 //   TabRemoved                  TabClosed
 //   TabActivated                TabShown in its host
-//   Subdivided / Removed        RegionParted / RegionRemoved
+//   Subdivided / Removed        RegionParted / RegionRemoved, its room toward the region the grid was told
 //   TracksChanged               TracksChanged, each share an exact millionth
 //   Opened / Moved / Resized    FloatOpened / FloatMoved / FloatResized, whole pixels
 //   Raised / Closed             FloatRaised / FloatClosed
@@ -84,7 +84,7 @@ class WorkspaceRecorder {
             case "TabRemoved":   return new TabClosed(new TabId(r.tab.id));
             case "TabActivated": return new TabShown(this._host(r.slotId), new TabId(r.tabId));
             case "Subdivided":   return new RegionParted(new RegionId(r.cellId), new RegionId(r.newCellId), Side.of(String(r.side).toUpperCase()));
-            case "Removed":      return new RegionRemoved(new RegionId(r.cellId));
+            case "Removed":      return new RegionRemoved(new RegionId(r.cellId), r.toward ? new RegionId(r.toward) : null);
             case "TracksChanged": return new TracksChanged(new SplitPath(r.path), WorkspaceRecorder.shares(r.ratios));
             case "Opened":       return new FloatOpened(new FloatId(r.id), r.x, r.y, r.w, r.h);
             case "Moved":        return new FloatMoved(new FloatId(r.id), r.x, r.y);

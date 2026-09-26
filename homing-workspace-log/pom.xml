@@ -61,6 +61,13 @@
             <version>${homing.core.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- the grid's own algebra, SplitGridTree: what the fold's LayoutAlgebra is held to -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ui-splitgrid</artifactId>
+            <version>${homing.components.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

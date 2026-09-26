@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -67,7 +68,8 @@ class WorkspaceLogParityTest extends JsModuleTestBase {
                 new WorkspaceEvent.FloatClosed(FloatId.of("float-1")),
                 new WorkspaceEvent.TracksChanged(SplitPath.of("0/12"), List.of(Scaled.of(333_333, 6), Scaled.of(333_333, 6), Scaled.of(333_334, 6))),
                 new WorkspaceEvent.TracksChanged(SplitPath.ROOT, List.of(Scaled.of(1, 1), Scaled.of(9, 1))),
-                new WorkspaceEvent.RegionRemoved(RegionId.of("cell_2")),
+                new WorkspaceEvent.RegionRemoved(RegionId.of("cell_2"), Optional.of(main)),
+                new WorkspaceEvent.RegionRemoved(RegionId.of("cell_3"), Optional.empty()),
                 new WorkspaceEvent.TabOpened(TabId.of("tab-2"), WidgetKind.of("counter"), WidgetTitle.of(""), Host.region("main"), 1),
                 new WorkspaceEvent.TabClosed(t1));
         var out = new ArrayList<LoggedEvent>();
@@ -111,7 +113,7 @@ class WorkspaceLogParityTest extends JsModuleTestBase {
                                                  new WorkspaceInstanceId("7f1b6c2e-5000-9000-7f1b-6c2e00000001"));
                     const t = new TabId("tab-7"), r = new RegionId("main");
                     const ev = [
-                        new TabOpened(t, new WidgetKind("field"), new WidgetTitle("q\\" \\\\ \\n\\u0001 \\u2028 \\ud83d\\ude00 \\udbff"), new InRegion(r), 2),
+                        new TabOpened(t, new WidgetKind("field"), new WidgetTitle("q\\" \\\\ \\n\\u0001 \\u2028 \\ud83d\\ude00 \\udbff"), new InRegion(r), 0),
                         new RegionParted(r, new RegionId("cell-9"), Side.LEFT),
                         new TracksChanged(new SplitPath(""), [new Scaled(250000, 6), new Scaled(750000, 6)]),
                         new TabShown(new InRegion(r), t),

@@ -4,13 +4,14 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
  * What a record component is on the workspace log's wire, read off its Java
  * type at build time: a string, an int, a safe integer, a boolean, an instant
- * (whole milliseconds), a UUID, one of the log's own types, or a list of any of
- * these. Anything else has no form on the wire — a double, a float, a boxed
+ * (whole milliseconds), a UUID, one of the log's own types, a list of any of
+ * these, or an optional one - null on the wire when there is none. Anything else has no form on the wire — a double, a float, a boxed
  * number, a map — and the generator refuses it where it is declared, so an
  * ambiguous type never reaches a log.
  *
@@ -27,6 +28,7 @@ sealed interface LogSlot {
     record Uid()    implements LogSlot {}
     record Typed(Class<?> type) implements LogSlot {}
     record ListOf(LogSlot element) implements LogSlot {}
+    record Opt(LogSlot value) implements LogSlot {}
 
     static LogSlot of(Type t, String where) {
         if (t == String.class)  return new Str();
@@ -38,6 +40,11 @@ sealed interface LogSlot {
         if (t instanceof ParameterizedType p && p.getRawType() == List.class) {
             return new ListOf(of(p.getActualTypeArguments()[0], where + "[]"));
         }
+        if (t instanceof ParameterizedType p && p.getRawType() == Optional.class) {
+            LogSlot v = of(p.getActualTypeArguments()[0], where + "?");
+            if (v instanceof Opt) throw new IllegalArgumentException(where + ": an optional optional has no form on the wire");
+            return new Opt(v);
+        }
         if (t instanceof Class<?> c && (c.isRecord() || c.isEnum() || (c.isInterface() && c.isSealed()))) return new Typed(c);
         throw new IllegalArgumentException(where + ": the workspace log's wire has no form for " + t.getTypeName()
                 + " — declare an exact type (a safe integer, a Scaled, a record) instead");
@@ -48,6 +55,7 @@ sealed interface LogSlot {
         switch (s) {
             case Typed t  -> into.add(t.type());
             case ListOf l -> typesIn(l.element(), into);
+            case Opt o    -> typesIn(o.value(), into);
             default       -> { }
         }
     }
@@ -68,6 +76,7 @@ sealed interface LogSlot {
                 String e = "e" + depth;
                 yield "Array.isArray(" + x + ") && " + x + ".every(function (" + e + ") { return " + jsCheck(l.element(), e, depth + 1) + "; })";
             }
+            case Opt o     -> x + " === null || (" + jsCheck(o.value(), x, depth) + ")";
         };
     }
 
@@ -82,6 +91,7 @@ sealed interface LogSlot {
             case Uid u     -> "a lower-case UUID";
             case Typed t   -> "a " + t.type().getSimpleName();
             case ListOf l  -> "an array of " + describe(l.element());
+            case Opt o     -> "null or " + describe(o.value());
         };
     }
 
@@ -92,6 +102,7 @@ sealed interface LogSlot {
                 String e = "e" + depth;
                 yield x + ".map(function (" + e + ") { return " + jsEncode(l.element(), e, depth + 1) + "; })";
             }
+            case Opt o    -> x + " === null ? null : " + jsEncode(o.value(), x, depth);
             default       -> x;
         };
     }
@@ -104,6 +115,7 @@ sealed interface LogSlot {
                 yield "LogWire.array(" + x + ", " + jsString(what) + ").map(function (" + e + ") { return "
                         + jsDecode(l.element(), e, what + "[]", depth + 1) + "; })";
             }
+            case Opt o    -> "(" + x + " === null ? null : " + jsDecode(o.value(), x, what, depth) + ")";
             default       -> x;
         };
     }
@@ -123,6 +135,10 @@ sealed interface LogSlot {
                 String e = "e" + depth;
                 yield "new Json.Arr(" + x + ".stream().map(" + e + " -> " + javaEncode(l.element(), e, depth + 1) + ").toList())";
             }
+            case Opt o     -> {
+                String e = "e" + depth;
+                yield "Wire.orNull(" + x + ", " + e + " -> " + javaEncode(o.value(), e, depth + 1) + ")";
+            }
         };
     }
 
@@ -140,6 +156,10 @@ sealed interface LogSlot {
                 String e = "e" + depth;
                 yield "Wire.array(" + x + ", " + w + ").stream().map(" + e + " -> "
                         + javaDecode(l.element(), e, what + "[]", depth + 1) + ").toList()";
+            }
+            case Opt o     -> {
+                String e = "e" + depth;
+                yield "Wire.optionalOf(" + x + ", " + e + " -> " + javaDecode(o.value(), e, what, depth + 1) + ")";
             }
         };
     }
