@@ -1,32 +1,35 @@
 package hue.captains.singapura.js.homing.workspace.log.fold;
 
+import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
 import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
-import hue.captains.singapura.js.homing.workspace.log.EventSeq;
-import hue.captains.singapura.js.homing.workspace.log.FloatId;
-import hue.captains.singapura.js.homing.workspace.log.FloatState;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.EventSeq;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.FloatId;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceState.FloatState;
 import hue.captains.singapura.js.homing.workspace.log.Host;
 import hue.captains.singapura.js.homing.workspace.log.Layout;
 import hue.captains.singapura.js.homing.workspace.log.LogHeader;
 import hue.captains.singapura.js.homing.workspace.log.LoggedEvent;
-import hue.captains.singapura.js.homing.workspace.log.RegionId;
-import hue.captains.singapura.js.homing.workspace.log.RegionState;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.RegionId;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceState.RegionState;
 import hue.captains.singapura.js.homing.workspace.log.Scaled;
-import hue.captains.singapura.js.homing.workspace.log.Side;
-import hue.captains.singapura.js.homing.workspace.log.TabId;
-import hue.captains.singapura.js.homing.workspace.log.TabState;
-import hue.captains.singapura.js.homing.workspace.log.Track;
+import hue.captains.singapura.js.homing.workspace.log.RegionEvent.Side;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.TabId;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceState.TabState;
+import hue.captains.singapura.js.homing.workspace.log.Layout.Track;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent.*;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceKind;
+import hue.captains.singapura.js.homing.workspace.log.TabEvent.*;
+import hue.captains.singapura.js.homing.workspace.log.RegionEvent.*;
+import hue.captains.singapura.js.homing.workspace.log.FloatEvent.*;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceKind;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
 import hue.captains.singapura.js.homing.workspace.log.codec.FoldedStateCodec;
 import hue.captains.singapura.js.homing.workspace.log.json.JsonText;
 import hue.captains.singapura.js.homing.workspace.log.store.ValidateWorkspaceLog;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogFile;
-import hue.captains.singapura.js.homing.workspace.log.SplitPath;
-import hue.captains.singapura.js.homing.workspace.log.WidgetKind;
-import hue.captains.singapura.js.homing.workspace.log.WidgetTitle;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceInstanceId;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.SplitPath;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetKind;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetTitle;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceInstanceId;
 import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -55,7 +58,7 @@ class WorkspaceFoldParityTest extends JsModuleTestBase {
     @BeforeEach
     void load() {
         js = buildContext();
-        loadModule(DIR + "codecs/WorkspaceLogCodecsModule.js");
+        for (String script : WorkspaceLogCodecCrate.scripts()) loadModule(script);
         for (String m : new String[]{"ExactShare", "LayoutAlgebra", "WorkspaceFold"}) loadModule(DIR + "log/fold/" + m + "Module.js");
         loadModule(DIR + "log/store/WorkspaceLogExportModule.js");
         stateOf = js.eval("js", """

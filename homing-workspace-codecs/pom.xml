@@ -12,36 +12,32 @@
     <artifactId>homing-workspace-codecs</artifactId>
 
     <description>
-        The workspace log's generators, and the JS they generate. Every type
-        the log carries is declared in Java (homing-workspace, package log);
-        WorkspaceLogManifest pairs each with its own generators, and
-        WorkspaceLogJsGen writes their JS classes and codecs into
-        target/classes at process-classes - generated code never lives in
-        src/main/resources. WorkspaceLogCodecsModule is the DomModule that
-        serves them; WorkspaceLogJavaGen writes the Java codecs, into
-        homing-workspace-log-codec.
+        The workspace log's generators. Every type the log carries is declared
+        in Java (homing-workspace, package log); WorkspaceLogManifest pairs
+        each with its own generators, and LogModules groups them into
+        JavaScript modules, one per top-level Java declaration. Nothing here
+        is served: WorkspaceLogJsGen and WorkspaceLogJavaGen are run by the
+        output-only homing-workspace-log-codec, which compiles and serves what
+        they write - generated code never lives in src/.
     </description>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <!-- Path under target/classes where generated JS lands. Matches the
-             classpath layout EsModuleWriter / ModuleNameResolver use to
-             serve module bodies. -->
-        <codecs.output.dir>${project.build.outputDirectory}/homing/js/hue/captains/singapura/js/homing/workspace/codecs</codecs.output.dir>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-core</artifactId>
-            <version>${homing.core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-codec</artifactId>
             <version>${homing.core.version}</version>
+        </dependency>
+        <!-- StatelessFunctionalObject: what every generator is. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.lang.ontology</groupId>
+            <artifactId>core</artifactId>
+            <version>0.0.1</version>
         </dependency>
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
@@ -53,12 +49,6 @@
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
-            <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-conformance-rules</artifactId>
-            <version>${homing.core.version}</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-ssjs-test-fixtures</artifactId>
@@ -66,33 +56,5 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <!-- The generated .js lands in target/classes before the jar is
-                 packaged. process-classes: the generator must be compiled
-                 before its main() can run. -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.5.0</version>
-                <executions>
-                    <execution>
-                        <!-- The workspace log's types (WorkspaceLogManifest): their classes and codecs. -->
-                        <id>generate-workspace-log-codecs</id>
-                        <phase>process-classes</phase>
-                        <goals><goal>java</goal></goals>
-                        <configuration>
-                            <mainClass>hue.captains.singapura.js.homing.workspace.codecs.log.WorkspaceLogJsGen</mainClass>
-                            <arguments>
-                                <argument>${codecs.output.dir}</argument>
-                            </arguments>
-                            <classpathScope>compile</classpathScope>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

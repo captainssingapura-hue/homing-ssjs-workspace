@@ -10,7 +10,7 @@ import hue.captains.singapura.js.homing.ui.docking.UiDockingCrate;
 import hue.captains.singapura.js.homing.ui.menu.UiMenuCrate;
 import hue.captains.singapura.js.homing.ui.panes.UiPanesCrate;
 import hue.captains.singapura.js.homing.ui.splitgrid.UiSplitGridCrate;
-import hue.captains.singapura.js.homing.workspace.codecs.WorkspaceCodecsCrate;
+import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
 
 import java.util.List;
 
@@ -42,7 +42,7 @@ public final class WorkspaceShellCrate implements Crate {
                 UiPanesCrate.INSTANCE,
                 UiDockingCrate.INSTANCE,
                 UiMenuCrate.INSTANCE,
-                WorkspaceCodecsCrate.INSTANCE,
+                WorkspaceLogCodecCrate.INSTANCE,
                 // The workspace log: its store, where it keeps its rows, its export, its fold.
                 hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogCrate.INSTANCE,
                 // The design substrate its sheets wear words of. No legacy palette:

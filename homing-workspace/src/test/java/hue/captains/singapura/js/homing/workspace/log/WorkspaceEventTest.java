@@ -1,9 +1,20 @@
 package hue.captains.singapura.js.homing.workspace.log;
 
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent.RegionParted;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent.TabClosed;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent.TabOpened;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent.TracksChanged;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.EventSeq;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.FloatId;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.RegionId;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.SplitPath;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.TabId;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetKind;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetTitle;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceInstanceId;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceKind;
+import hue.captains.singapura.js.homing.workspace.log.RegionEvent.Side;
+
+import hue.captains.singapura.js.homing.workspace.log.RegionEvent.RegionParted;
+import hue.captains.singapura.js.homing.workspace.log.TabEvent.TabClosed;
+import hue.captains.singapura.js.homing.workspace.log.TabEvent.TabOpened;
+import hue.captains.singapura.js.homing.workspace.log.RegionEvent.TracksChanged;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -38,10 +49,10 @@ class WorkspaceEventTest {
     void aTabIsInARegionOrAFloat_andAFloatHasAMeasure() {
         assertEquals(new Host.InFloat(FloatId.of("float-1")), Host.floating("float-1"));
         assertThrows(IllegalArgumentException.class, () -> FloatId.of("float 1"));
-        assertThrows(IllegalArgumentException.class, () -> new WorkspaceEvent.FloatOpened(FloatId.of("float-1"), 10, 10, 0, 200));
-        assertThrows(IllegalArgumentException.class, () -> new WorkspaceEvent.FloatResized(FloatId.of("float-1"), 300, -1));
-        assertDoesNotThrow(() -> new WorkspaceEvent.FloatMoved(FloatId.of("float-1"), -20, 0));
-        assertThrows(NullPointerException.class, () -> new WorkspaceEvent.TabMoved(T, null, 0));
+        assertThrows(IllegalArgumentException.class, () -> new FloatEvent.FloatOpened(FloatId.of("float-1"), 10, 10, 0, 200));
+        assertThrows(IllegalArgumentException.class, () -> new FloatEvent.FloatResized(FloatId.of("float-1"), 300, -1));
+        assertDoesNotThrow(() -> new FloatEvent.FloatMoved(FloatId.of("float-1"), -20, 0));
+        assertThrows(NullPointerException.class, () -> new TabEvent.TabMoved(T, null, 0));
     }
 
     @Test

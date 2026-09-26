@@ -1,10 +1,14 @@
 package hue.captains.singapura.js.homing.workspace.shell;
 
+import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
 import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
-import hue.captains.singapura.js.homing.workspace.log.FloatId;
+import hue.captains.singapura.js.homing.workspace.log.TabEvent;
+import hue.captains.singapura.js.homing.workspace.log.RegionEvent;
+import hue.captains.singapura.js.homing.workspace.log.FloatEvent;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.FloatId;
 import hue.captains.singapura.js.homing.workspace.log.Host;
 import hue.captains.singapura.js.homing.workspace.log.LoggedEvent;
-import hue.captains.singapura.js.homing.workspace.log.TabId;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.TabId;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
 import hue.captains.singapura.js.homing.workspace.log.store.ValidateWorkspaceLog;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogFile;
@@ -29,7 +33,7 @@ class WorkspaceRecorderTest extends JsModuleTestBase {
     @BeforeEach
     void load() {
         js = buildContext();
-        loadModule(DIR + "codecs/WorkspaceLogCodecsModule.js");
+        for (String script : WorkspaceLogCodecCrate.scripts()) loadModule(script);
         for (String m : new String[]{"WorkspaceLogStore", "MemoryLog", "WorkspaceLogExport", "WorkspaceLogIdentity"}) {
             loadModule(DIR + "log/store/" + m + "Module.js");
         }
@@ -81,10 +85,10 @@ class WorkspaceRecorderTest extends JsModuleTestBase {
                              "FloatOpened", "TabMoved", "TabShown", "FloatMoved", "FloatResized", "FloatRaised", "TabMoved", "FloatClosed",
                              "TabMoved", "RegionRemoved", "TabClosed"),
                 events.stream().map(e -> e.getClass().getSimpleName()).toList(), "a float is recorded like a region; a request is nowhere");
-        assertEquals(new WorkspaceEvent.TabMoved(TabId.of("tab-1"), Host.floating("float-1"), 0), events.get(7), "the tab afloat is in its float");
-        assertEquals(new WorkspaceEvent.TabShown(Host.floating("float-1"), TabId.of("tab-1")), events.get(8));
-        assertEquals(new WorkspaceEvent.FloatOpened(FloatId.of("float-1"), 40, 60, 320, 220), events.get(6));
-        assertEquals("[333333, 666667]", ((WorkspaceEvent.TracksChanged) events.get(4)).shares().stream().map(s -> s.units()).toList().toString());
+        assertEquals(new TabEvent.TabMoved(TabId.of("tab-1"), Host.floating("float-1"), 0), events.get(7), "the tab afloat is in its float");
+        assertEquals(new TabEvent.TabShown(Host.floating("float-1"), TabId.of("tab-1")), events.get(8));
+        assertEquals(new FloatEvent.FloatOpened(FloatId.of("float-1"), 40, 60, 320, 220), events.get(6));
+        assertEquals("[333333, 666667]", ((RegionEvent.TracksChanged) events.get(4)).shares().stream().map(s -> s.units()).toList().toString());
         assertEquals(17, js.eval("js", "counted[counted.length - 1]").asInt());
     }
 

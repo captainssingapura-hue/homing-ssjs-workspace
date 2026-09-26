@@ -52,7 +52,7 @@ final class RecordCodeGen {
             Class<?> parent = LogShapes.sealedParent(t);
             String n = simple(t);
             var sb = new StringBuilder();
-            sb.append("/** Generated from ").append(t.getName()).append(" — do not edit. */\n");
+            sb.append("/** Generated from ").append(t.getCanonicalName()).append(" — do not edit. */\n");
             sb.append("class ").append(n).append(parent != null ? " extends " + simple(parent) : "").append(" {\n");
             String constants = LogShapes.jsConstants(t);
             if (!constants.isEmpty()) sb.append(constants).append("\n");
@@ -85,7 +85,7 @@ final class RecordCodeGen {
             boolean variant = LogShapes.sealedParent(t) != null;
             String n = simple(t);
             var sb = new StringBuilder();
-            sb.append("/** Generated from ").append(t.getName()).append(" — do not edit. */\n");
+            sb.append("/** Generated from ").append(t.getCanonicalName()).append(" — do not edit. */\n");
             sb.append("class ").append(codec(t)).append(" {\n");
             sb.append("    static KEYS = Object.freeze(").append(jsList(keys(t, cs))).append(");\n\n");
             sb.append("    static transformTo(v) {\n");

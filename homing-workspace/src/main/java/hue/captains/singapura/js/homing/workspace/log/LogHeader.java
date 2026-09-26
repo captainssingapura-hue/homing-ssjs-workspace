@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.workspace.log;
 
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceInstanceId;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceKind;
 
 import java.util.Objects;
 

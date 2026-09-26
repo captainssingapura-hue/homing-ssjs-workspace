@@ -1,28 +1,17 @@
 package hue.captains.singapura.js.homing.workspace.codecs.log;
 
-import hue.captains.singapura.js.homing.workspace.log.EventSeq;
-import hue.captains.singapura.js.homing.workspace.log.Axis;
-import hue.captains.singapura.js.homing.workspace.log.FloatId;
-import hue.captains.singapura.js.homing.workspace.log.FloatState;
+import hue.captains.singapura.js.homing.workspace.log.FloatEvent;
 import hue.captains.singapura.js.homing.workspace.log.FoldedState;
-import hue.captains.singapura.js.homing.workspace.log.Layout;
-import hue.captains.singapura.js.homing.workspace.log.RegionState;
-import hue.captains.singapura.js.homing.workspace.log.TabState;
-import hue.captains.singapura.js.homing.workspace.log.Track;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
 import hue.captains.singapura.js.homing.workspace.log.Host;
+import hue.captains.singapura.js.homing.workspace.log.Layout;
 import hue.captains.singapura.js.homing.workspace.log.LogHeader;
+import hue.captains.singapura.js.homing.workspace.log.LogIds;
 import hue.captains.singapura.js.homing.workspace.log.LoggedEvent;
-import hue.captains.singapura.js.homing.workspace.log.RegionId;
+import hue.captains.singapura.js.homing.workspace.log.RegionEvent;
 import hue.captains.singapura.js.homing.workspace.log.Scaled;
-import hue.captains.singapura.js.homing.workspace.log.Side;
-import hue.captains.singapura.js.homing.workspace.log.TabId;
+import hue.captains.singapura.js.homing.workspace.log.TabEvent;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceKind;
-import hue.captains.singapura.js.homing.workspace.log.SplitPath;
-import hue.captains.singapura.js.homing.workspace.log.WidgetKind;
-import hue.captains.singapura.js.homing.workspace.log.WidgetTitle;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceInstanceId;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,59 +20,65 @@ import java.util.List;
 
 /**
  * Every type on the workspace log's wire, each with its generators: the one
- * list both languages' codecs are generated from. A sealed type comes before
- * its variants, since a JavaScript class extends only what is already there.
+ * list both languages' codecs are generated from. Listed file by file, since a
+ * file is a JavaScript module ({@link LogModules}); within a file a sealed type
+ * comes before its variants, since a JavaScript class extends only what is
+ * already there.
  */
 public final class WorkspaceLogManifest {
 
     private WorkspaceLogManifest() {}
 
     public static final List<LogCodecEntry<?>> ENTRIES = List.of(
-            // identifiers: one scalar each, bare on the wire
-            LogCodecEntry.id(TabId.class),
-            LogCodecEntry.id(RegionId.class),
-            LogCodecEntry.id(FloatId.class),
-            LogCodecEntry.id(WidgetKind.class),
-            LogCodecEntry.id(WidgetTitle.class),
-            LogCodecEntry.id(SplitPath.class),
-            LogCodecEntry.id(EventSeq.class),
-            LogCodecEntry.id(WorkspaceKind.class),
-            LogCodecEntry.id(WorkspaceInstanceId.class),
-            // values
-            LogCodecEntry.enumeration(Side.class),
+            // LogIds: identifiers and names, one scalar each, bare on the wire
+            LogCodecEntry.id(LogIds.TabId.class),
+            LogCodecEntry.id(LogIds.RegionId.class),
+            LogCodecEntry.id(LogIds.FloatId.class),
+            LogCodecEntry.id(LogIds.WidgetKind.class),
+            LogCodecEntry.id(LogIds.WidgetTitle.class),
+            LogCodecEntry.id(LogIds.SplitPath.class),
+            LogCodecEntry.id(LogIds.EventSeq.class),
+            LogCodecEntry.id(LogIds.WorkspaceKind.class),
+            LogCodecEntry.id(LogIds.WorkspaceInstanceId.class),
+            // an exact decimal
             LogCodecEntry.record(Scaled.class),
             // where a tab is: a region's dock or a float
             LogCodecEntry.sealed(Host.class),
             LogCodecEntry.record(Host.InRegion.class),
             LogCodecEntry.record(Host.InFloat.class),
-            // the events: the family, then each of its variants
-            LogCodecEntry.sealed(WorkspaceEvent.class),
-            LogCodecEntry.record(WorkspaceEvent.TabOpened.class),
-            LogCodecEntry.record(WorkspaceEvent.TabBecame.class),
-            LogCodecEntry.record(WorkspaceEvent.TabRenamed.class),
-            LogCodecEntry.record(WorkspaceEvent.TabMoved.class),
-            LogCodecEntry.record(WorkspaceEvent.TabShown.class),
-            LogCodecEntry.record(WorkspaceEvent.TabClosed.class),
-            LogCodecEntry.record(WorkspaceEvent.RegionParted.class),
-            LogCodecEntry.record(WorkspaceEvent.RegionRemoved.class),
-            LogCodecEntry.record(WorkspaceEvent.TracksChanged.class),
-            LogCodecEntry.record(WorkspaceEvent.FloatOpened.class),
-            LogCodecEntry.record(WorkspaceEvent.FloatMoved.class),
-            LogCodecEntry.record(WorkspaceEvent.FloatResized.class),
-            LogCodecEntry.record(WorkspaceEvent.FloatRaised.class),
-            LogCodecEntry.record(WorkspaceEvent.FloatClosed.class),
-            // the lines of a log
-            LogCodecEntry.record(LoggedEvent.class),
-            LogCodecEntry.record(LogHeader.class),
-            // the state a log folds to: the layout, the hosts, the tabs; and the file that carries it
-            LogCodecEntry.enumeration(Axis.class),
+            // the regions as a tree: recursive, so one file
+            LogCodecEntry.enumeration(Layout.Axis.class),
             LogCodecEntry.sealed(Layout.class),
             LogCodecEntry.record(Layout.Cell.class),
             LogCodecEntry.record(Layout.Split.class),
-            LogCodecEntry.record(Track.class),
-            LogCodecEntry.record(TabState.class),
-            LogCodecEntry.record(RegionState.class),
-            LogCodecEntry.record(FloatState.class),
+            LogCodecEntry.record(Layout.Track.class),
+            // the events, a family of three families: what happens to a tab, a region, a float
+            LogCodecEntry.sealed(TabEvent.class),
+            LogCodecEntry.record(TabEvent.TabOpened.class),
+            LogCodecEntry.record(TabEvent.TabBecame.class),
+            LogCodecEntry.record(TabEvent.TabRenamed.class),
+            LogCodecEntry.record(TabEvent.TabMoved.class),
+            LogCodecEntry.record(TabEvent.TabShown.class),
+            LogCodecEntry.record(TabEvent.TabClosed.class),
+            LogCodecEntry.enumeration(RegionEvent.Side.class),
+            LogCodecEntry.sealed(RegionEvent.class),
+            LogCodecEntry.record(RegionEvent.RegionParted.class),
+            LogCodecEntry.record(RegionEvent.RegionRemoved.class),
+            LogCodecEntry.record(RegionEvent.TracksChanged.class),
+            LogCodecEntry.sealed(FloatEvent.class),
+            LogCodecEntry.record(FloatEvent.FloatOpened.class),
+            LogCodecEntry.record(FloatEvent.FloatMoved.class),
+            LogCodecEntry.record(FloatEvent.FloatResized.class),
+            LogCodecEntry.record(FloatEvent.FloatRaised.class),
+            LogCodecEntry.record(FloatEvent.FloatClosed.class),
+            LogCodecEntry.sealed(WorkspaceEvent.class),
+            // the lines of a log
+            LogCodecEntry.record(LoggedEvent.class),
+            LogCodecEntry.record(LogHeader.class),
+            // the state a log folds to, and the file that carries it
+            LogCodecEntry.record(WorkspaceState.TabState.class),
+            LogCodecEntry.record(WorkspaceState.RegionState.class),
+            LogCodecEntry.record(WorkspaceState.FloatState.class),
             LogCodecEntry.record(WorkspaceState.class),
             LogCodecEntry.record(FoldedState.class));
 

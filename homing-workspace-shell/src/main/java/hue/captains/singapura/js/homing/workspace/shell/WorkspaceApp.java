@@ -9,7 +9,7 @@ import hue.captains.singapura.js.homing.core.QueryString;
 import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
 import hue.captains.singapura.js.homing.core.js.domOpsParty;
 import hue.captains.singapura.js.homing.site.mpa.MpaStyles;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceKind;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceKind;
 import hue.captains.singapura.js.homing.workspace.log.fold.WorkspaceFoldModule;
 import hue.captains.singapura.js.homing.workspace.log.store.IndexedDbLogModule;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogIdentityModule;

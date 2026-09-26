@@ -1,8 +1,9 @@
 package hue.captains.singapura.js.homing.workspace.log.store;
 
+import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
 import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceInstanceId;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceKind;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceInstanceId;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceKind;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +22,7 @@ class WorkspaceLogStoreTest extends JsModuleTestBase {
     @BeforeEach
     void load() {
         js = buildContext();
-        loadModule(DIR + "codecs/WorkspaceLogCodecsModule.js");
+        for (String script : WorkspaceLogCodecCrate.scripts()) loadModule(script);
         for (String m : new String[]{"WorkspaceLogStore", "MemoryLog", "WorkspaceLogExport", "WorkspaceLogIdentity"}) {
             loadModule(DIR + "log/store/" + m + "Module.js");
         }

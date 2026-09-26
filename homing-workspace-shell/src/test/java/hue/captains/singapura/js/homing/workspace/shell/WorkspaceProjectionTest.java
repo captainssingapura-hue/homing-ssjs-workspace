@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.shell;
 
+import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
 import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,7 +22,7 @@ class WorkspaceProjectionTest extends JsModuleTestBase {
     @BeforeEach
     void load() {
         js = buildContext();
-        loadModule(DIR + "workspace/codecs/WorkspaceLogCodecsModule.js");
+        for (String script : WorkspaceLogCodecCrate.scripts()) loadModule(script);
         loadModule(DIR + "ui/splitgrid/SplitGridTreeModule.js");
         loadModule(DIR + "workspace/shell/WorkspaceRecorderModule.js");
         loadModule(DIR + "workspace/shell/WorkspaceProjectionModule.js");

@@ -33,15 +33,10 @@
             <artifactId>homing-core</artifactId>
             <version>${homing.core.version}</version>
         </dependency>
-        <!-- The generated Java codecs, and through them the types and the generated JS module. -->
+        <!-- What the manifest generates: the Java codecs, the JS modules and their crate; through them, the types. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
             <artifactId>homing-workspace-log-codec</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
-            <artifactId>homing-workspace-codecs</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>

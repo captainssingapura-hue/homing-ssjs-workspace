@@ -103,7 +103,7 @@
         </dependency>
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
-            <artifactId>homing-workspace-codecs</artifactId>
+            <artifactId>homing-workspace-log-codec</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>

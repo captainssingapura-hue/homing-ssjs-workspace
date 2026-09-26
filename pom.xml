@@ -27,11 +27,12 @@
     <modules>
         <!-- The workspace's value objects, declared in Java: the log's events and state. -->
         <module>homing-workspace</module>
-        <!-- Their generators, and the JS they generate. -->
+        <!-- Their generators. -->
         <module>homing-workspace-codecs</module>
-        <!-- The workspace log: its Java codecs, generated (output-only), then the store,
-             the exporter, the fold and the validator, in both languages. -->
+        <!-- What the generators write (output-only): the Java codecs, and the JS modules - one per
+             top-level Java declaration - with the Java that serves them. -->
         <module>homing-workspace-log-codec</module>
+        <!-- The workspace log: the store, the exporter, the fold and the validator, in both languages. -->
         <module>homing-workspace-log</module>
         <!-- The workspace as a page: the desk and its docks, the recorder, the restore. -->
         <module>homing-workspace-shell</module>

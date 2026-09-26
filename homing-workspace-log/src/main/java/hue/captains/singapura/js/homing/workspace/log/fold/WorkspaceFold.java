@@ -1,16 +1,19 @@
 package hue.captains.singapura.js.homing.workspace.log.fold;
 
-import hue.captains.singapura.js.homing.workspace.log.EventSeq;
-import hue.captains.singapura.js.homing.workspace.log.FloatId;
-import hue.captains.singapura.js.homing.workspace.log.FloatState;
+import hue.captains.singapura.js.homing.workspace.log.TabEvent;
+import hue.captains.singapura.js.homing.workspace.log.RegionEvent;
+import hue.captains.singapura.js.homing.workspace.log.FloatEvent;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.EventSeq;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.FloatId;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceState.FloatState;
 import hue.captains.singapura.js.homing.workspace.log.FoldedState;
 import hue.captains.singapura.js.homing.workspace.log.Host;
 import hue.captains.singapura.js.homing.workspace.log.Layout;
 import hue.captains.singapura.js.homing.workspace.log.LoggedEvent;
-import hue.captains.singapura.js.homing.workspace.log.RegionId;
-import hue.captains.singapura.js.homing.workspace.log.RegionState;
-import hue.captains.singapura.js.homing.workspace.log.TabId;
-import hue.captains.singapura.js.homing.workspace.log.TabState;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.RegionId;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceState.RegionState;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.TabId;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceState.TabState;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogFile;
@@ -63,17 +66,17 @@ public final class WorkspaceFold {
     public static WorkspaceState apply(WorkspaceState state, WorkspaceEvent event) {
         var w = new Working(state);
         switch (event) {
-            case WorkspaceEvent.TabOpened e -> {
+            case TabEvent.TabOpened e -> {
                 if (w.tabs.containsKey(e.id())) throw new Refused("the tab " + e.id() + " is already open");
                 w.insert(e.host(), e.id(), e.index());
                 w.tabs.put(e.id(), new TabState(e.id(), e.kind(), e.title()));
             }
-            case WorkspaceEvent.TabBecame e -> w.tabs.put(e.id(), new TabState(w.open(e.id()).id(), e.kind(), e.title()));
-            case WorkspaceEvent.TabRenamed e -> {
+            case TabEvent.TabBecame e -> w.tabs.put(e.id(), new TabState(w.open(e.id()).id(), e.kind(), e.title()));
+            case TabEvent.TabRenamed e -> {
                 TabState t = w.open(e.id());
                 w.tabs.put(e.id(), new TabState(t.id(), t.kind(), e.title()));
             }
-            case WorkspaceEvent.TabMoved e -> {
+            case TabEvent.TabMoved e -> {
                 w.open(e.id());
                 Host from = w.hostOf(e.id());
                 boolean kept = from.equals(e.host()) && w.hosted(from).shown.map(e.id()::equals).orElse(false);
@@ -81,37 +84,37 @@ public final class WorkspaceFold {
                 w.insert(e.host(), e.id(), e.index());
                 if (kept) w.hosted(from).shown = Optional.of(e.id());
             }
-            case WorkspaceEvent.TabShown e -> {
+            case TabEvent.TabShown e -> {
                 Hosted h = w.hosted(e.host());
                 if (!h.tabs.contains(e.id())) throw new Refused("the " + name(e.host()) + " does not hold " + e.id());
                 h.shown = Optional.of(e.id());
             }
-            case WorkspaceEvent.TabClosed e -> {
+            case TabEvent.TabClosed e -> {
                 w.open(e.id());
                 w.takeOut(e.id());
                 w.tabs.remove(e.id());
             }
-            case WorkspaceEvent.RegionParted e -> {
+            case RegionEvent.RegionParted e -> {
                 w.layout = LayoutAlgebra.subdivide(w.layout, e.region(), e.side(), e.newRegion());
                 w.regions.put(e.newRegion(), new Hosted());
             }
-            case WorkspaceEvent.RegionRemoved e -> {
+            case RegionEvent.RegionRemoved e -> {
                 Hosted h = w.hosted(new Host.InRegion(e.region()));
                 if (!h.tabs.isEmpty()) throw new Refused("the region " + e.region() + " still holds " + h.tabs);
                 w.layout = LayoutAlgebra.remove(w.layout, e.region(), e.toward());
                 w.regions.remove(e.region());
             }
-            case WorkspaceEvent.TracksChanged e -> w.layout = LayoutAlgebra.tracks(w.layout, e.path().value(), e.shares());
-            case WorkspaceEvent.FloatOpened e -> {
+            case RegionEvent.TracksChanged e -> w.layout = LayoutAlgebra.tracks(w.layout, e.path().value(), e.shares());
+            case FloatEvent.FloatOpened e -> {
                 if (w.floats.containsKey(e.id())) throw new Refused("the float " + e.id() + " is already open");
                 var f = new Hosted();
                 f.x = e.x(); f.y = e.y(); f.w = e.w(); f.h = e.h();
                 w.floats.put(e.id(), f);
             }
-            case WorkspaceEvent.FloatMoved e -> { Hosted f = w.floatOf(e.id()); f.x = e.x(); f.y = e.y(); }
-            case WorkspaceEvent.FloatResized e -> { Hosted f = w.floatOf(e.id()); f.w = e.w(); f.h = e.h(); }
-            case WorkspaceEvent.FloatRaised e -> w.floats.put(e.id(), w.floats.remove(w.floatId(e.id())));
-            case WorkspaceEvent.FloatClosed e -> {
+            case FloatEvent.FloatMoved e -> { Hosted f = w.floatOf(e.id()); f.x = e.x(); f.y = e.y(); }
+            case FloatEvent.FloatResized e -> { Hosted f = w.floatOf(e.id()); f.w = e.w(); f.h = e.h(); }
+            case FloatEvent.FloatRaised e -> w.floats.put(e.id(), w.floats.remove(w.floatId(e.id())));
+            case FloatEvent.FloatClosed e -> {
                 Hosted f = w.floatOf(e.id());
                 if (!f.tabs.isEmpty()) throw new Refused("the float " + e.id() + " still holds " + f.tabs);
                 w.floats.remove(e.id());

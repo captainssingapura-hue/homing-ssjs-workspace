@@ -41,7 +41,7 @@ final class IdCodeGen {
             var c = only(t);
             String n = simple(t), f = c.name(), grammar = LogShapes.grammar(t);
             var sb = new StringBuilder();
-            sb.append("/** Generated from ").append(t.getName()).append(" — do not edit. */\n");
+            sb.append("/** Generated from ").append(t.getCanonicalName()).append(" — do not edit. */\n");
             sb.append("class ").append(n).append(" {\n");
             if (grammar != null) {
                 sb.append("    static GRAMMAR = new RegExp(").append(javaString("^(?:" + grammar + ")$")).append(");\n\n");
@@ -70,7 +70,7 @@ final class IdCodeGen {
             Class<?> t = definition.type();
             var c = only(t);
             String n = simple(t);
-            return "/** Generated from " + t.getName() + " — do not edit. */\n"
+            return "/** Generated from " + t.getCanonicalName() + " — do not edit. */\n"
                  + "class " + codec(t) + " {\n"
                  + "    static transformTo(v) {\n"
                  + "        if (!(v instanceof " + n + ")) LogWire.no(" + javaString(codec(t) + ".transformTo") + ", \"expected a " + n + ", got \" + LogWire.show(v));\n"

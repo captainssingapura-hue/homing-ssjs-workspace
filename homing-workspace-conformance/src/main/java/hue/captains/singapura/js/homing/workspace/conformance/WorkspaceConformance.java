@@ -5,7 +5,7 @@ import hue.captains.singapura.js.homing.conformance.rules.DefaultJsRulePolicy;
 import hue.captains.singapura.js.homing.conformance.rules.FindingGrader;
 import hue.captains.singapura.js.homing.conformance.rules.JsRulePolicy;
 import hue.captains.singapura.js.homing.core.Crate;
-import hue.captains.singapura.js.homing.workspace.codecs.WorkspaceCodecsCrate;
+import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogCrate;
 import hue.captains.singapura.js.homing.workspace.shell.WorkspaceShellCrate;
 
@@ -24,7 +24,7 @@ public final class WorkspaceConformance {
 
     /** This repo's crates: what the export grades. */
     public static final List<Crate> TOP_LEVEL = List.of(
-            WorkspaceCodecsCrate.INSTANCE,
+            WorkspaceLogCodecCrate.INSTANCE,
             WorkspaceLogCrate.INSTANCE,
             WorkspaceShellCrate.INSTANCE);
 

@@ -1,12 +1,12 @@
 package hue.captains.singapura.js.homing.workspace.codecs.log;
 
 import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
-import hue.captains.singapura.js.homing.workspace.codecs.WorkspaceLogCodecsModule;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Value;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,16 +16,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * The generated JavaScript: what the Java records declare, the classes hold —
  * a wire value decodes to frozen typed instances and encodes back to the same
- * text; anything the records would refuse, the classes refuse.
+ * text; anything the records would refuse, the classes refuse. The modules are
+ * one per top-level Java declaration, importing one way; loaded here in one
+ * scope, in the order the crate lists them.
  */
 class WorkspaceLogJsGenTest extends JsModuleTestBase {
-
-    private static final String MODULE = "/homing/js/hue/captains/singapura/js/homing/workspace/codecs/WorkspaceLogCodecsModule.js";
 
     @BeforeEach
     void load() {
         js = buildContext();
-        loadModule(MODULE);
+        for (String script : WorkspaceLogJsGen.scripts().values()) js.eval("js", script);
     }
 
     /** Decode the wire text with a codec, encode it back, and return the text. */
@@ -44,11 +44,36 @@ class WorkspaceLogJsGenTest extends JsModuleTestBase {
     }
 
     @Test
-    void theModuleExportsWhatTheGeneratorEmits() {
-        var declared = WorkspaceLogCodecsModule.INSTANCE.exports().exports().stream()
-                .map(x -> x.getClass().getSimpleName()).toList();
-        assertEquals(WorkspaceLogJsGen.exportedNames(), declared);
-        for (String n : declared) assertTrue(global(n).canInstantiate() || global(n).hasMembers(), n);
+    void aModuleIsATopLevelJavaDeclaration_andEveryExportIsDefined() {
+        var names = new ArrayList<String>();
+        for (var m : WorkspaceLogJsGen.modules()) {
+            names.add(m.name());
+            for (var e : m.entries()) assertEquals(m.top(), LogModules.top(e.type()), e.type().getName());
+            for (String x : m.exports()) assertTrue(global(x).canInstantiate() || global(x).hasMembers(), x);
+        }
+        assertEquals(List.of("LogIdsModule", "ScaledModule", "HostModule", "LayoutModule", "TabEventModule", "RegionEventModule",
+                "FloatEventModule", "WorkspaceEventModule", "LoggedEventModule", "LogHeaderModule", "WorkspaceStateModule",
+                "FoldedStateModule"), names);
+    }
+
+    /** Imports run one way: a module imports only what comes before it, the family of families its families. */
+    @Test
+    void importsRunOneWay() {
+        var before = new ArrayList<String>();
+        for (var m : WorkspaceLogJsGen.modules()) {
+            for (String from : m.imports().keySet()) assertTrue(before.contains(from), m.name() + " imports " + from + ", which is not before it");
+            before.add(m.name());
+        }
+        var event = WorkspaceLogJsGen.modules().stream().filter(m -> m.name().equals("WorkspaceEventModule")).findFirst().orElseThrow();
+        assertEquals(List.of("TabEventModule", "RegionEventModule", "FloatEventModule"), List.copyOf(event.imports().keySet()));
+        assertTrue(js.eval("js", "new TabClosed(new TabId('t')) instanceof WorkspaceEvent && !(new Cell(new RegionId('r')) instanceof WorkspaceEvent)").asBoolean());
+    }
+
+    @Test
+    void modulesThatWouldImportEachOtherAreRefused() {
+        var e = assertThrows(IllegalStateException.class, () -> LogModules.of(List.of(
+                LogCodecEntry.record(CycleA.X.class), LogCodecEntry.record(CycleB.Y.class))));
+        assertTrue(e.getMessage().contains("CycleAModule -> CycleBModule -> CycleAModule"), e.getMessage());
     }
 
     @Test
@@ -108,4 +133,13 @@ class WorkspaceLogJsGenTest extends JsModuleTestBase {
         assertThrows(PolyglotException.class, () -> js.eval("js", "new WorkspaceEvent()"));
         assertThrows(PolyglotException.class, () -> js.eval("js", "new Side('LEFT')"));
     }
+}
+
+/** Two files whose types refer to each other: their modules would import each other. */
+final class CycleA {
+    record X(CycleB.Y y) {}
+}
+
+final class CycleB {
+    record Y(CycleA.X x) {}
 }

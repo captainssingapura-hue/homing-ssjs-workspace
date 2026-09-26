@@ -1,22 +1,26 @@
 package hue.captains.singapura.js.homing.workspace.log.store;
 
+import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
 import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
-import hue.captains.singapura.js.homing.workspace.log.EventSeq;
-import hue.captains.singapura.js.homing.workspace.log.FloatId;
+import hue.captains.singapura.js.homing.workspace.log.TabEvent;
+import hue.captains.singapura.js.homing.workspace.log.RegionEvent;
+import hue.captains.singapura.js.homing.workspace.log.FloatEvent;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.EventSeq;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.FloatId;
 import hue.captains.singapura.js.homing.workspace.log.Host;
 import hue.captains.singapura.js.homing.workspace.log.LogHeader;
 import hue.captains.singapura.js.homing.workspace.log.LoggedEvent;
-import hue.captains.singapura.js.homing.workspace.log.RegionId;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.RegionId;
 import hue.captains.singapura.js.homing.workspace.log.Scaled;
-import hue.captains.singapura.js.homing.workspace.log.Side;
-import hue.captains.singapura.js.homing.workspace.log.TabId;
+import hue.captains.singapura.js.homing.workspace.log.RegionEvent.Side;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.TabId;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceKind;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceKind;
 import hue.captains.singapura.js.homing.workspace.log.json.Json;
-import hue.captains.singapura.js.homing.workspace.log.SplitPath;
-import hue.captains.singapura.js.homing.workspace.log.WidgetKind;
-import hue.captains.singapura.js.homing.workspace.log.WidgetTitle;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceInstanceId;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.SplitPath;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetKind;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetTitle;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceInstanceId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -36,13 +40,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 class WorkspaceLogParityTest extends JsModuleTestBase {
 
-    private static final String CODECS = "/homing/js/hue/captains/singapura/js/homing/workspace/codecs/WorkspaceLogCodecsModule.js";
     private static final String EXPORT = "/homing/js/hue/captains/singapura/js/homing/workspace/log/store/WorkspaceLogExportModule.js";
 
     @BeforeEach
     void load() {
         js = buildContext();
-        loadModule(CODECS);
+        for (String script : WorkspaceLogCodecCrate.scripts()) loadModule(script);
         loadModule(EXPORT);
     }
 
@@ -52,33 +55,33 @@ class WorkspaceLogParityTest extends JsModuleTestBase {
         var t1 = TabId.of("tab-1");
         var main = RegionId.of("main");
         var events = List.<WorkspaceEvent>of(
-                new WorkspaceEvent.TabOpened(t1, WidgetKind.of("opener"), WidgetTitle.of("Open"), new Host.InRegion(main), 0),
-                new WorkspaceEvent.TabBecame(t1, WidgetKind.of("note"), WidgetTitle.of(AWKWARD)),
-                new WorkspaceEvent.RegionParted(main, RegionId.of("cell_2"), Side.BOTTOM),
-                new WorkspaceEvent.TabMoved(t1, Host.region("cell_2"), Integer.MAX_VALUE),
-                new WorkspaceEvent.TabShown(Host.region("cell_2"), t1),
-                new WorkspaceEvent.TabRenamed(t1, WidgetTitle.of(AWKWARD + " renamed")),
-                new WorkspaceEvent.FloatOpened(FloatId.of("float-1"), -40, 0, 320, 220),
-                new WorkspaceEvent.TabMoved(t1, Host.floating("float-1"), 0),
-                new WorkspaceEvent.TabShown(Host.floating("float-1"), t1),
-                new WorkspaceEvent.FloatMoved(FloatId.of("float-1"), Integer.MIN_VALUE, Integer.MAX_VALUE),
-                new WorkspaceEvent.FloatResized(FloatId.of("float-1"), 1, Integer.MAX_VALUE),
-                new WorkspaceEvent.FloatRaised(FloatId.of("float-1")),
-                new WorkspaceEvent.TabMoved(t1, Host.region("main"), 0),
-                new WorkspaceEvent.FloatClosed(FloatId.of("float-1")),
-                new WorkspaceEvent.TracksChanged(SplitPath.of("0/12"), List.of(Scaled.of(333_333, 6), Scaled.of(333_333, 6), Scaled.of(333_334, 6))),
-                new WorkspaceEvent.TracksChanged(SplitPath.ROOT, List.of(Scaled.of(1, 1), Scaled.of(9, 1))),
-                new WorkspaceEvent.RegionRemoved(RegionId.of("cell_2"), Optional.of(main)),
-                new WorkspaceEvent.RegionRemoved(RegionId.of("cell_3"), Optional.empty()),
-                new WorkspaceEvent.TabOpened(TabId.of("tab-2"), WidgetKind.of("counter"), WidgetTitle.of(""), Host.region("main"), 1),
-                new WorkspaceEvent.TabClosed(t1));
+                new TabEvent.TabOpened(t1, WidgetKind.of("opener"), WidgetTitle.of("Open"), new Host.InRegion(main), 0),
+                new TabEvent.TabBecame(t1, WidgetKind.of("note"), WidgetTitle.of(AWKWARD)),
+                new RegionEvent.RegionParted(main, RegionId.of("cell_2"), Side.BOTTOM),
+                new TabEvent.TabMoved(t1, Host.region("cell_2"), Integer.MAX_VALUE),
+                new TabEvent.TabShown(Host.region("cell_2"), t1),
+                new TabEvent.TabRenamed(t1, WidgetTitle.of(AWKWARD + " renamed")),
+                new FloatEvent.FloatOpened(FloatId.of("float-1"), -40, 0, 320, 220),
+                new TabEvent.TabMoved(t1, Host.floating("float-1"), 0),
+                new TabEvent.TabShown(Host.floating("float-1"), t1),
+                new FloatEvent.FloatMoved(FloatId.of("float-1"), Integer.MIN_VALUE, Integer.MAX_VALUE),
+                new FloatEvent.FloatResized(FloatId.of("float-1"), 1, Integer.MAX_VALUE),
+                new FloatEvent.FloatRaised(FloatId.of("float-1")),
+                new TabEvent.TabMoved(t1, Host.region("main"), 0),
+                new FloatEvent.FloatClosed(FloatId.of("float-1")),
+                new RegionEvent.TracksChanged(SplitPath.of("0/12"), List.of(Scaled.of(333_333, 6), Scaled.of(333_333, 6), Scaled.of(333_334, 6))),
+                new RegionEvent.TracksChanged(SplitPath.ROOT, List.of(Scaled.of(1, 1), Scaled.of(9, 1))),
+                new RegionEvent.RegionRemoved(RegionId.of("cell_2"), Optional.of(main)),
+                new RegionEvent.RegionRemoved(RegionId.of("cell_3"), Optional.empty()),
+                new TabEvent.TabOpened(TabId.of("tab-2"), WidgetKind.of("counter"), WidgetTitle.of(""), Host.region("main"), 1),
+                new TabEvent.TabClosed(t1));
         var out = new ArrayList<LoggedEvent>();
         for (int i = 0; i < events.size(); i++) {
             // the first at the epoch itself, the rest a millisecond apart
             out.add(new LoggedEvent(EventSeq.of(i + 1), i == 0 ? Instant.EPOCH : Instant.ofEpochMilli(1_790_000_000_000L + i), events.get(i)));
         }
         // the largest number either language holds exactly, as the seq and as the time
-        out.add(new LoggedEvent(EventSeq.of(Json.MAX_SAFE), Instant.ofEpochMilli(Json.MAX_SAFE), new WorkspaceEvent.TabClosed(TabId.of("tab-2"))));
+        out.add(new LoggedEvent(EventSeq.of(Json.MAX_SAFE), Instant.ofEpochMilli(Json.MAX_SAFE), new TabEvent.TabClosed(TabId.of("tab-2"))));
         return out;
     }
 

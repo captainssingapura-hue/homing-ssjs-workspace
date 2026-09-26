@@ -1,11 +1,11 @@
 package hue.captains.singapura.js.homing.workspace.log.fold;
 
-import hue.captains.singapura.js.homing.workspace.log.Axis;
+import hue.captains.singapura.js.homing.workspace.log.Layout.Axis;
 import hue.captains.singapura.js.homing.workspace.log.Layout;
-import hue.captains.singapura.js.homing.workspace.log.RegionId;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.RegionId;
 import hue.captains.singapura.js.homing.workspace.log.Scaled;
-import hue.captains.singapura.js.homing.workspace.log.Side;
-import hue.captains.singapura.js.homing.workspace.log.Track;
+import hue.captains.singapura.js.homing.workspace.log.RegionEvent.Side;
+import hue.captains.singapura.js.homing.workspace.log.Layout.Track;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -37,7 +37,7 @@ final class EnumCodeGen {
             var names = names(t);
             String n = simple(t);
             var sb = new StringBuilder();
-            sb.append("/** Generated from ").append(t.getName()).append(" — do not edit. */\n");
+            sb.append("/** Generated from ").append(t.getCanonicalName()).append(" — do not edit. */\n");
             sb.append("class ").append(n).append(" {\n");
             sb.append("    static NAMES = Object.freeze([");
             for (int i = 0; i < names.size(); i++) sb.append(i > 0 ? ", " : "").append(javaString(names.get(i)));
@@ -65,7 +65,7 @@ final class EnumCodeGen {
         @Override public String generate(ObjectDefinition<?> definition) {
             Class<?> t = definition.type();
             String n = simple(t);
-            return "/** Generated from " + t.getName() + " — do not edit. */\n"
+            return "/** Generated from " + t.getCanonicalName() + " — do not edit. */\n"
                  + "class " + codec(t) + " {\n"
                  + "    static transformTo(v) {\n"
                  + "        if (!(v instanceof " + n + ")) LogWire.no(" + javaString(codec(t) + ".transformTo") + ", \"expected a " + n + ", got \" + LogWire.show(v));\n"

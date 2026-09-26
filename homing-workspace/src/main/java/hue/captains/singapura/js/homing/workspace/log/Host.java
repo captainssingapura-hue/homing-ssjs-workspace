@@ -1,5 +1,8 @@
 package hue.captains.singapura.js.homing.workspace.log;
 
+import hue.captains.singapura.js.homing.workspace.log.LogIds.FloatId;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.RegionId;
+
 import java.util.Objects;
 
 /**

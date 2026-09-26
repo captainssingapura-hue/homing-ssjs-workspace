@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.log;
 
+import hue.captains.singapura.js.homing.workspace.log.LogIds.EventSeq;
 
 import java.time.Instant;
 import java.util.Objects;

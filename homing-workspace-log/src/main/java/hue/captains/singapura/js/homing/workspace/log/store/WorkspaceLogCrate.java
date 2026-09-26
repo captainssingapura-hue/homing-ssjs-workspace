@@ -3,7 +3,7 @@ package hue.captains.singapura.js.homing.workspace.log.store;
 import hue.captains.singapura.js.homing.core.Crate;
 import hue.captains.singapura.js.homing.core.CrateEntry;
 import hue.captains.singapura.js.homing.core.StandardJsModuleType;
-import hue.captains.singapura.js.homing.workspace.codecs.WorkspaceCodecsCrate;
+import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
 
 import java.util.List;
 
@@ -21,7 +21,7 @@ public final class WorkspaceLogCrate implements Crate {
 
     @Override public String name() { return "homing-workspace-log"; }
 
-    @Override public List<Crate> requires() { return List.of(WorkspaceCodecsCrate.INSTANCE); }
+    @Override public List<Crate> requires() { return List.of(WorkspaceLogCodecCrate.INSTANCE); }
 
     @Override
     public List<CrateEntry> entries() {

@@ -1,11 +1,12 @@
 package hue.captains.singapura.js.homing.workspace.log.fold;
 
+import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
 import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
 import hue.captains.singapura.js.homing.workspace.log.Layout;
-import hue.captains.singapura.js.homing.workspace.log.RegionId;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.RegionId;
 import hue.captains.singapura.js.homing.workspace.log.Scaled;
-import hue.captains.singapura.js.homing.workspace.log.Side;
-import hue.captains.singapura.js.homing.workspace.log.Track;
+import hue.captains.singapura.js.homing.workspace.log.RegionEvent.Side;
+import hue.captains.singapura.js.homing.workspace.log.Layout.Track;
 import hue.captains.singapura.js.homing.workspace.log.codec.LayoutCodec;
 import hue.captains.singapura.js.homing.workspace.log.json.JsonText;
 import org.graalvm.polyglot.Value;
@@ -37,7 +38,7 @@ class LayoutAlgebraParityTest extends JsModuleTestBase {
     @BeforeEach
     void load() {
         js = buildContext();
-        loadModule(DIR + "workspace/codecs/WorkspaceLogCodecsModule.js");
+        for (String script : WorkspaceLogCodecCrate.scripts()) loadModule(script);
         loadModule(DIR + "workspace/log/fold/ExactShareModule.js");
         loadModule(DIR + "workspace/log/fold/LayoutAlgebraModule.js");
         loadModule(DIR + "ui/splitgrid/SplitGridTreeModule.js");

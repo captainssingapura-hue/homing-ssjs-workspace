@@ -5,7 +5,9 @@ import hue.captains.singapura.js.homing.core.Exportable;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
-import hue.captains.singapura.js.homing.workspace.codecs.WorkspaceLogCodecsModule;
+import hue.captains.singapura.js.homing.workspace.log.js.LogIdsModule;
+import hue.captains.singapura.js.homing.workspace.log.js.LayoutModule;
+import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceStateModule;
 
 import java.util.List;
 
@@ -25,14 +27,9 @@ public record WorkspaceProjectionModule() implements DomModule<WorkspaceProjecti
     public ImportsFor<WorkspaceProjectionModule> imports() {
         return ImportsFor.<WorkspaceProjectionModule>builder()
                 .add(new ModuleImports<>(List.of(new WorkspaceRecorderModule.WorkspaceRecorder()), WorkspaceRecorderModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(
-                        new WorkspaceLogCodecsModule.Cell(), new WorkspaceLogCodecsModule.Split(), new WorkspaceLogCodecsModule.Track(),
-                        new WorkspaceLogCodecsModule.Axis(), new WorkspaceLogCodecsModule.RegionId(), new WorkspaceLogCodecsModule.TabId(),
-                        new WorkspaceLogCodecsModule.WidgetKind(), new WorkspaceLogCodecsModule.WidgetTitle(),
-                        new WorkspaceLogCodecsModule.RegionState(), new WorkspaceLogCodecsModule.TabState(),
-                        new WorkspaceLogCodecsModule.FloatId(), new WorkspaceLogCodecsModule.FloatState(),
-                        new WorkspaceLogCodecsModule.WorkspaceState(), new WorkspaceLogCodecsModule.WorkspaceStateCodec()),
-                        WorkspaceLogCodecsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new LogIdsModule.RegionId(), new LogIdsModule.TabId(), new LogIdsModule.WidgetKind(), new LogIdsModule.WidgetTitle(), new LogIdsModule.FloatId()), LogIdsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new LayoutModule.Cell(), new LayoutModule.Split(), new LayoutModule.Track(), new LayoutModule.Axis()), LayoutModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceStateModule.RegionState(), new WorkspaceStateModule.TabState(), new WorkspaceStateModule.FloatState(), new WorkspaceStateModule.WorkspaceState(), new WorkspaceStateModule.WorkspaceStateCodec()), WorkspaceStateModule.INSTANCE))
                 .build();
     }
 

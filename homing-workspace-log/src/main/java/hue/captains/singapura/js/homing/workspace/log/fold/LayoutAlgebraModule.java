@@ -5,7 +5,10 @@ import hue.captains.singapura.js.homing.core.Exportable;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
-import hue.captains.singapura.js.homing.workspace.codecs.WorkspaceLogCodecsModule;
+import hue.captains.singapura.js.homing.workspace.log.js.LogIdsModule;
+import hue.captains.singapura.js.homing.workspace.log.js.ScaledModule;
+import hue.captains.singapura.js.homing.workspace.log.js.LayoutModule;
+import hue.captains.singapura.js.homing.workspace.log.js.RegionEventModule;
 
 import java.util.List;
 
@@ -20,7 +23,10 @@ public record LayoutAlgebraModule() implements DomModule<LayoutAlgebraModule> {
     public ImportsFor<LayoutAlgebraModule> imports() {
         return ImportsFor.<LayoutAlgebraModule>builder()
                 .add(new ModuleImports<>(List.of(new ExactShareModule.ExactShare()), ExactShareModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(new WorkspaceLogCodecsModule.Cell(), new WorkspaceLogCodecsModule.Split(), new WorkspaceLogCodecsModule.Track(), new WorkspaceLogCodecsModule.Scaled(), new WorkspaceLogCodecsModule.RegionId(), new WorkspaceLogCodecsModule.Side(), new WorkspaceLogCodecsModule.Axis()), WorkspaceLogCodecsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new LogIdsModule.RegionId()), LogIdsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new ScaledModule.Scaled()), ScaledModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new LayoutModule.Cell(), new LayoutModule.Split(), new LayoutModule.Track(), new LayoutModule.Axis()), LayoutModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new RegionEventModule.Side()), RegionEventModule.INSTANCE))
                 .build();
     }
 

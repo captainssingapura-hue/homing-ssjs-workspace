@@ -5,7 +5,8 @@ import hue.captains.singapura.js.homing.core.Exportable;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
-import hue.captains.singapura.js.homing.workspace.codecs.WorkspaceLogCodecsModule;
+import hue.captains.singapura.js.homing.workspace.log.js.LogIdsModule;
+import hue.captains.singapura.js.homing.workspace.log.js.LogHeaderModule;
 
 import java.util.List;
 
@@ -19,7 +20,8 @@ public record WorkspaceLogIdentityModule() implements DomModule<WorkspaceLogIden
     @Override
     public ImportsFor<WorkspaceLogIdentityModule> imports() {
         return ImportsFor.<WorkspaceLogIdentityModule>builder()
-                .add(new ModuleImports<>(List.of(new WorkspaceLogCodecsModule.LogHeader(), new WorkspaceLogCodecsModule.WorkspaceKind(), new WorkspaceLogCodecsModule.WorkspaceInstanceId()), WorkspaceLogCodecsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new LogIdsModule.WorkspaceKind(), new LogIdsModule.WorkspaceInstanceId()), LogIdsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new LogHeaderModule.LogHeader()), LogHeaderModule.INSTANCE))
                 .build();
     }
 

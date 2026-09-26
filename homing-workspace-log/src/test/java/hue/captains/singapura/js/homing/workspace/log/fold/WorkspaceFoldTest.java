@@ -1,20 +1,22 @@
 package hue.captains.singapura.js.homing.workspace.log.fold;
 
-import hue.captains.singapura.js.homing.workspace.log.Axis;
-import hue.captains.singapura.js.homing.workspace.log.FloatId;
+import hue.captains.singapura.js.homing.workspace.log.Layout.Axis;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.FloatId;
 import hue.captains.singapura.js.homing.workspace.log.Host;
 import hue.captains.singapura.js.homing.workspace.log.Layout;
-import hue.captains.singapura.js.homing.workspace.log.RegionId;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.RegionId;
 import hue.captains.singapura.js.homing.workspace.log.Scaled;
-import hue.captains.singapura.js.homing.workspace.log.Side;
-import hue.captains.singapura.js.homing.workspace.log.TabId;
-import hue.captains.singapura.js.homing.workspace.log.Track;
+import hue.captains.singapura.js.homing.workspace.log.RegionEvent.Side;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.TabId;
+import hue.captains.singapura.js.homing.workspace.log.Layout.Track;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent.*;
+import hue.captains.singapura.js.homing.workspace.log.TabEvent.*;
+import hue.captains.singapura.js.homing.workspace.log.RegionEvent.*;
+import hue.captains.singapura.js.homing.workspace.log.FloatEvent.*;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
-import hue.captains.singapura.js.homing.workspace.log.SplitPath;
-import hue.captains.singapura.js.homing.workspace.log.WidgetKind;
-import hue.captains.singapura.js.homing.workspace.log.WidgetTitle;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.SplitPath;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetKind;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetTitle;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
