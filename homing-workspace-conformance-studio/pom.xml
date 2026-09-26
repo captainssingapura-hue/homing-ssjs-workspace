@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+        <artifactId>homing.js.ws</artifactId>
+        <version>LOCAL-SNAPSHOT</version>
+    </parent>
+    <artifactId>homing-workspace-conformance-studio</artifactId>
+    <description>
+        The workspace's conformance studio, report only: the framework's
+        conformance studio, as it is, on core's studio stack, serving the report
+        homing-workspace-conformance exported on its build - on port 8099. Local,
+        for development and review; not published. None of this repo's crates is
+        on its classpath: core's stack carries a copy of the workspace of its own
+        under the same names, and its widgets mount on that copy. So the report
+        views are this repo's, and the live crate views - built from crates on
+        the classpath - are left empty.
+    </description>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- THE VIEWER: the framework's conformance studio, as it is. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-conformance-studio</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+        <!-- THE EXPORT, for the build's order alone - nothing it depends on comes with it; its report is copied below. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-conformance</artifactId>
+            <version>${project.parent.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- The report into this module's own classes, a directory: the studio reads it as files, which it cannot
+                 inside a jar. The dependency above only orders the build: the export module first. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-workspace-conformance-report</id>
+                        <phase>process-resources</phase>
+                        <goals><goal>copy-resources</goal></goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}/conformance-report</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/../homing-workspace-conformance/target/classes/conformance-report</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- mvn -q -pl homing-workspace-conformance-studio exec:java  →  the studio on 8099 -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <mainClass>hue.captains.singapura.js.homing.workspace.conformance.studio.WorkspaceConformanceStudioServer</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

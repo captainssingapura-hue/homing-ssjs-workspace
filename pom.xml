@@ -40,6 +40,10 @@
         <!-- The repo's own demos, nested: a workspace is a thing you run, and
              a module that runs one is the only honest test of that. -->
         <module>homing-workspace-demos</module>
+        <!-- The conformance of this repo's crates, graded on every build; and the studio that shows the
+             report, on 8099 - apart, on core's studio stack. Local, for development and review. -->
+        <module>homing-workspace-conformance</module>
+        <module>homing-workspace-conformance-studio</module>
     </modules>
 
     <properties>
