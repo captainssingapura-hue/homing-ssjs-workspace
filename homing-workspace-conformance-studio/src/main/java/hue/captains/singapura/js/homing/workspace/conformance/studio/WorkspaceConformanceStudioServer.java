@@ -9,12 +9,15 @@ import hue.captains.singapura.js.homing.studio.base.Umbrella;
 import java.util.List;
 
 /**
- * The workspace's conformance studio, report only: the framework's studio,
- * verbatim, on core's stack, with no top-level crates of its own — this repo's
- * crates share their names with the copy of the workspace core's stack
- * carries, so they are never on this classpath. What it shows is the report
- * {@code WorkspaceConformanceExport} wrote on the conformance module's build,
- * read from that module's jar. Local, for development and review.
+ * The workspace's conformance studio: the framework's studio, verbatim, on
+ * core's stack, with no top-level crates of its own - this repo's crates share
+ * their names with the copy of the workspace core's stack carries, so they are
+ * never on this classpath. What it shows was written on the conformance
+ * module's build: the report, and the crate views - tree, graph, crate
+ * conformance - run there over this repo's crates ({@link WorkspaceStudioFixtures}).
+ * A module's source is the one view it cannot give: {@code /module} serves what
+ * is on this classpath, which for most of this repo's names is core's copy.
+ * Local, for development and review.
  *
  * <p>Landing: {@code /}. Workspace: {@code /cat/conformance-workspace}. Port
  * {@code 8099} by default ({@code -Dconformance.port}), beside the components'
@@ -31,6 +34,6 @@ public final class WorkspaceConformanceStudioServer {
         var umbrella = new Umbrella.Solo<>(ConformanceStudio.INSTANCE);
         int port = Integer.getInteger("conformance.port", 8099);
         System.out.println("[workspace-crate-studio] the workspace's conformance report, on " + port);
-        new Bootstrap<>(new ConformanceStudioFixtures(umbrella, List.of()), new DefaultRuntimeParams(port)).start();
+        new Bootstrap<>(new WorkspaceStudioFixtures(new ConformanceStudioFixtures(umbrella, List.of())), new DefaultRuntimeParams(port)).start();
     }
 }

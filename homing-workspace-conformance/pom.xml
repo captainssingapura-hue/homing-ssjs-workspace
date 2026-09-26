@@ -75,6 +75,13 @@
             <artifactId>homing-conformance-export</artifactId>
             <version>${homing.core.version}</version>
         </dependency>
+        <!-- The studio's own crate views, run here - where this repo's crates are first on the classpath - and their
+             answers written beside the report, for the studio to serve: it cannot load these crates itself. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-conformance-studio</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

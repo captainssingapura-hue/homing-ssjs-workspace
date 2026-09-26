@@ -10,14 +10,14 @@
     </parent>
     <artifactId>homing-workspace-conformance-studio</artifactId>
     <description>
-        The workspace's conformance studio, report only: the framework's
-        conformance studio, as it is, on core's studio stack, serving the report
-        homing-workspace-conformance exported on its build - on port 8099. Local,
-        for development and review; not published. None of this repo's crates is
-        on its classpath: core's stack carries a copy of the workspace of its own
-        under the same names, and its widgets mount on that copy. So the report
-        views are this repo's, and the live crate views - built from crates on
-        the classpath - are left empty.
+        The workspace's conformance studio: the framework's conformance studio,
+        as it is, on core's studio stack, on port 8099, showing what
+        homing-workspace-conformance wrote on its build - the report, and the
+        crate views (tree, graph, crate conformance) run there over this repo's
+        crates. Local, for development and review; not published. None of this
+        repo's crates is on its classpath: core's stack carries a copy of the
+        workspace of its own under the same names, and its widgets mount on that
+        copy. A module's source is the one view it cannot give.
     </description>
 
     <properties>
