@@ -30,7 +30,7 @@ public record BenchMonitorsModule() implements DomModule<BenchMonitorsModule> {
         return ImportsFor.<BenchMonitorsModule>builder()
                 .add(new ModuleImports<>(List.of(new DeskModule.Desk()), DeskModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new HostedWidgetModule.HostedWidget()), HostedWidgetModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(new WidgetBenchStyles.wb_bar(), new WidgetBenchStyles.wb_toggle(), new WidgetBenchStyles.wb_toggle_on()), WidgetBenchStyles.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WidgetBenchStyles.wb_bar(), new WidgetBenchStyles.wb_toggle(), new WidgetBenchStyles.wb_toggle_on(), new WidgetBenchStyles.wb_bar_gap()), WidgetBenchStyles.INSTANCE))
                 .build();
     }
 

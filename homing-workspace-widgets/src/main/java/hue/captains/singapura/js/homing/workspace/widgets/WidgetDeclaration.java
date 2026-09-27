@@ -1,6 +1,7 @@
 package hue.captains.singapura.js.homing.workspace.widgets;
 
 import hue.captains.singapura.js.homing.core.ModuleImports;
+import hue.captains.singapura.js.homing.workspace.parties.PartyType;
 
 import java.util.List;
 import java.util.Map;
@@ -54,4 +55,16 @@ public interface WidgetDeclaration<P extends WidgetParams> {
 
     /** Params held as the interface, written as this kind writes them. */
     default Map<String, List<String>> toQuery(WidgetParams params) { return query().to(paramsType().cast(params)); }
+
+    /**
+     * The messaging parties' types a widget of this kind joins for its full
+     * function (Messaging Parties Are Joined Top-Down): deterministic once it is
+     * made - a function of its params - and declared here, in Java. A widget
+     * works alone without them; each joined adds what that type is for. None,
+     * unless said. The widget says the same of itself, made: {@code widget.parties}.
+     */
+    default List<PartyType<?>> parties(P params) { return List.of(); }
+
+    /** The types, for params held as the interface. */
+    default List<PartyType<?>> partiesOf(WidgetParams params) { return parties(paramsType().cast(params)); }
 }

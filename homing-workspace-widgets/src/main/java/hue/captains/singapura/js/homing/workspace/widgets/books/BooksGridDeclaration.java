@@ -2,6 +2,7 @@ package hue.captains.singapura.js.homing.workspace.widgets.books;
 
 import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.core.QueryString;
+import hue.captains.singapura.js.homing.workspace.parties.PartyType;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetDeclaration;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetParams;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetQuery;
@@ -66,6 +67,7 @@ public record BooksGridDeclaration() implements WidgetDeclaration<BooksGridDecla
     @Override public String kind() { return "books-grid"; }
     @Override public Class<Params> paramsType() { return Params.class; }
     @Override public WidgetQuery<Params> query() { return new Query(); }
+    @Override public List<PartyType<?>> parties(Params params) { return List.of(BookSelection.TYPE); }
 
     @Override
     public ModuleImports<?> constructs() {

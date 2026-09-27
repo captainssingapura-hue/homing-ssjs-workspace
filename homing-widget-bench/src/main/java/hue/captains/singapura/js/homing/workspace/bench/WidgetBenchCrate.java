@@ -7,9 +7,12 @@ import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
 import hue.captains.singapura.js.homing.design.DesignCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
 import hue.captains.singapura.js.homing.ui.docking.UiDockingCrate;
+import hue.captains.singapura.js.homing.ui.elements.UiElementsCrate;
+import hue.captains.singapura.js.homing.ui.focus.UiFocusCrate;
 import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyFixedModule;
 import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyStyles;
 import hue.captains.singapura.js.homing.workspace.monitors.WorkspaceMonitorsCrate;
+import hue.captains.singapura.js.homing.workspace.parties.WorkspacePartiesCrate;
 import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceWidgetsCrate;
 
 import java.util.List;
@@ -36,7 +39,12 @@ public final class WidgetBenchCrate implements Crate {
                 // the desk the monitors' floats lie on
                 UiDockingCrate.INSTANCE,
                 // the design words the toggles wear
-                DesignCrate.INSTANCE);
+                DesignCrate.INSTANCE,
+                // the parties a widget joins on the bench: the runtime
+                WorkspacePartiesCrate.INSTANCE,
+                // the simulator's button, and its log's lines as the monitors' rows
+                UiElementsCrate.INSTANCE,
+                UiFocusCrate.INSTANCE);
     }
 
     @Override
@@ -47,6 +55,9 @@ public final class WidgetBenchCrate implements Crate {
                 CrateEntry.of(WidgetBenchStyles.INSTANCE),
                 // the monitors' bar, and the desk their floats lie on
                 CrateEntry.of(BenchMonitorsModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                // the parties the widget joins, at the root: the manual secretary, and its simulator
+                CrateEntry.of(BenchSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
+                CrateEntry.of(PartySimulatorModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 // the nasty widgets, which misbehave on purpose for the bench to catch
                 CrateEntry.of(NastyFixedModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(NastyStyles.INSTANCE));

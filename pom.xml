@@ -36,6 +36,8 @@
         <module>homing-workspace-log</module>
         <!-- The workspace as a page: the desk and its docks, the recorder, the restore. -->
         <module>homing-workspace-shell</module>
+        <!-- The messaging parties: a party's type declared in Java, and the flat instance a widget joins. -->
+        <module>homing-workspace-parties</module>
         <!-- The widgets, each self-contained: made with a container and its params, its roots its own. -->
         <module>homing-workspace-widgets</module>
         <!-- The monitors, as widgets: the page's parties on view, each monitor self-contained. -->

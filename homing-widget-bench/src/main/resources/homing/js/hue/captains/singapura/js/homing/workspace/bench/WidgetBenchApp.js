@@ -17,6 +17,12 @@
 // monitors' floats over both (BenchMonitors) — made before the widget, as the
 // page's own, so that what the page had before the widget came is known.
 //
+// The bench is the substrate of the messaging parties the widget says it joins
+// (Messaging Parties Are Joined Top-Down): a party of each type at the root,
+// its secretary a manual one, driven from a simulator on the bar — so the
+// widget is tried against whatever a person types — and the widget joined
+// after it is made and grafted, explicitly.
+//
 // The container is the bench's, and the one facility it gives a widget:
 // resizable by its corner. It never scrolls. A widget fills it, at whatever
 // size it is made, by itself - and whatever needs scrolling scrolls inside the
@@ -47,7 +53,7 @@ function appMain(el, params) {
     var place = domOpsParty.createBranch("widgetBench");
     place.activate(_benchOwner);
     // the monitors' bar, and the desk their floats lie on: the page's own, made first
-    new BenchMonitors(place.createBranch("monitors"), { host: el, monitors: BENCH_MONITORS });
+    var tools = new BenchMonitors(place.createBranch("monitors"), { host: el, monitors: BENCH_MONITORS });
     var container = place.createElement("container", "div");
     css.addClass(container, wb_bench);
     el.appendChild(container);
@@ -61,7 +67,28 @@ function appMain(el, params) {
     if (dom instanceof MobileDomOpsParty) place.graft("widget", dom);
     var focus = widget.roots && widget.roots.focus;
     if (focus instanceof MobileFocusParty) focusParty.root.graft("widget", focus);
+    _joined(el, tools, widget);
     _watch(container, params.widget, { widget: widget, pageBranches: pageBranches, pageMembers: pageMembers });
+}
+
+/**
+ * The widget's messaging parties, simulated: for every type it says it joins,
+ * a party at the root, its secretary the bench's manual one, its simulator
+ * floated from the bar - open, so that the joining is seen - and then the
+ * widget joined, given each by its type. Placement has nothing to do with it.
+ */
+function _joined(el, tools, widget) {
+    var types = Array.isArray(widget.parties) ? widget.parties : [];
+    if (!types.length || typeof widget.join !== "function") return;
+    var given = {};
+    types.forEach(function (type, i) {
+        var party = new MessagingParty(type, BenchSecretary);
+        given[type.name] = party;
+        tools.add({ kind: "party-" + type.name, title: "Party " + type.name, mark: type.name.charAt(0).toUpperCase(),
+                    rect: { x: 24 + i * 28, y: Math.max(56, el.clientHeight - 340 - i * 28), w: 560, h: 300 },
+                    make: function (branch, tab) { return new PartySimulator(branch, tab, party); } }, true);
+    });
+    widget.join(given);
 }
 
 /** What is wrong with the container, and the page's party, as the widget keeps them - or nothing. */
@@ -85,6 +112,9 @@ function _misbehaviours(el, seen) {
     if (!(focus instanceof MobileFocusParty)) out.push("it offers no focus party of its own for its host to graft (roots.focus)");
     var joined = focusParty.root.members.map(function (m) { return m.name; }).filter(function (n) { return n !== "widget" && seen.pageMembers.indexOf(n) < 0; });
     if (joined.length) out.push("it joined " + joined.join(", ") + " to the page's focus party, not to a party of its own");
+    var types = seen.widget.parties;
+    if (types != null && !Array.isArray(types)) out.push("its parties are not a list of the types it joins");
+    else if (types && types.length && typeof seen.widget.join !== "function") out.push("it says it joins " + types.map(function (t) { return t.name; }).join(", ") + ", and cannot join");
     var focusStrays = focusParties.strays();
     if (focusStrays.length) out.push("focus parties no one has grafted: " + focusStrays.map(function (s) { return s.name; }).join(", "));
     return out;

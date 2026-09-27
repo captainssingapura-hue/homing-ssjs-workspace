@@ -12,6 +12,7 @@ import hue.captains.singapura.js.homing.core.QueryString;
 import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
 import hue.captains.singapura.js.homing.core.js.domOpsParties;
 import hue.captains.singapura.js.homing.core.js.domOpsParty;
+import hue.captains.singapura.js.homing.workspace.parties.MessagingPartyModule;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetParams;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetQuery;
 
@@ -85,6 +86,10 @@ public record WidgetBenchApp() implements AppModule<WidgetBenchApp.Params, Widge
                 .add(new ModuleImports<>(List.of(new BenchWidgetsModule.BENCH_WIDGETS(), new BenchWidgetsModule.BENCH_MONITORS()), BenchWidgetsModule.INSTANCE))
                 // the monitors' bar, and the desk their floats lie on
                 .add(new ModuleImports<>(List.of(new BenchMonitorsModule.BenchMonitors()), BenchMonitorsModule.INSTANCE))
+                // the parties the widget joins, at the root: the runtime, the bench's manual secretary, and its simulator
+                .add(new ModuleImports<>(List.of(new MessagingPartyModule.MessagingParty()), MessagingPartyModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new BenchSecretaryModule.BenchSecretary()), BenchSecretaryModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new PartySimulatorModule.PartySimulator()), PartySimulatorModule.INSTANCE))
                 // the page's party, where the bench grafts the widget's own; the party of parties, which says the strays
                 .add(new ModuleImports<>(List.of(new domOpsParty(), new domOpsParties(), new DomOpsPartyModule.MobileDomOpsParty()), DomOpsPartyModule.INSTANCE))
                 // the page's focus party, where the bench grafts the widget's own; its party of parties

@@ -8,9 +8,13 @@ import java.util.List;
 
 import static hue.captains.singapura.js.homing.design.Box.Control;
 import static hue.captains.singapura.js.homing.design.DesignClass.of;
+import static hue.captains.singapura.js.homing.design.Emphasis.Muted;
+import static hue.captains.singapura.js.homing.design.Feedback.Danger;
 import static hue.captains.singapura.js.homing.design.Interaction.Current;
 import static hue.captains.singapura.js.homing.design.Interaction.Interactive;
 import static hue.captains.singapura.js.homing.design.Layer.Raised;
+import static hue.captains.singapura.js.homing.design.Text.Caption;
+import static hue.captains.singapura.js.homing.design.Text.Code;
 import static hue.captains.singapura.js.homing.design.Target.Affordance;
 import static hue.captains.singapura.js.homing.design.Target.Color;
 import static hue.captains.singapura.js.homing.design.Target.Motion;
@@ -135,8 +139,117 @@ public record WidgetBenchStyles() implements CssGroup<WidgetBenchStyles> {
         @Override public String body() { return ""; }
     }
 
+    /** The gap on the bar between the monitors and the bench's own tools - the party simulators. */
+    public record wb_bar_gap() implements CssClass<WidgetBenchStyles> {
+        @Override public String body() { return """
+            flex: 0 0 auto;
+            width: 14px;
+            """;
+        }
+    }
+
+    /** A party simulator: the whole of its tab - who is in the party, the log, the box, and the bar under it. */
+    public record wb_sim() implements CssClass<WidgetBenchStyles> {
+        @Override public String body() { return """
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 8px;
+            min-height: 0;
+            box-sizing: border-box;
+            """;
+        }
+    }
+
+    /** Who is in the party: a line, quietly. */
+    public record wb_sim_note() implements CssClass<WidgetBenchStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Muted.class, Color.Ink.class), of(Caption.class, Type.Scale.class)); }
+        @Override public String body() { return "flex: 0 0 auto;"; }
+    }
+
+    /** What passed in the party, line by line: the rest of the simulator, its own scroller. */
+    public record wb_sim_log() implements CssClass<WidgetBenchStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Code.class, Type.Face.class), of(Caption.class, Type.Scale.class)); }
+        @Override public String body() { return """
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            """;
+        }
+    }
+
+    /** The box a message is typed in, as JSON. */
+    public record wb_sim_input() implements CssClass<WidgetBenchStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Code.class, Type.Face.class), of(Caption.class, Type.Scale.class),
+                                                                          of(Raised.class, Color.Surface.class), of(Body.class, Color.Ink.class), of(Control.class, Color.Edge.class)); }
+        @Override public String body() { return """
+            flex: 0 0 auto;
+            height: 64px;
+            width: 100%;
+            resize: vertical;
+            padding: 4px 6px;
+            border-width: 1px;
+            border-style: solid;
+            box-sizing: border-box;
+            """;
+        }
+    }
+
+    /** The simulator's bar: the templates, the button, and what was said of the last message. */
+    public record wb_sim_bar() implements CssClass<WidgetBenchStyles> {
+        @Override public String body() { return """
+            flex: 0 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            """;
+        }
+    }
+
+    /** The templates' picker. */
+    public record wb_sim_pick() implements CssClass<WidgetBenchStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Raised.class, Color.Surface.class), of(Body.class, Color.Ink.class), of(Control.class, Color.Edge.class)); }
+        @Override public String body() { return """
+            flex: 0 0 auto;
+            padding: 2px 4px;
+            border-width: 1px;
+            border-style: solid;
+            font: inherit;
+            """;
+        }
+    }
+
+    /** What was said of the last message: nothing when it went, why not when it did not. */
+    public record wb_sim_said() implements CssClass<WidgetBenchStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Caption.class, Type.Scale.class)); }
+        @Override public String body() { return """
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow-wrap: anywhere;
+            """;
+        }
+    }
+
+    /** It did not go: the danger's rule before the reason. */
+    public record wb_sim_error() implements CssClass<WidgetBenchStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Danger.class, Color.Edge.class)); }
+        @Override public String body() { return """
+            border-inline-start-width: 3px;
+            border-inline-start-style: solid;
+            padding-inline-start: 6px;
+            """;
+        }
+    }
+
     @Override
     public List<CssClass<WidgetBenchStyles>> cssClasses() {
-        return List.of(new wb_page(), new wb_bench(), new wb_misbehaves(), new wb_bar(), new wb_toggle(), new wb_toggle_on());
+        return List.of(new wb_page(), new wb_bench(), new wb_misbehaves(), new wb_bar(), new wb_toggle(), new wb_toggle_on(), new wb_bar_gap(),
+                       new wb_sim(), new wb_sim_note(), new wb_sim_log(), new wb_sim_input(), new wb_sim_bar(), new wb_sim_pick(), new wb_sim_said(), new wb_sim_error());
     }
 }

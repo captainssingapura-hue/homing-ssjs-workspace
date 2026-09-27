@@ -28,6 +28,12 @@
     </properties>
 
     <dependencies>
+        <!-- The messaging parties' types a widget declares, and the instance it joins. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-parties</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
         <!-- The party a widget mints its elements from, and the keys: its focus
              member, the steward's convention (Keys), what it declares it takes. -->
         <dependency>
@@ -54,6 +60,13 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- The secretaries, run headless (Diligent Secretaries: every kind tested). -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ssjs-test-fixtures</artifactId>
+            <version>${homing.core.version}</version>
             <scope>test</scope>
         </dependency>
         <!-- The gate (WidgetsConformanceTest), headless, as the shell's. -->

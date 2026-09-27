@@ -39,6 +39,12 @@
             <artifactId>homing-workspace-monitors</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <!-- The messaging parties' runtime: the parties a widget joins on the bench, at the root. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-parties</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
         <!-- The desk the monitors' floats lie on, from the ui-components. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
