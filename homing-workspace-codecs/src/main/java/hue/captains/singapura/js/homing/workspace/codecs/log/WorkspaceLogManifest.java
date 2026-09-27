@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.codecs.log;
 
+import hue.captains.singapura.js.homing.workspace.log.Checkpoint;
 import hue.captains.singapura.js.homing.workspace.log.FloatEvent;
 import hue.captains.singapura.js.homing.workspace.log.FoldedState;
 import hue.captains.singapura.js.homing.workspace.log.Host;
@@ -83,7 +84,9 @@ public final class WorkspaceLogManifest {
             LogCodecEntry.record(WorkspaceState.RegionState.class),
             LogCodecEntry.record(WorkspaceState.FloatState.class),
             LogCodecEntry.record(WorkspaceState.class),
-            LogCodecEntry.record(FoldedState.class));
+            LogCodecEntry.record(FoldedState.class),
+            // that state written down as the log goes, and by which rules of the fold
+            LogCodecEntry.record(Checkpoint.class));
 
     /**
      * The manifest holds together, or the build stops here: one name per type,

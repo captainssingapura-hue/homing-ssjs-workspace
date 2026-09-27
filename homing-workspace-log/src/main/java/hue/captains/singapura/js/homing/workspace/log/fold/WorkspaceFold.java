@@ -9,6 +9,7 @@ import hue.captains.singapura.js.homing.workspace.log.WorkspaceState.FloatState;
 import hue.captains.singapura.js.homing.workspace.log.FoldedState;
 import hue.captains.singapura.js.homing.workspace.log.Host;
 import hue.captains.singapura.js.homing.workspace.log.Layout;
+import hue.captains.singapura.js.homing.workspace.log.LogHeader;
 import hue.captains.singapura.js.homing.workspace.log.LoggedEvent;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.RegionId;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceState.RegionState;
@@ -60,6 +61,33 @@ public final class WorkspaceFold {
             through = e.seq().value();
         }
         return new FoldedState(file.header(), EventSeq.of(through), s);
+    }
+
+    /** Where every log's fold starts: its header, through no event, the opening state. */
+    public static FoldedState start(LogHeader header) {
+        return new FoldedState(header, EventSeq.ZERO, WorkspaceState.opening());
+    }
+
+    /**
+     * Events folded on from a folded state - a checkpoint's, or the opening - each
+     * after the last it went through: the state they leave, through the last.
+     * Folding a log's events from its opening, or on from the fold of any prefix
+     * of them, is the same fold: nothing passes from one event to the next but the
+     * state.
+     */
+    public static FoldedState foldFrom(FoldedState from, List<LoggedEvent> events) {
+        WorkspaceState s = from.state();
+        long through = from.through().value();
+        for (LoggedEvent e : events) {
+            long seq = e.seq().value();
+            if (seq <= through) throw new Refused("seq " + seq + " is not after " + through + ", the last folded");
+            try { s = apply(s, e.event()); }
+            catch (IllegalArgumentException x) {
+                throw new Refused("seq " + seq + ": " + e.event().getClass().getSimpleName() + " cannot be: " + x.getMessage());
+            }
+            through = seq;
+        }
+        return new FoldedState(from.header(), EventSeq.of(through), s);
     }
 
     /** One event on a state: the state after it. */

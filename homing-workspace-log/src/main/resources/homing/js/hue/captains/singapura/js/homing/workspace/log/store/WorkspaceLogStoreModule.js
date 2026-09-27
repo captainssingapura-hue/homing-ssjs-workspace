@@ -10,7 +10,7 @@
 //     backend  where the rows are kept: an IndexedDbLog, or a MemoryLog —
 //              add(row) → Promise<seq>, rows(kind, workspaceId) → Promise<rows
 //              in seq order>, clear(kind, workspaceId) → Promise<count>, and
-//              setAside / asides / discardAsides, as IndexedDbLog says
+//              rowsAfter, the checkpoint's, and the set-aside's, as IndexedDbLog says
 //     now      () → milliseconds since the epoch; Date.now unless said
 //
 //   store.header
@@ -18,7 +18,15 @@
 //                          WorkspaceEvent is refused before anything is kept
 //   store.events()       → Promise<LoggedEvent[]>, in order; a row the codecs
 //                          refuse rejects it, naming the row's seq
+//   store.eventsAfter(seq) → Promise<the LoggedEvents after seq>, the same way
+//   store.linesAfter(seq)  → Promise<the same as their wire form, undecoded>:
+//                          what a checkpoint's fold is handed, off this thread
 //   store.clear()        → Promise<count>
+//   store.checkpoint()   → Promise<the log's Checkpoint, or null>; one that does
+//                          not read rejects it
+//   store.putCheckpoint(checkpoint) → Promise<whether it was kept: not when the
+//                          log's is through as far already>
+//   store.dropCheckpoint() → Promise
 //   store.setAside(why)  → Promise<SetAsideLog, or null when the log is empty>:
 //                          the log moved aside, not lost - its lines as they
 //                          were kept, whether or not they read - and the log
@@ -48,16 +56,41 @@ class WorkspaceLogStore {
             .then(function (seq) { return new LoggedEvent(new EventSeq(seq), at, event); });
     }
 
-    events() {
-        return this._backend.rows(this._kind, this._workspaceId).then(function (rows) {
-            return rows.map(function (r) {
-                try { return LoggedEventCodec.transformFrom({ seq: r.seq, at: r.at, event: r.event }); }
-                catch (e) { throw new TypeError("[WorkspaceLogStore] the row at seq " + r.seq + " is not a logged event: " + e.message); }
+    events() { return this.eventsAfter(0); }
+
+    eventsAfter(seq) {
+        return this.linesAfter(seq).then(function (lines) {
+            return lines.map(function (w) {
+                try { return LoggedEventCodec.transformFrom(w); }
+                catch (e) { throw new TypeError("[WorkspaceLogStore] the row at seq " + w.seq + " is not a logged event: " + e.message); }
             });
         });
     }
 
+    linesAfter(seq) {
+        return this._backend.rowsAfter(this._kind, this._workspaceId, seq).then(function (rows) {
+            return rows.map(function (r) { return { seq: r.seq, at: r.at, event: r.event }; });
+        });
+    }
+
     clear() { return this._backend.clear(this._kind, this._workspaceId); }
+
+    checkpoint() {
+        return this._backend.checkpoint(this._kind, this._workspaceId).then(function (kept) {
+            if (!kept) return null;
+            try { return CheckpointCodec.transformFrom(kept.checkpoint); }
+            catch (e) { throw new TypeError("[WorkspaceLogStore] the checkpoint through seq " + kept.through + " does not read: " + e.message); }
+        });
+    }
+
+    putCheckpoint(checkpoint) {
+        if (!(checkpoint instanceof Checkpoint)) {
+            return Promise.reject(new TypeError("[WorkspaceLogStore] putCheckpoint takes a Checkpoint, got " + JSON.stringify(checkpoint)));
+        }
+        return this._backend.putCheckpoint(this._kind, this._workspaceId, checkpoint.folded.through.value, CheckpointCodec.transformTo(checkpoint));
+    }
+
+    dropCheckpoint() { return this._backend.dropCheckpoint(this._kind, this._workspaceId); }
 
     setAside(why) {
         var header = this.header, at = this._now();

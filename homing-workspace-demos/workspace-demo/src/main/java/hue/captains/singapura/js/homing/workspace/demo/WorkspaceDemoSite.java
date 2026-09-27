@@ -37,8 +37,8 @@ public record WorkspaceDemoSite() implements Site {
     public static final StandardMpa MPA = StandardMpa.of(
             Brand.of("Workspace"), HomingDesigns.REGISTRY, WorkspaceShellCrate.INSTANCE);
 
-    static final AppPage<?, ?> DEMO  = MPA.page(WorkspaceApp.INSTANCE, new WorkspaceApp.Params("demo"));
-    static final AppPage<?, ?> NOTES = MPA.page(WorkspaceApp.INSTANCE, new WorkspaceApp.Params("notes"));
+    static final AppPage<?, ?> DEMO  = MPA.page(WorkspaceApp.INSTANCE, new WorkspaceApp.Params("demo", true));
+    static final AppPage<?, ?> NOTES = MPA.page(WorkspaceApp.INSTANCE, new WorkspaceApp.Params("notes", true));
 
     @Override public String name() { return "workspace"; }
 

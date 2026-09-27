@@ -53,8 +53,9 @@ public final class WorkspaceShellCrate implements Crate {
     @Override
     public List<CrateEntry> entries() {
         return List.of(
-                // The workspace as a page of any standard MPA.
+                // The workspace as a page of any standard MPA, and the addresses it reaches, stamped.
                 CrateEntry.of(WorkspaceApp.INSTANCE, StandardJsModuleType.CONSUMER),
+                CrateEntry.of(WorkspaceAddressesModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // The workspace, built as the gallery's docking page is (RFC 0066 E3, the workspace
                 // detour): a desk and its dock grid on a floor.
                 CrateEntry.of(WorkspaceModule.INSTANCE, StandardJsModuleType.CONSUMER),

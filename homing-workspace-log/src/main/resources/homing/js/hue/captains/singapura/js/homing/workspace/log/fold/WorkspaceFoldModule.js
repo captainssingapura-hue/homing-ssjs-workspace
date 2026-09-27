@@ -5,8 +5,13 @@
 // WorkspaceFold, transcribed: the two agree to the byte.
 //
 //   WorkspaceFold.opening()              → the WorkspaceState every log starts from
+//   WorkspaceFold.start(header)          → a FoldedState: the opening, through no event
 //   WorkspaceFold.apply(state, event)    → the WorkspaceState after it
 //   WorkspaceFold.fold(header, events)   → a FoldedState: through the last event
+//   WorkspaceFold.foldFrom(from, events) → the same, folded on from a FoldedState - a
+//                                          checkpoint's - each event after the last it
+//                                          went through; the fold of a prefix, folded on,
+//                                          is the fold of the whole
 //
 // A tab leaving a host takes the host's showing with it when it was the one
 // shown — a reorder within the host keeps it — and whatever the host shows
@@ -24,14 +29,24 @@ class WorkspaceFold {
         return new WorkspaceState(new Cell(main), [new RegionState(main, [], null)], [], []);
     }
 
+    static start(header) {
+        return new FoldedState(header, new EventSeq(0), WorkspaceFold.opening());
+    }
+
     static fold(header, events) {
-        var s = WorkspaceFold.opening(), through = 0;
+        return WorkspaceFold.foldFrom(WorkspaceFold.start(header), events);
+    }
+
+    static foldFrom(from, events) {
+        var s = from.state, through = from.through.value;
         for (var i = 0; i < events.length; i++) {
+            var seq = events[i].seq.value;
+            if (seq <= through) _no("seq " + seq + " is not after " + through + ", the last folded");
             try { s = WorkspaceFold.apply(s, events[i].event); }
-            catch (e) { throw new Error("[WorkspaceFold] seq " + events[i].seq.value + ": " + events[i].event.constructor.name + " cannot be: " + e.message); }
-            through = events[i].seq.value;
+            catch (e) { throw new Error("[WorkspaceFold] seq " + seq + ": " + events[i].event.constructor.name + " cannot be: " + e.message); }
+            through = seq;
         }
-        return new FoldedState(header, new EventSeq(through), s);
+        return new FoldedState(from.header, new EventSeq(through), s);
     }
 
     static apply(state, e) {

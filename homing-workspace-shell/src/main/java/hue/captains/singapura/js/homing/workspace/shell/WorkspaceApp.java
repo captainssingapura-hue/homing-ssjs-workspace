@@ -11,6 +11,9 @@ import hue.captains.singapura.js.homing.core.js.domOpsParty;
 import hue.captains.singapura.js.homing.site.mpa.MpaStyles;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceKind;
 import hue.captains.singapura.js.homing.workspace.log.fold.WorkspaceFoldModule;
+import hue.captains.singapura.js.homing.workspace.log.js.CheckpointModule;
+import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceCheckpointerModule;
+import hue.captains.singapura.js.homing.workspace.shell.server.WorkspaceServer;
 import hue.captains.singapura.js.homing.workspace.log.store.IndexedDbLogModule;
 import hue.captains.singapura.js.homing.workspace.log.store.MemoryLogModule;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogIdentityModule;
@@ -37,8 +40,15 @@ public record WorkspaceApp() implements AppModule<WorkspaceApp.Params, Workspace
 
     public static final WorkspaceApp INSTANCE = new WorkspaceApp();
 
-    /** The kind to mount: a {@link WorkspaceKind}'s value. */
-    public record Params(String ws_kind) implements AppModule._Param {}
+    /**
+     * The kind to mount - a {@link WorkspaceKind}'s value - and whether the server
+     * keeps this workspace's states too: when it does, the page posts each
+     * checkpoint it takes to {@link WorkspaceServer#CHECKPOINTS}, on the server
+     * that served it. Off unless the page's route says so.
+     */
+    public record Params(String ws_kind, boolean ws_server) implements AppModule._Param {
+        public Params(String ws_kind) { this(ws_kind, false); }
+    }
 
     record appMain() implements AppModule._AppMain<Params, WorkspaceApp> {}
 
@@ -55,11 +65,16 @@ public record WorkspaceApp() implements AppModule<WorkspaceApp.Params, Workspace
             if (kind == null || kind.isBlank()) return Decoded.missing("ws_kind");
             try { WorkspaceKind.of(kind); }
             catch (IllegalArgumentException e) { return Decoded.malformed("ws_kind", kind, "a kind (letters, digits, hyphen, underscore)"); }
-            return Decoded.ok(new Params(kind));
+            String server = QueryString.first(query, "ws_server");
+            if (server != null && !server.equals("on")) return Decoded.malformed("ws_server", server, "on, or absent");
+            return Decoded.ok(new Params(kind, server != null));
         }
 
         @Override public Map<String, List<String>> to(Params params) {
-            return QueryString.of("ws_kind", params.ws_kind());
+            var q = QueryString.params();
+            QueryString.put(q, "ws_kind", params.ws_kind());
+            if (params.ws_server()) QueryString.put(q, "ws_server", "on");
+            return q;
         }
     };
 
@@ -81,6 +96,9 @@ public record WorkspaceApp() implements AppModule<WorkspaceApp.Params, Workspace
                 .add(new ModuleImports<>(List.of(new IndexedDbLogModule.IndexedDbLog()), IndexedDbLogModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new MemoryLogModule.MemoryLog()), MemoryLogModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceFoldModule.WorkspaceFold()), WorkspaceFoldModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceCheckpointerModule.WorkspaceCheckpointer()), WorkspaceCheckpointerModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new CheckpointModule.Checkpoint()), CheckpointModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceAddressesModule.WORKSPACE_ADDRESSES()), WorkspaceAddressesModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new FakeWidgetsModule.FakeNote(), new FakeWidgetsModule.FakeCounter(),
                                                  new FakeWidgetsModule.FakeField()), FakeWidgetsModule.INSTANCE))
                 .build();

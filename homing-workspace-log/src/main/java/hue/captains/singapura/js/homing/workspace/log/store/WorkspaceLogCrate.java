@@ -34,6 +34,10 @@ public final class WorkspaceLogCrate implements Crate {
                 // the fold: the log's meaning, as the Java fold makes it
                 CrateEntry.of(hue.captains.singapura.js.homing.workspace.log.fold.ExactShareModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(hue.captains.singapura.js.homing.workspace.log.fold.LayoutAlgebraModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(hue.captains.singapura.js.homing.workspace.log.fold.WorkspaceFoldModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
+                CrateEntry.of(hue.captains.singapura.js.homing.workspace.log.fold.WorkspaceFoldModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                // checkpoints: the next one's fold, the worker it runs in, and what takes them as the log goes
+                CrateEntry.of(hue.captains.singapura.js.homing.workspace.log.fold.CheckpointFoldModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(CheckpointWorkerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(WorkspaceCheckpointerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
     }
 }

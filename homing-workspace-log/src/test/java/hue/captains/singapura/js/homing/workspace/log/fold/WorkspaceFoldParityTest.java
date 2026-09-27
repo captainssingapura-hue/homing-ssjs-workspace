@@ -22,6 +22,8 @@ import hue.captains.singapura.js.homing.workspace.log.RegionEvent.*;
 import hue.captains.singapura.js.homing.workspace.log.FloatEvent.*;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceKind;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
+import hue.captains.singapura.js.homing.workspace.log.Checkpoint;
+import hue.captains.singapura.js.homing.workspace.log.codec.CheckpointCodec;
 import hue.captains.singapura.js.homing.workspace.log.codec.FoldedStateCodec;
 import hue.captains.singapura.js.homing.workspace.log.json.JsonText;
 import hue.captains.singapura.js.homing.workspace.log.store.ValidateWorkspaceLog;
@@ -41,6 +43,7 @@ import java.util.Optional;
 import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * The two folds agree: random logs — every event possible where it falls, as a
@@ -53,14 +56,25 @@ class WorkspaceFoldParityTest extends JsModuleTestBase {
     private static final String DIR = "/homing/js/hue/captains/singapura/js/homing/workspace/";
     private static final LogHeader HEADER = LogHeader.of(WorkspaceKind.of("demo"), WorkspaceInstanceId.parse("7f1b6c2e-5000-9000-7f1b-6c2e00000001"));
 
-    private Value stateOf;
+    private Value stateOf, checkpointOf;
 
     @BeforeEach
     void load() {
         js = buildContext();
         for (String script : WorkspaceLogCodecCrate.scripts()) loadModule(script);
-        for (String m : new String[]{"ExactShare", "LayoutAlgebra", "WorkspaceFold"}) loadModule(DIR + "log/fold/" + m + "Module.js");
+        for (String m : new String[]{"ExactShare", "LayoutAlgebra", "WorkspaceFold", "CheckpointFold"}) loadModule(DIR + "log/fold/" + m + "Module.js");
         loadModule(DIR + "log/store/WorkspaceLogExportModule.js");
+        checkpointOf = js.eval("js", """
+                (text, cutsJson) => {
+                    const lines = text.split("\\n");
+                    lines.pop();
+                    const header = LogHeaderCodec.transformFrom(JSON.parse(lines[0]));
+                    const events = lines.slice(1).map((l) => LoggedEventCodec.transformFrom(JSON.parse(l)));
+                    let cp = null, at = 0;
+                    for (const c of JSON.parse(cutsJson).concat([events.length])) { cp = CheckpointFold.next(cp, header, events.slice(at, c)); at = c; }
+                    return JSON.stringify(CheckpointCodec.transformTo(cp)) + "\\n";
+                }
+                """);
         stateOf = js.eval("js", """
                 (text) => {
                     const lines = text.split("\\n");
@@ -189,5 +203,55 @@ class WorkspaceFoldParityTest extends JsModuleTestBase {
             total += w.events.size();
         }
         System.out.println("[WorkspaceFoldParityTest] " + total + " events folded alike");
+    }
+
+    /**
+     * A checkpoint is a periodic fold: the fold of a prefix, folded on, is the fold
+     * of the whole - at any cuts, through any number of checkpoints - in Java and in
+     * the browser alike, byte for byte.
+     */
+    @Test
+    void checkpointsFoldedOnAreTheWholeFold_inBothLanguages() {
+        int compared = 0;
+        for (long seed = 1; seed <= 40; seed++) {
+            var w = new Walker(seed);
+            for (int i = 0; i < 70; i++) w.step();
+            var logged = new ArrayList<LoggedEvent>();
+            for (int i = 0; i < w.events.size(); i++) logged.add(new LoggedEvent(EventSeq.of(i + 1), Instant.ofEpochMilli(1_790_000_000_000L + i), w.events.get(i)));
+            var file = new WorkspaceLogFile(HEADER, logged);
+            String whole = JsonText.write(FoldedStateCodec.INSTANCE.transformTo(WorkspaceFold.fold(file)));
+            var rnd = new Random(seed * 31);
+            int n = logged.size();
+            for (int round = 0; round < 4; round++) {
+                var cuts = new ArrayList<Integer>();
+                for (int at = rnd.nextInt(n + 1); at < n; at += 1 + rnd.nextInt(Math.max(1, n / 3))) cuts.add(at);
+                Checkpoint cp = null;
+                int at = 0;
+                for (int c : cuts) { cp = CheckpointFold.next(cp, HEADER, logged.subList(at, c)); at = c; }
+                cp = CheckpointFold.next(cp, HEADER, logged.subList(at, n));
+                final long sd = seed;
+                assertEquals(whole, JsonText.write(FoldedStateCodec.INSTANCE.transformTo(cp.folded())), () -> "seed " + sd + " cut at " + cuts);
+                assertEquals(n, cp.events());
+                assertEquals(Checkpoint.FOLD, cp.fold());
+                String java = JsonText.write(CheckpointCodec.INSTANCE.transformTo(cp)) + "\n";
+                assertEquals(java, checkpointOf.execute(file.write(), cuts.toString()).asString(), () -> "seed " + sd + " cut at " + cuts);
+                compared++;
+            }
+        }
+        System.out.println("[WorkspaceFoldParityTest] " + compared + " checkpoint chains folded to the whole, alike");
+    }
+
+    @Test
+    void aCheckpointOfOtherRulesOrAnotherLogIsNotFoldedOn() {
+        var w = new Walker(7);
+        while (w.events.size() < 10) w.step();
+        var logged = new ArrayList<LoggedEvent>();
+        for (int i = 0; i < w.events.size(); i++) logged.add(new LoggedEvent(EventSeq.of(i + 1), Instant.ofEpochMilli(1_790_000_000_000L + i), w.events.get(i)));
+        var cp = CheckpointFold.next(null, HEADER, logged.subList(0, 5));
+        var stale = new Checkpoint(cp.folded(), cp.events(), Checkpoint.FOLD + 1);
+        assertThrows(WorkspaceFold.Refused.class, () -> CheckpointFold.next(stale, HEADER, logged.subList(5, 10)));
+        var other = LogHeader.of(WorkspaceKind.of("notes"), HEADER.workspaceId());
+        assertThrows(WorkspaceFold.Refused.class, () -> CheckpointFold.next(cp, other, logged.subList(5, 10)));
+        assertThrows(WorkspaceFold.Refused.class, () -> CheckpointFold.next(cp, HEADER, logged.subList(3, 10)), "an event it went through already");
     }
 }

@@ -55,6 +55,16 @@ class WorkspaceDemoSiteTest {
         assertInstanceOf(Decoded.Malformed.class, WorkspaceApp.CODEC.from(Map.of("ws_kind", List.of("no spaces"))));
     }
 
+    /** The demo's server keeps its pages' states, so its routes say so; an address may say it too, but only "on". */
+    @Test
+    void theDemosPagesPostTheirCheckpointsToTheServer() {
+        assertTrue(pageAt("/").contains("\"ws_server\":\"on\""), "the route says the server keeps its states");
+        var on = WorkspaceApp.CODEC.from(Map.of("ws_kind", List.of("demo"), "ws_server", List.of("on")));
+        assertTrue(on.isOk() && on.orNull().ws_server());
+        assertTrue(!WorkspaceApp.CODEC.from(Map.of("ws_kind", List.of("demo"))).orNull().ws_server(), "off unless said");
+        assertInstanceOf(Decoded.Malformed.class, WorkspaceApp.CODEC.from(Map.of("ws_kind", List.of("demo"), "ws_server", List.of("https://elsewhere"))));
+    }
+
     /**
      * The negative half of the claim, and the reason the stage exists: nothing
      * the site serves comes from the studio. A page that named a studio class

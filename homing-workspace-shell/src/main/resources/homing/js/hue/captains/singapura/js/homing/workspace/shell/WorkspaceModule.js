@@ -22,7 +22,9 @@
 //               compared (ws.restored). Nothing of the restoring is recorded: the
 //               recorder is made after it
 //     logged    how many events the log already holds, for the bar
-//   ws.root .desk .docks .source .recorder .logBar .restored { same, state, read }
+//     checkpointer  a WorkspaceCheckpointer, told how many are recorded as they are:
+//               it folds a checkpoint every so many, off the page's thread
+//   ws.root .desk .docks .source .recorder .logBar .checkpointer .restored { same, state, read }
 //   ws.dispose()
 //
 // THE LOG (the rebuild's step three): every report of the desk, the docks and the
@@ -80,6 +82,7 @@ class Workspace {
         // THE LOG: a tab is in a region, the grid's, or in a float, the desk's; its kind is the source's
         this.recorder = null;
         this.logBar = null;
+        this.checkpointer = o.checkpointer || null;
         if (o.log) {
             var logged = o.logged || 0;
             this.logBar = new WorkspaceLogBar(branch.createBranch("log"), { host: floor, store: o.log });
@@ -89,7 +92,7 @@ class Workspace {
                 isRegion: function (slotId) { return !!self.docks.region(slotId); },
                 isFloat: function (slotId) { return !self.docks.region(slotId) && self.desk.docks().some(function (d) { return d.slotId === slotId; }); },
                 kindOf: function (tabId) { return self.source.kindOf(tabId); },
-                onCount: function (n) { self.logBar.count(logged + n); } });
+                onCount: function (n) { self.logBar.count(logged + n); if (self.checkpointer) self.checkpointer.recorded(n); } });
         }
     }
 
@@ -115,6 +118,7 @@ class Workspace {
         this.source.dispose();
         this.docks.dispose();
         if (this.logBar) this.logBar.dispose();
+        if (this.checkpointer) this.checkpointer.dispose();
         if (this._ownMenus) this._ownMenus.dispose();
         if (this.root.parentNode) this.root.parentNode.removeChild(this.root);
         try { this.branch.dissolve(); } catch (e) {}
