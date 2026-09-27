@@ -7,6 +7,7 @@ import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
 import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyFixedModule;
 import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyStyles;
+import hue.captains.singapura.js.homing.workspace.monitors.WorkspaceMonitorsCrate;
 import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceWidgetsCrate;
 
 import java.util.List;
@@ -27,7 +28,9 @@ public final class WidgetBenchCrate implements Crate {
                 // the DomOpsParty a nasty widget mints its root from, as every widget does
                 CoreJsCrate.INSTANCE,
                 // the widgets it stands up
-                WorkspaceWidgetsCrate.INSTANCE);
+                WorkspaceWidgetsCrate.INSTANCE,
+                // the monitors, which it stands up as widgets like any other
+                WorkspaceMonitorsCrate.INSTANCE);
     }
 
     @Override

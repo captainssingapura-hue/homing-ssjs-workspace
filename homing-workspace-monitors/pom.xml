@@ -9,15 +9,14 @@
         <version>LOCAL-SNAPSHOT</version>
     </parent>
 
-    <artifactId>homing-widget-bench</artifactId>
+    <artifactId>homing-workspace-monitors</artifactId>
 
     <description>
-        The single-widget bench: a standard MPA of its own, whose page stands
-        one widget up from its kind and its params on the address - and
-        provides it nothing else but a container, one the bench makes
-        resizable. The test of a widget that is self-contained: made with its
-        container and its params, its roots its own, it works with no host
-        around it. Served on 8101 (-Dbench.port).
+        The monitors, as widgets: the page's parties on view - the focus tree,
+        the steward's lamp, the DomOps tree, what the parties say - each a
+        self-contained widget like any other, made with a container and its
+        params, its DomOpsParty and FocusParty roots its own, for a host to
+        graft. What they watch is the page's, read and never written.
     </description>
 
     <properties>
@@ -27,44 +26,32 @@
     </properties>
 
     <dependencies>
-        <!-- The widgets it stands up, and what each declares about itself. -->
+        <!-- What a widget is, and the sheet it fills its container by. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
             <artifactId>homing-workspace-widgets</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
-        <!-- The monitors, as widgets: the page's parties on view. -->
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
-            <artifactId>homing-workspace-monitors</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <!-- The page model and the server: a Site and its router, the standard MPA
-             (its definitions in core, its implementation in the ui-components),
-             the designs its pages wear, and the host that serves it. -->
+        <!-- The focus tree and the steward's lamp, as components: a monitor widget wraps them. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-site-base</artifactId>
-            <version>${homing.core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-site-mpa</artifactId>
-            <version>${homing.core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-site-mpa-standard</artifactId>
+            <artifactId>homing-ui-focus</artifactId>
             <version>${homing.components.version}</version>
         </dependency>
+        <!-- The parties a monitor reads, and its own; the keys. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-designs</artifactId>
+            <artifactId>homing-core-js</artifactId>
             <version>${homing.core.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-server</artifactId>
+            <artifactId>homing-component-base</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-design-core</artifactId>
             <version>${homing.core.version}</version>
         </dependency>
         <dependency>
@@ -72,7 +59,7 @@
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- The gate (BenchConformanceTest), headless, as the shell's. -->
+        <!-- The gate (MonitorsConformanceTest), headless, as the widgets'. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-conformance-rules</artifactId>
@@ -85,19 +72,12 @@
             <version>${homing.core.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-designs</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <!-- mvn -pl homing-widget-bench exec:java -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.5.0</version>
-                <configuration>
-                    <mainClass>hue.captains.singapura.js.homing.workspace.bench.WidgetBenchServer</mainClass>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>
