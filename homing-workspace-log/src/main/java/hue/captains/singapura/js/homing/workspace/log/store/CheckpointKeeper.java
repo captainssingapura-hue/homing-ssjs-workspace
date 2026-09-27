@@ -8,9 +8,12 @@ import java.util.Optional;
 
 /**
  * Where a server keeps the checkpoints its pages send it: the latest of each
- * log, a log being its kind and its workspace. What keeps them is the server's
- * to choose - memory, a database, files - behind this; the page only posts,
- * and the checkpoint arrives here read and checked, a Java {@link Checkpoint}.
+ * log, a log being its kind and its workspace. The page only posts, and the
+ * checkpoint arrives here read and checked, a Java {@link Checkpoint}.
+ *
+ * <p>{@link StoredCheckpointKeeper} is the one a server wants: it holds the
+ * rules and keeps the text in a {@link CheckpointStorage} - files, memory, or a
+ * database or an object store behind a class of the server's own.</p>
  */
 public interface CheckpointKeeper {
 

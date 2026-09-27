@@ -16,7 +16,7 @@ import hue.captains.singapura.js.homing.workspace.log.TabEvent;
 import hue.captains.singapura.js.homing.workspace.log.codec.CheckpointCodec;
 import hue.captains.singapura.js.homing.workspace.log.fold.CheckpointFold;
 import hue.captains.singapura.js.homing.workspace.log.json.JsonText;
-import hue.captains.singapura.js.homing.workspace.log.store.InMemoryCheckpointKeeper;
+import hue.captains.singapura.js.homing.workspace.log.store.StoredCheckpointKeeper;
 import hue.captains.singapura.tao.http.action.ActionRegistry;
 import hue.captains.singapura.tao.http.action.GetAction;
 import io.vertx.ext.web.RoutingContext;
@@ -59,7 +59,7 @@ class WorkspaceServerTest {
 
     @Test
     void aCheckpointPostedIsKept_andReadBackAsTheSameJson() {
-        var keeper = new InMemoryCheckpointKeeper();
+        var keeper = StoredCheckpointKeeper.inMemory();
         var post = new CheckpointPostAction(keeper);
         String reply = post.execute(new CheckpointPostAction.Posted(wire(through(3))), NONE).join().body();
         assertEquals("{\"kind\":\"demo\",\"workspaceId\":\"7f1b6c2e-5000-9000-7f1b-6c2e00000001\",\"through\":3,\"kept\":true}", reply);
@@ -72,7 +72,7 @@ class WorkspaceServerTest {
 
     @Test
     void whatIsNotACheckpointIsRefused_400_sayingWhy() {
-        var post = new CheckpointPostAction(new InMemoryCheckpointKeeper());
+        var post = new CheckpointPostAction(StoredCheckpointKeeper.inMemory());
         for (String body : new String[]{ "", "not json", "{\"folded\":1}", wire(through(2)).replace("\"events\":2", "\"events\":2.5") }) {
             var e = assertThrows(CompletionException.class, () -> post.execute(new CheckpointPostAction.Posted(body), NONE).join(), body);
             var refused = assertInstanceOf(CheckpointRefused.class, e.getCause());
@@ -88,7 +88,7 @@ class WorkspaceServerTest {
 
     @Test
     void aLogItKeepsNoneOfIs404_andAnAddressThatNamesNoLogIs400() {
-        var get = new CheckpointGetAction(new InMemoryCheckpointKeeper());
+        var get = new CheckpointGetAction(StoredCheckpointKeeper.inMemory());
         var none = assertThrows(CompletionException.class, () -> get.execute(new CheckpointGetAction.Query("demo", HEADER.workspaceId().toString()), NONE).join());
         assertEquals(404, assertInstanceOf(ResourceNotFound.class, none.getCause()).statusCode());
         var bad = assertThrows(CompletionException.class, () -> get.execute(new CheckpointGetAction.Query("no spaces", "x"), NONE).join());
@@ -98,12 +98,12 @@ class WorkspaceServerTest {
     @Test
     void theRoutesSitBeforeTheSitesCatchAll() {
         var site = new LinkedHashMap<String, GetAction<RoutingContext, ?, ?, ?>>();
-        site.put("/module", new CheckpointGetAction(new InMemoryCheckpointKeeper()));
-        site.put("/*", new CheckpointGetAction(new InMemoryCheckpointKeeper()));
+        site.put("/module", new CheckpointGetAction(StoredCheckpointKeeper.inMemory()));
+        site.put("/*", new CheckpointGetAction(StoredCheckpointKeeper.inMemory()));
         ActionRegistry<RoutingContext> routes = WorkspaceServer.with(new ActionRegistry<>() {
             @Override public Map<String, GetAction<RoutingContext, ?, ?, ?>> getActions() { return site; }
             @Override public Map<String, hue.captains.singapura.tao.http.action.PostAction<RoutingContext, ?, ?, ?>> postActions() { return Map.of(); }
-        }, new InMemoryCheckpointKeeper());
+        }, StoredCheckpointKeeper.inMemory());
         assertEquals(List.of("/module", WorkspaceServer.CHECKPOINTS, "/*"), List.copyOf(routes.getActions().keySet()));
         assertEquals(List.of(WorkspaceServer.CHECKPOINTS), List.copyOf(routes.postActions().keySet()));
     }

@@ -19,7 +19,7 @@ import java.util.Objects;
  * their route says the server takes them.
  *
  * <pre>
- *   var keeper = new InMemoryCheckpointKeeper();   // or the site's own CheckpointKeeper
+ *   var keeper = new StoredCheckpointKeeper(new FileCheckpointStorage(dir));   // or a database, an object store: a CheckpointStorage
  *   new VertxActionHost(WorkspaceServer.with(MPA.registry(site), keeper), HostConfig.http(port)).start();
  * </pre>
  */
