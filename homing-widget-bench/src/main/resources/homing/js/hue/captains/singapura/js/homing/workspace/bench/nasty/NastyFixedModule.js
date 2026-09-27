@@ -1,7 +1,8 @@
 // =============================================================================
 // NastyFixed — a widget that misbehaves on purpose, for the bench to catch.
-// Self-contained in every other way — its DomOpsParty root and its focus
-// member its own, its keys through the party, nothing left when disposed — it
+// Self-contained in every other way — its own DomOps party, offered as
+// roots.dom for its host to graft, its focus member its own, its keys
+// through the party, nothing left when disposed — it
 // breaks the one rule of the container: its root is fixed at 640 x 360,
 // whatever container it is lent, and it never follows a size the host changes.
 // In a bigger container it does not fill it; in a smaller one it overflows it.
@@ -16,8 +17,9 @@ class NastyFixed {
     constructor(container, params) {
         if (!container || typeof container.appendChild !== "function") throw new Error("[NastyFixed] a container is required: the one its page lends it");
         var name = "nastyFixed-" + (++_nasties);
-        this._dom = domOpsParty.createBranch(name);
+        this._dom = domOpsParties.mobile(name);
         this._dom.activate(_nastyOwner);
+        this.roots = Object.freeze({ dom: this._dom });   // its own DomOps party, for its host to graft
         var root = this._dom.createElement("root", "div");
         css.addClass(root, nasty_fixed);
         root.textContent = "Fixed at 640 x 360: I take no notice of the container I am lent, whatever its size.";

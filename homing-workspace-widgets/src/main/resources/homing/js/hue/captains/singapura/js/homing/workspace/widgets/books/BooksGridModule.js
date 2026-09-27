@@ -2,9 +2,11 @@
 // BooksGrid — the books, in the relation grid: the first widget made to stand
 // on its own (the Workspace & Widgets doctrines). It is made with the container
 // its page lends it and its params, and nothing else. Its elements are minted
-// under a DomOpsParty root of its own, and it is a member of the page's focus
-// party by a root of its own — both made here, from the parties as they are
-// today, until a host grafts them. Its data is its own too.
+// in a DomOpsParty of its own — a mobile party, from the party of parties —
+// which it offers its host as roots.dom, for the host to graft into the page's
+// tree where the host decides. It is a member of the page's focus party by a
+// root of its own, made here as the focus party is today. Its data is its own
+// too.
 //
 // The grid takes the browser's own focus in its cells: a native world inside
 // a widget that is only ever logically focused. A press anywhere in it claims
@@ -20,8 +22,10 @@
 //                title, author, year, rating, each once; all when absent - and
 //                numbers, "on" for a gutter of row numbers
 //   grid.root     its root, in the container
+//   grid.roots    what its host grafts: { dom } - its own DomOps party, a stray until grafted
 //   grid.focus    its membership of the focus party
-//   grid.dispose() both roots gone - the elements and the membership - and nothing left in the container
+//   grid.dispose() both roots gone - its DomOps party dissolved (its proxy with it), its
+//                  membership left - and nothing left in the container
 // =============================================================================
 
 const _booksGridOwner = Object.freeze({ toString: () => "booksGrid" });
@@ -32,9 +36,10 @@ class BooksGrid {
         if (!container || typeof container.appendChild !== "function") throw new Error("[BooksGrid] a container is required: the one its page lends it");
         var p = params || {};
         var name = "booksGrid-" + (++_booksGrids);
-        // ITS OWN DOMOPS ROOT: everything it mints is under it, and goes with it
-        this._dom = domOpsParty.createBranch(name);
+        // ITS OWN DOMOPS PARTY: everything it mints is in it, and goes with it; its host grafts it
+        this._dom = domOpsParties.mobile(name);
         this._dom.activate(_booksGridOwner);
+        this.roots = Object.freeze({ dom: this._dom });
         var root = this._dom.createElement("root", "div");
         css.addClass(root, wg_fill);
         var box = this._dom.createElement("box", "div");

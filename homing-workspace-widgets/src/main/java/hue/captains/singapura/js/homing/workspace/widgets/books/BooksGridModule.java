@@ -11,7 +11,7 @@ import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
-import hue.captains.singapura.js.homing.core.js.domOpsParty;
+import hue.captains.singapura.js.homing.core.js.domOpsParties;
 import hue.captains.singapura.js.homing.relgrid.RelGridModule;
 import hue.captains.singapura.js.homing.workspace.widgets.SelfContainedWidget;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetStyles;
@@ -37,8 +37,8 @@ public record BooksGridModule() implements DomModule<BooksGridModule> {
     @Override
     public ImportsFor<BooksGridModule> imports() {
         return ImportsFor.<BooksGridModule>builder()
-                // its own roots, from the parties as they are today
-                .add(new ModuleImports<>(List.of(new domOpsParty()), DomOpsPartyModule.INSTANCE))
+                // its own DomOps party, from the party of parties; its focus root, as the focus party is today
+                .add(new ModuleImports<>(List.of(new domOpsParties()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new focusParty()), FocusPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new KeysModule.Keys()), KeysModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new RelGridModule.RelGrid()), RelGridModule.INSTANCE))

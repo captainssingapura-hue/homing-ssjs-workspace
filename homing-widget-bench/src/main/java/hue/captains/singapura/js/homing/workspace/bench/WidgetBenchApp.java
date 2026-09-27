@@ -6,6 +6,9 @@ import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.core.ParamCodec;
 import hue.captains.singapura.js.homing.core.QueryString;
+import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
+import hue.captains.singapura.js.homing.core.js.domOpsParties;
+import hue.captains.singapura.js.homing.core.js.domOpsParty;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetParams;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetQuery;
 
@@ -20,6 +23,8 @@ import java.util.Objects;
  * makes the widget with the container it is lent - the MPA's slot, made
  * resizable - and its params, and gives it nothing else. The container is the
  * bench's, so the bench watches it: a widget that misbehaves in it is said.
+ * The bench is the widget's host: it grafts the widget's own DomOps party into
+ * the page's tree at its place there.
  */
 public record WidgetBenchApp() implements AppModule<WidgetBenchApp.Params, WidgetBenchApp> {
 
@@ -73,6 +78,8 @@ public record WidgetBenchApp() implements AppModule<WidgetBenchApp.Params, Widge
     public ImportsFor<WidgetBenchApp> imports() {
         return ImportsFor.<WidgetBenchApp>builder()
                 .add(new ModuleImports<>(List.of(new BenchWidgetsModule.BENCH_WIDGETS()), BenchWidgetsModule.INSTANCE))
+                // the page's party, where the bench grafts the widget's own; the party of parties, which says the strays
+                .add(new ModuleImports<>(List.of(new domOpsParty(), new domOpsParties(), new DomOpsPartyModule.MobileDomOpsParty()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WidgetBenchStyles.wb_bench(), new WidgetBenchStyles.wb_misbehaves()), WidgetBenchStyles.INSTANCE))
                 .build();
     }

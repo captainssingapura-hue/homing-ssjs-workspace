@@ -13,9 +13,12 @@ import java.util.regex.Pattern;
  *
  * <p>The class is made {@code new Widget(container, params)}: the container
  * the page lends it - the page's, which the widget fills and never shapes -
- * and its params, as the page carries them. It makes its own roots in the
- * DomOpsParty and the FocusParty, and leaves nothing when disposed (A Widget
- * Is an Operational Unit; Widgets Are Independent).</p>
+ * and its params, as the page carries them. It makes its own roots: its
+ * DomOpsParty a mobile party from the party of parties, offered to its host as
+ * {@code widget.roots.dom} for the host to graft into the page's tree; its
+ * FocusParty root as the focus party is today. It leaves nothing when disposed
+ * (A Widget Is an Operational Unit; Widgets Are Independent; Parties Are
+ * Grafted Hierarchies).</p>
  *
  * @param <P> the widget's params
  */

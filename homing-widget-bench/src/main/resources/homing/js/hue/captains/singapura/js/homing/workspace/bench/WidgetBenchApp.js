@@ -3,19 +3,29 @@
 // and the kind's params; the page makes that widget with the container it is
 // lent and those params, and gives it nothing else: no branch, no focus
 // membership, no steward, no tab. A widget that stands up here is
-// self-contained - its DomOpsParty and FocusParty roots its own.
+// self-contained - its roots its own.
+//
+// The bench is the widget's host, and does what a host does with its roots:
+// the widget's DomOps party - a mobile party, offered as roots.dom - is
+// grafted into the page's tree at the bench's place in it, "widgetBench", as
+// "widget". The page's snapshot then reads the widget's party through that
+// proxy, at the page's levels.
 //
 // The container is the MPA's slot, and the one facility the bench gives:
 // resizable by its corner. It never scrolls. A widget fills it, at whatever
 // size it is made, by itself - and whatever needs scrolling scrolls inside the
 // widget. Since the container is the bench's, the bench watches it, and says
 // when a widget misbehaves: anything in the container but the widget's one
-// root, a root that does not fill it, anything overflowing it. Said on the
-// console, and worn by the container, until the widget behaves again.
+// root, a root that does not fill it, anything overflowing it - and, in the
+// page's party, a branch the widget made there rather than in a party of its
+// own, or a mobile party no one has grafted. Said on the console, and worn by
+// the container, until the widget behaves again.
 //
 // The params reach the page as the address wrote them, strings, read and
 // checked on the server by the kind's own WidgetQuery.
 // =============================================================================
+
+const _benchOwner = Object.freeze({ toString: () => "widgetBench" });
 
 function appMain(el, params) {
     var Widget = params && BENCH_WIDGETS[params.widget];
@@ -27,15 +37,21 @@ function appMain(el, params) {
         return;
     }
     css.addClass(el, wb_bench);
+    // the bench's place in the page's party, where the widget's party is grafted
+    var place = domOpsParty.createBranch("widgetBench");
+    place.activate(_benchOwner);
+    var pageBranches = domOpsParty.listBranches();
     // the widget's params: what the address said for it - not the bench's kind, not the page's steward
     var own = {};
     Object.keys(params).forEach(function (k) { if (k !== "widget" && k !== "keyboard") own[k] = params[k]; });
-    new Widget(el, Object.freeze(own));
-    _watch(el, params.widget);
+    var widget = new Widget(el, Object.freeze(own));
+    var dom = widget.roots && widget.roots.dom;
+    if (dom instanceof MobileDomOpsParty) place.graft("widget", dom);
+    _watch(el, params.widget, { widget: widget, pageBranches: pageBranches });
 }
 
-/** What is wrong with the container as the widget keeps it, or nothing. */
-function _misbehaviours(el) {
+/** What is wrong with the container, and the page's party, as the widget keeps them - or nothing. */
+function _misbehaviours(el, seen) {
     var out = [];
     if (el.childElementCount !== 1) out.push(el.childElementCount + " elements in the container, not the widget's one root");
     var root = el.firstElementChild;
@@ -45,15 +61,21 @@ function _misbehaviours(el) {
     if (el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight) {
         out.push("it overflows the container: " + el.scrollWidth + "x" + el.scrollHeight + " in " + el.clientWidth + "x" + el.clientHeight);
     }
+    var dom = seen.widget.roots && seen.widget.roots.dom;
+    if (!(dom instanceof MobileDomOpsParty)) out.push("it offers no DomOps party of its own for its host to graft (roots.dom)");
+    var theirs = domOpsParty.listBranches().filter(function (n) { return seen.pageBranches.indexOf(n) < 0; });
+    if (theirs.length) out.push("it made " + theirs.join(", ") + " in the page's party, not in a party of its own");
+    var strays = domOpsParties.strays();
+    if (strays.length) out.push("mobile parties no one has grafted: " + strays.map(function (s) { return s.name; }).join(", "));
     return out;
 }
 
 /** The container watched: at every size it is made, and on every change inside it. */
-function _watch(el, kind) {
+function _watch(el, kind, seen) {
     var said = "", pending = false;
     function check() {
         pending = false;
-        var now = _misbehaviours(el).join("; ");
+        var now = _misbehaviours(el, seen).join("; ");
         if (now === said) return;
         if (now) console.error("[widgetBench] " + kind + " misbehaves: " + now);
         else console.info("[widgetBench] " + kind + " behaves again");
