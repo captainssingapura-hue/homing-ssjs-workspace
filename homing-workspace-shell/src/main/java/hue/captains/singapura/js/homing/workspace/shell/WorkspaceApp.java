@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.shell;
 
+import hue.captains.singapura.js.homing.core.AppLink;
 import hue.captains.singapura.js.homing.core.AppModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -9,9 +10,11 @@ import hue.captains.singapura.js.homing.core.QueryString;
 import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
 import hue.captains.singapura.js.homing.core.js.domOpsParty;
 import hue.captains.singapura.js.homing.site.mpa.MpaStyles;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceInstanceId;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceKind;
 import hue.captains.singapura.js.homing.workspace.log.fold.WorkspaceFoldModule;
 import hue.captains.singapura.js.homing.workspace.log.js.CheckpointModule;
+import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceCatalogueModule;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceCheckpointerModule;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceWriteLockModule;
 import hue.captains.singapura.js.homing.workspace.log.js.LogKeyModule;
@@ -36,21 +39,28 @@ import java.util.Map;
  *
  * <p>{@code ws_kind} is required: it is the {@link WorkspaceKind} the page's log
  * is kept under, each kind a workspace of its own. Nothing has to be registered
- * for it — a kind is a name, not a spec.</p>
+ * for it — a kind is a name, not a spec. {@code ws_id} names one workspace of the
+ * kind, each keeping a log of its own; absent, the page keeps the kind's own.</p>
  */
 public record WorkspaceApp() implements AppModule<WorkspaceApp.Params, WorkspaceApp> {
 
     public static final WorkspaceApp INSTANCE = new WorkspaceApp();
 
     /**
-     * The kind to mount - a {@link WorkspaceKind}'s value - and whether the server
-     * keeps this workspace's states too: when it does, the page posts each
-     * checkpoint it takes to {@link WorkspaceServer#CHECKPOINTS}, on the server
-     * that served it. Off unless the page's route says so.
+     * The kind to mount - a {@link WorkspaceKind}'s value; which workspace of that
+     * kind - a {@link WorkspaceInstanceId}'s, a lowercase UUID, or null for the
+     * kind's own; and whether the server keeps this workspace's states too: when
+     * it does, the page posts each checkpoint it takes to {@link
+     * WorkspaceServer#CHECKPOINTS}, on the server that served it. Off unless the
+     * page's route says so.
      */
-    public record Params(String ws_kind, boolean ws_server) implements AppModule._Param {
-        public Params(String ws_kind) { this(ws_kind, false); }
+    public record Params(String ws_kind, String ws_id, boolean ws_server) implements AppModule._Param {
+        public Params(String ws_kind, boolean ws_server) { this(ws_kind, null, ws_server); }
+        public Params(String ws_kind) { this(ws_kind, null, false); }
     }
+
+    /** A page's way to a workspace page: {@code nav.WorkspaceApp({ ws_kind, ws_id, ws_server })}. */
+    public record link() implements AppLink<WorkspaceApp> {}
 
     record appMain() implements AppModule._AppMain<Params, WorkspaceApp> {}
 
@@ -67,14 +77,23 @@ public record WorkspaceApp() implements AppModule<WorkspaceApp.Params, Workspace
             if (kind == null || kind.isBlank()) return Decoded.missing("ws_kind");
             try { WorkspaceKind.of(kind); }
             catch (IllegalArgumentException e) { return Decoded.malformed("ws_kind", kind, "a kind (letters, digits, hyphen, underscore)"); }
+            String id = QueryString.first(query, "ws_id");
+            if (id != null && !isWorkspaceId(id)) return Decoded.malformed("ws_id", id, "a workspace's id (a lowercase UUID), or absent for the kind's own");
             String server = QueryString.first(query, "ws_server");
             if (server != null && !server.equals("on")) return Decoded.malformed("ws_server", server, "on, or absent");
-            return Decoded.ok(new Params(kind, server != null));
+            return Decoded.ok(new Params(kind, id, server != null));
+        }
+
+        /** A UUID as the log writes one - lowercase, hyphenated - so that one workspace has one address. */
+        private static boolean isWorkspaceId(String id) {
+            try { return WorkspaceInstanceId.parse(id).toString().equals(id); }
+            catch (IllegalArgumentException e) { return false; }
         }
 
         @Override public Map<String, List<String>> to(Params params) {
             var q = QueryString.params();
             QueryString.put(q, "ws_kind", params.ws_kind());
+            if (params.ws_id() != null) QueryString.put(q, "ws_id", params.ws_id());
             if (params.ws_server()) QueryString.put(q, "ws_server", "on");
             return q;
         }
@@ -100,6 +119,7 @@ public record WorkspaceApp() implements AppModule<WorkspaceApp.Params, Workspace
                 .add(new ModuleImports<>(List.of(new WorkspaceFoldModule.WorkspaceFold()), WorkspaceFoldModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceCheckpointerModule.WorkspaceCheckpointer()), WorkspaceCheckpointerModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceWriteLockModule.WorkspaceWriteLock()), WorkspaceWriteLockModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceCatalogueModule.WorkspaceCatalogue()), WorkspaceCatalogueModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new LogKeyModule.LogKey()), LogKeyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new CheckpointModule.Checkpoint()), CheckpointModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceAddressesModule.WORKSPACE_ADDRESSES()), WorkspaceAddressesModule.INSTANCE))

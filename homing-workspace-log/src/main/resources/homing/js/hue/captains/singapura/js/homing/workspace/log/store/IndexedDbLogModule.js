@@ -10,7 +10,9 @@
 // checkpoint }, the latest the page folded, never replaced by an older one -
 // and "aside", where a log the page could not read is moved, in one
 // transaction, as one record { id, kind, workspaceId, aside }. Clearing a log
-// or setting it aside drops its checkpoint with it.
+// or setting it aside drops its checkpoint with it. And "catalogue", the
+// workspaces of each kind - { kind, workspaceId, entry }, one per workspace,
+// kept whatever becomes of its log.
 //
 //   new IndexedDbLog({ indexedDB? })   the factory; the page's own unless said
 //   log.add(row)                  → Promise<seq>
@@ -27,6 +29,11 @@
 //                                   were no rows>; make(rows) → what is kept
 //   log.asides(kind, workspaceId) → Promise<records>, oldest first
 //   log.discardAsides(kind, workspaceId) → Promise<count>
+//   log.entries(kind)             → Promise<the kind's catalogue records>
+//   log.writeEntry(kind, workspaceId, make)
+//                                 → Promise<the record kept>; make(the kind's
+//                                   records) → the workspace's entry, read and
+//                                   written in one transaction
 // =============================================================================
 
 class IndexedDbLog {
@@ -34,8 +41,9 @@ class IndexedDbLog {
     static STORE = "events";
     static ASIDE = "aside";
     static CHECKPOINTS = "checkpoints";
-    /** 2: the aside store joined the rows; 3: the checkpoints. */
-    static VERSION = 3;
+    static CATALOGUE = "catalogue";
+    /** 2: the aside store joined the rows; 3: the checkpoints; 4: the catalogue. */
+    static VERSION = 4;
 
     constructor(opts) {
         this._factory = (opts && opts.indexedDB) || indexedDB;
@@ -59,6 +67,9 @@ class IndexedDbLog {
                 }
                 if (!db.objectStoreNames.contains(IndexedDbLog.CHECKPOINTS)) {
                     db.createObjectStore(IndexedDbLog.CHECKPOINTS, { keyPath: ["kind", "workspaceId"] });
+                }
+                if (!db.objectStoreNames.contains(IndexedDbLog.CATALOGUE)) {
+                    db.createObjectStore(IndexedDbLog.CATALOGUE, { keyPath: ["kind", "workspaceId"] });
                 }
             };
             req.onsuccess = function () { resolve(req.result); };
@@ -177,6 +188,29 @@ class IndexedDbLog {
         var range = this._range(kind, workspaceId);
         return this._tx(IndexedDbLog.ASIDE, "readwrite", function (tx, out) {
             IndexedDbLog._deleteAll(tx.objectStore(IndexedDbLog.ASIDE), range, out);
+        });
+    }
+
+    /** Every catalogue key of the kind: a workspace id is a lowercase uuid, under the last code unit. */
+    static _ofKind(kind) { return IDBKeyRange.bound([kind, ""], [kind, "￿"]); }
+
+    entries(kind) {
+        return this._tx(IndexedDbLog.CATALOGUE, "readonly", function (tx, out) {
+            var req = tx.objectStore(IndexedDbLog.CATALOGUE).getAll(IndexedDbLog._ofKind(kind));
+            req.onsuccess = function () { out.value = req.result; };
+        });
+    }
+
+    writeEntry(kind, workspaceId, make) {
+        return this._tx(IndexedDbLog.CATALOGUE, "readwrite", function (tx, out) {
+            var store = tx.objectStore(IndexedDbLog.CATALOGUE), req = store.getAll(IndexedDbLog._ofKind(kind));
+            req.onsuccess = function () {
+                var kept;
+                try { kept = { kind: kind, workspaceId: workspaceId, entry: make(req.result) }; }
+                catch (e) { out.why = e; tx.abort(); return; }
+                store.put(kept);
+                out.value = kept;
+            };
         });
     }
 }

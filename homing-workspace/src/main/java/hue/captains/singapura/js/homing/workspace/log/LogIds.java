@@ -213,6 +213,25 @@ public final class LogIds {
     }
 
     /**
+     * What a workspace is called, as its kind's workspaces are listed in the
+     * browser: {@code "notes"}, {@code "notes 2"}, or what it was renamed to.
+     * It says which one to a person, never to the log — the log is named by the
+     * workspace's {@link WorkspaceInstanceId}. Free-form: any string.
+     *
+     * @param value the displayed name
+     */
+    public record WorkspaceName(String value) {
+
+        public WorkspaceName {
+            Objects.requireNonNull(value, "WorkspaceName.value");
+        }
+
+        public static WorkspaceName of(String value) { return new WorkspaceName(value); }
+
+        @Override public String toString() { return value; }
+    }
+
+    /**
      * Which one workspace of its kind a log belongs to — a UUID under the wrapper,
      * lowercase on the wire. With the {@link WorkspaceKind}, it names a log.
      *

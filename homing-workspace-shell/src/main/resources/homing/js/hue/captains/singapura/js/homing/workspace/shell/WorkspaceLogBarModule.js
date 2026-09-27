@@ -6,16 +6,22 @@
 // compares with Java's own fold. And a stored log the page could not read,
 // set aside rather than cleared: how many there are, the latest exported as
 // the log file it was - where the validator says which line fails - and
-// discarded when asked. The gallery keeps no log, so this is the workspace's
-// alone.
+// discarded when asked. What the workspace is called, first. And, while
+// another page writes this workspace, the way to one of this page's own: a new
+// workspace of the same kind. The gallery keeps no log, so this is the
+// workspace's alone.
 //
-//   new WorkspaceLogBar(branch, { host, store })
-//     host   where the bar goes: the workspace's floor, under its grid
-//     store  the WorkspaceLogStore it exports
+//   new WorkspaceLogBar(branch, { host, store, server? })
+//     host    where the bar goes: the workspace's floor, under its grid
+//     store   the WorkspaceLogStore it exports
+//     server  whether the server keeps this workspace's states: a new workspace
+//             opened from the bar is kept there too
+//   bar.named(entry) says what the workspace is called: its WorkspaceEntry
 //   bar.count(n)     says how many the log holds
 //   bar.restored(same)  says whether the page came back as its log has it
 //   bar.lock(writeLock, onTakeOver?)  says who writes the log - read-only when
-//                    another page does, with a Take over that calls onTakeOver
+//                    another page does, with a Take over that calls onTakeOver,
+//                    and a link to a new workspace of this kind
 //   bar.export()     → Promise<the log's text>, and the file saved
 //   bar.exportState() → Promise<the state's text>, and the file saved
 //   bar.asides()     → Promise<the set-aside logs>, and the bar says them
@@ -34,10 +40,12 @@ class WorkspaceLogBar {
         branch.activate(_logBarOwner);
         this.branch = branch;
         this._store = o.store;
+        this._server = !!o.server;
         this._url = null;
         var self = this;
         var bar = branch.createElement("bar", "div");
         css.addClass(bar, ws_logbar);
+        this._named = branch.createElement("named", "strong");
         this._counted = branch.createElement("count", "span");
         css.addClass(this._counted, ws_logbar_count);
         var button = branch.createElement("export", "button");
@@ -66,12 +74,17 @@ class WorkspaceLogBar {
         this._takeOver.type = "button";
         this._takeOver.textContent = "Take over";
         this._takeOver.addEventListener("click", function () { if (self._onTakeOver) self._onTakeOver(); });
+        // this page's own workspace, while another page writes this one: a new one of the kind
+        this._fresh = branch.createElement("fresh", "a");
+        this._fresh.textContent = "Open a new workspace of this kind";
         // the file is handed over by a link the bar keeps, never shown
         this._link = branch.createElement("link", "a");
         css.addClass(this._link, ws_logbar_link);
+        bar.appendChild(this._named);
         bar.appendChild(this._counted);
         bar.appendChild(this._locked);
         bar.appendChild(this._takeOver);
+        bar.appendChild(this._fresh);
         bar.appendChild(button);
         bar.appendChild(state);
         bar.appendChild(this._aside);
@@ -83,21 +96,37 @@ class WorkspaceLogBar {
         this._note = "";
         this._latest = null;
         this._onTakeOver = null;
+        this.named(null);
         this.count(0);
         this.lock(null);
         this._said([]);
         this.asides();
     }
 
-    /** Who writes the log, said while it is not simply this page; and, read-only, the way to take it over. */
+    /** What the workspace is called; nothing said until it is known. */
+    named(entry) {
+        this._named.textContent = entry ? entry.name.value : "";
+        this._named.hidden = !entry;
+    }
+
+    /**
+     * Who writes the log, said while it is not simply this page; and, read-only, the way to take it over, and the
+     * way to a workspace of this page's own - a new one of the kind, under an id no log has had.
+     */
     lock(writeLock, onTakeOver) {
         var held = writeLock ? writeLock.held : null;
+        var readOnly = held === Held.ELSEWHERE || held === Held.TAKEN;
         this._locked.textContent = held === Held.ELSEWHERE ? " · read-only: another page writes this workspace"
             : held === Held.TAKEN ? " · read-only: another page took this workspace over - what changes here is not kept"
             : held === Held.UNGUARDED ? " · unguarded: this browser keeps no locks" : "";
         this._locked.hidden = !this._locked.textContent;
         this._onTakeOver = onTakeOver || null;
-        this._takeOver.hidden = !(this._onTakeOver && (held === Held.ELSEWHERE || held === Held.TAKEN));
+        this._takeOver.hidden = !(this._onTakeOver && readOnly);
+        this._fresh.hidden = !readOnly;
+        if (readOnly) {
+            HrefManagerInstance.set(this._fresh, nav.WorkspaceApp({ ws_kind: this._store.header.kind.value, ws_id: WorkspaceLogIdentity.fresh().id,
+                                                                    ws_server: this._server ? "on" : null }));
+        }
     }
 
     count(n) {

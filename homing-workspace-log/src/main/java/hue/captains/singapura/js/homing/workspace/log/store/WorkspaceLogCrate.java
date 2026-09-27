@@ -40,6 +40,8 @@ public final class WorkspaceLogCrate implements Crate {
                 CrateEntry.of(CheckpointWorkerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WorkspaceCheckpointerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // one writer per log
-                CrateEntry.of(WorkspaceWriteLockModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
+                CrateEntry.of(WorkspaceWriteLockModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                // the workspaces of each kind, listed
+                CrateEntry.of(WorkspaceCatalogueModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
     }
 }

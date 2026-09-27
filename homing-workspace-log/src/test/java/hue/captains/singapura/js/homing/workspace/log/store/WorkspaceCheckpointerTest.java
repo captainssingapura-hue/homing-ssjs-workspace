@@ -33,7 +33,7 @@ class WorkspaceCheckpointerTest extends JsModuleTestBase {
         loadModule(DIR + "store/CheckpointWorkerModule.js");
         js.eval("js", """
                 var backend = new MemoryLog(), sent = [], got = {};
-                var store = new WorkspaceLogStore({ header: WorkspaceLogIdentity.header("demo", ""), backend: backend,
+                var store = new WorkspaceLogStore({ header: WorkspaceLogIdentity.header("demo", null), backend: backend,
                                                     now: (() => { let t = 1790000000000; return () => t++; })() });
                 var cp = new WorkspaceCheckpointer({ store: store, worker: worker, every: 5, upload: "/workspace/checkpoints",
                                                      post: (address, text) => { sent.push({ address, text }); return Promise.resolve(); } });

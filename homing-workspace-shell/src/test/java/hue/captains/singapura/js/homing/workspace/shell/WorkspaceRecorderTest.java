@@ -39,7 +39,7 @@ class WorkspaceRecorderTest extends JsModuleTestBase {
         }
         loadModule(DIR + "shell/WorkspaceRecorderModule.js");
         js.eval("js", """
-                var store = new WorkspaceLogStore({ header: WorkspaceLogIdentity.header("demo", ""), backend: new MemoryLog(),
+                var store = new WorkspaceLogStore({ header: WorkspaceLogIdentity.header("demo", null), backend: new MemoryLog(),
                                                     now: (() => { let t = 1790000000000; return () => t++; })() });
                 var regions = { main: true, "cell-2": true }, kinds = { "tab-1": "opener", "tab-2": "note" }, counted = [];
                 var floats = { "float-1": true };

@@ -1,31 +1,37 @@
 // =============================================================================
 // WorkspaceLogIdentity — whose log a page keeps: the kind of workspace it is
-// and the one workspace of that kind — the address's ?workspace=<uuid> when it
-// names one, else the kind's own, the same uuid every visit (the seed
-// "workspace:<kind>" hashed as Java's WorkspaceInstanceId.placeholderFor
-// hashes it).
+// and the one workspace of that kind — the one its address names, its ws_id,
+// read and checked where the address is read, on the server; else the kind's
+// own, the same uuid every visit (the seed "workspace:<kind>" hashed as Java's
+// WorkspaceInstanceId.placeholderFor hashes it).
 //
-//   WorkspaceLogIdentity.header(kind, search)  → a LogHeader
-//     kind    the workspace's kind, "demo"
-//     search  the address's query, "?workspace=…", or ""
-//   WorkspaceLogIdentity.placeholder(kind)     → the kind's own uuid
+//   WorkspaceLogIdentity.header(kind, id)  → a LogHeader
+//     kind  the workspace's kind, "notes"
+//     id    the workspace the address names, a lowercase uuid; null, or absent,
+//           for the kind's own
+//   WorkspaceLogIdentity.fresh()           → a new workspace's WorkspaceInstanceId:
+//                                            a random uuid, never one a log has had
+//   WorkspaceLogIdentity.placeholder(kind) → the kind's own uuid
 // =============================================================================
 
 class WorkspaceLogIdentity {
-    static header(kind, search) {
-        var asked = WorkspaceLogIdentity._asked(search);
-        var id = asked || WorkspaceLogIdentity.placeholder(kind);
-        return new LogHeader(LogHeader.FORMAT, LogHeader.VERSION, new WorkspaceKind(kind), new WorkspaceInstanceId(id));
+    static header(kind, id) {
+        return new LogHeader(LogHeader.FORMAT, LogHeader.VERSION, new WorkspaceKind(kind),
+                             new WorkspaceInstanceId(id || WorkspaceLogIdentity.placeholder(kind)));
     }
 
-    static _asked(search) {
-        var m = /[?&]workspace=([^&#]*)/.exec(search || "");
-        if (!m) return null;
-        var v = decodeURIComponent(m[1]).toLowerCase();
-        return WorkspaceLogIdentity._UUID.test(v) ? v : null;
+    static fresh() {
+        var c = typeof crypto !== "undefined" ? crypto : null;
+        if (c && typeof c.randomUUID === "function") return new WorkspaceInstanceId(c.randomUUID());
+        // a version 4 uuid by hand, where the page is not a secure context
+        var b = [];
+        for (var i = 0; i < 16; i++) b.push(Math.floor(Math.random() * 256));
+        if (c && typeof c.getRandomValues === "function") b = Array.from(c.getRandomValues(new Uint8Array(16)));
+        b[6] = (b[6] & 0x0f) | 0x40;
+        b[8] = (b[8] & 0x3f) | 0x80;
+        var h = b.map(function (x) { return x.toString(16).padStart(2, "0"); }).join("");
+        return new WorkspaceInstanceId(h.slice(0, 8) + "-" + h.slice(8, 12) + "-" + h.slice(12, 16) + "-" + h.slice(16, 20) + "-" + h.slice(20));
     }
-
-    static _UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
     static placeholder(kind) {
         var seed = "workspace:" + kind, hash = 0;

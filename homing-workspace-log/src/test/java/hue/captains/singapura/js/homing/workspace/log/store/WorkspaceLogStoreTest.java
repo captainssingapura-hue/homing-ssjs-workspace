@@ -27,7 +27,7 @@ class WorkspaceLogStoreTest extends JsModuleTestBase {
             loadModule(DIR + "log/store/" + m + "Module.js");
         }
         js.eval("js", """
-                var store = new WorkspaceLogStore({ header: WorkspaceLogIdentity.header("demo", ""), backend: new MemoryLog(),
+                var store = new WorkspaceLogStore({ header: WorkspaceLogIdentity.header("demo", null), backend: new MemoryLog(),
                                                     now: (() => { let t = 1790000000000; return () => t++; })() });
                 var got = {};
                 """);
@@ -84,7 +84,7 @@ class WorkspaceLogStoreTest extends JsModuleTestBase {
     void aLogThatDoesNotReadIsSetAsideWhole_andItsExportNamesTheLine() {
         js.eval("js", """
                 var backend = new MemoryLog();
-                var kept = new WorkspaceLogStore({ header: WorkspaceLogIdentity.header("demo", ""), backend: backend, now: () => 1790000000500 });
+                var kept = new WorkspaceLogStore({ header: WorkspaceLogIdentity.header("demo", null), backend: backend, now: () => 1790000000500 });
                 const t = new TabId("tab-1"), h = new InRegion(new RegionId("main"));
                 kept.append(new TabOpened(t, new WidgetKind("note"), new WidgetTitle("Note"), h, 0))
                     .then(() => backend.add({ kind: "demo", workspaceId: kept.header.workspaceId.id, at: 7, event: { type: "TabGone", id: "tab-1" } }))
@@ -126,8 +126,19 @@ class WorkspaceLogStoreTest extends JsModuleTestBase {
         assertEquals(WorkspaceInstanceId.placeholderFor(WorkspaceKind.of("Focus-Lab_2")).toString(),
                 js.eval("js", "WorkspaceLogIdentity.placeholder('Focus-Lab_2')").asString());
         assertEquals("0f1b6c2e-5000-9000-7f1b-6c2e00000001",
-                js.eval("js", "WorkspaceLogIdentity.header('demo', '?x=1&workspace=0F1B6C2E-5000-9000-7F1B-6C2E00000001').workspaceId.id").asString());
+                js.eval("js", "WorkspaceLogIdentity.header('demo', '0f1b6c2e-5000-9000-7f1b-6c2e00000001').workspaceId.id").asString());
         assertEquals(js.eval("js", "WorkspaceLogIdentity.placeholder('demo')").asString(),
-                js.eval("js", "WorkspaceLogIdentity.header('demo', '?workspace=nope').workspaceId.id").asString());
+                js.eval("js", "WorkspaceLogIdentity.header('demo', null).workspaceId.id").asString());
+        assertTrue(js.eval("js", "(() => { try { WorkspaceLogIdentity.header('demo', 'nope'); return false; } catch (e) { return true; } })()").asBoolean(),
+                "an id that is not a lowercase uuid is refused, never read as the kind's own");
+    }
+
+    @Test
+    void aFreshWorkspaceIsAUuidOfItsOwn() {
+        js.eval("js", "var a = WorkspaceLogIdentity.fresh(), b = WorkspaceLogIdentity.fresh();");
+        assertTrue(js.eval("js", "a instanceof WorkspaceInstanceId && a.id !== b.id").asBoolean());
+        String id = js.eval("js", "a.id").asString();
+        assertEquals(id, WorkspaceInstanceId.parse(id).toString(), "a uuid Java reads, as Java writes it");
+        assertEquals('4', id.charAt(14), "version 4");
     }
 }

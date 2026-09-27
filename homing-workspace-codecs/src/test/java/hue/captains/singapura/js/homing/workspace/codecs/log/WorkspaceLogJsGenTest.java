@@ -53,7 +53,7 @@ class WorkspaceLogJsGenTest extends JsModuleTestBase {
         }
         assertEquals(List.of("LogIdsModule", "ScaledModule", "HostModule", "LayoutModule", "TabEventModule", "RegionEventModule",
                 "FloatEventModule", "WorkspaceEventModule", "LoggedEventModule", "LogHeaderModule", "SetAsideLogModule",
-                "WorkspaceStateModule", "FoldedStateModule", "CheckpointModule", "LogKeyModule", "WriteLockModule"), names);
+                "WorkspaceStateModule", "FoldedStateModule", "CheckpointModule", "LogKeyModule", "WriteLockModule", "WorkspaceEntryModule"), names);
     }
 
     /** Imports run one way: a module imports only what comes before it, the family of families its families. */

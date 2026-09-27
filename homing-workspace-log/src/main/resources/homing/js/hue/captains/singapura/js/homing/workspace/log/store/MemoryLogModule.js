@@ -2,8 +2,8 @@
 // MemoryLog — a WorkspaceLogStore's rows kept in memory, as IndexedDbLog keeps
 // them in the database: numbered climbing, never reused, looked up by kind and
 // workspace; one checkpoint per log, never replaced by an older one; a log that
-// cannot be read set aside, not cleared, and its checkpoint dropped with it.
-// For a page that must not keep anything, and for tests.
+// cannot be read set aside, not cleared, and its checkpoint dropped with it;
+// the workspaces of each kind catalogued beside them. For a page that must not keep anything, and for tests.
 //
 //   new MemoryLog()
 //   log.add(row) → Promise<seq>    log.rows(kind, workspaceId) → Promise<rows>
@@ -15,6 +15,8 @@
 //   log.setAside(kind, workspaceId, make) → Promise<the record kept, or null>
 //   log.asides(kind, workspaceId) → Promise<records>, oldest first
 //   log.discardAsides(kind, workspaceId) → Promise<count>
+//   log.entries(kind) → Promise<the kind's catalogue records>
+//   log.writeEntry(kind, workspaceId, make) → Promise<the record kept>; make(the kind's records) → the entry
 // =============================================================================
 
 class MemoryLog {
@@ -24,6 +26,7 @@ class MemoryLog {
         this._asides = [];
         this._lastAside = 0;
         this._checkpoints = new Map();
+        this._entries = new Map();
     }
 
     static _key(kind, workspaceId) { return kind + "\n" + workspaceId; }
@@ -85,5 +88,17 @@ class MemoryLog {
         var before = this._asides.length;
         this._asides = this._asides.filter(function (a) { return !(a.kind === kind && a.workspaceId === workspaceId); });
         return Promise.resolve(before - this._asides.length);
+    }
+
+    _ofKind(kind) { return Array.from(this._entries.values()).filter(function (r) { return r.kind === kind; }); }
+
+    entries(kind) { return Promise.resolve(this._ofKind(kind)); }
+
+    writeEntry(kind, workspaceId, make) {
+        var kept;
+        try { kept = Object.freeze({ kind: kind, workspaceId: workspaceId, entry: JSON.parse(JSON.stringify(make(this._ofKind(kind)))) }); }
+        catch (e) { return Promise.reject(e); }
+        this._entries.set(MemoryLog._key(kind, workspaceId), kept);
+        return Promise.resolve(kept);
     }
 }

@@ -13,6 +13,7 @@ import hue.captains.singapura.js.homing.workspace.log.RegionEvent;
 import hue.captains.singapura.js.homing.workspace.log.Scaled;
 import hue.captains.singapura.js.homing.workspace.log.SetAsideLog;
 import hue.captains.singapura.js.homing.workspace.log.TabEvent;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceEntry;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
 import hue.captains.singapura.js.homing.workspace.log.WriteLock;
@@ -43,6 +44,7 @@ public final class WorkspaceLogManifest {
             LogCodecEntry.id(LogIds.SplitPath.class),
             LogCodecEntry.id(LogIds.EventSeq.class),
             LogCodecEntry.id(LogIds.WorkspaceKind.class),
+            LogCodecEntry.id(LogIds.WorkspaceName.class),
             LogCodecEntry.id(LogIds.WorkspaceInstanceId.class),
             // an exact decimal
             LogCodecEntry.record(Scaled.class),
@@ -92,7 +94,9 @@ public final class WorkspaceLogManifest {
             // which log, and who writes it: one page at a time
             LogCodecEntry.record(LogKey.class),
             LogCodecEntry.enumeration(WriteLock.Held.class),
-            LogCodecEntry.record(WriteLock.class));
+            LogCodecEntry.record(WriteLock.class),
+            // the workspaces of a kind, as the browser lists them
+            LogCodecEntry.record(WorkspaceEntry.class));
 
     /**
      * The manifest holds together, or the build stops here: one name per type,

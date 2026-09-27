@@ -4,7 +4,7 @@
 // whole, and its docks laid out in a split grid by a DOCK GRID, on a floor
 // that fills what holds it. Nothing between them and nothing of its own.
 //
-//   new Workspace(branch, { host, kinds?, keyboard?, menus?, budget?, log?, state?, logged? })
+//   new Workspace(branch, { host, kinds?, keyboard?, menus?, budget?, log?, state?, logged?, checkpointer?, readOnly?, server? })
 //     host      where the floor goes: the page's slot, which it fills
 //     kinds     what a tab may hold - TabSource's kinds, { id, label, title,
 //               make(branch, { focus, id, title, pane, tab }) } - offered by the
@@ -26,6 +26,8 @@
 //               it folds a checkpoint every so many, off the page's thread
 //     readOnly  another page writes the log: nothing is recorded here, and the bar
 //               still counts and exports what the log holds
+//     server    whether the server keeps this workspace's states: the bar's new
+//               workspace is kept there too
 //   ws.stopRecording()  nothing more recorded, and no more checkpoints - the log's
 //               lock was taken by another page
 //   ws.root .desk .docks .source .recorder .logBar .checkpointer .restored { same, state, read }
@@ -89,7 +91,7 @@ class Workspace {
         this.checkpointer = o.checkpointer || null;
         if (o.log) {
             var logged = o.logged || 0;
-            this.logBar = new WorkspaceLogBar(branch.createBranch("log"), { host: floor, store: o.log });
+            this.logBar = new WorkspaceLogBar(branch.createBranch("log"), { host: floor, store: o.log, server: !!o.server });
             this.logBar.count(logged);
             if (this.restored) this.logBar.restored(this.restored.same);
             if (!o.readOnly) this.recorder = new WorkspaceRecorder({ store: o.log,

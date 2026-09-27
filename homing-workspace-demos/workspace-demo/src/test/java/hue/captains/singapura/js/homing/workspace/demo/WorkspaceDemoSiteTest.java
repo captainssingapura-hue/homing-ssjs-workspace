@@ -9,8 +9,10 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -63,6 +65,20 @@ class WorkspaceDemoSiteTest {
         assertTrue(on.isOk() && on.orNull().ws_server());
         assertTrue(!WorkspaceApp.CODEC.from(Map.of("ws_kind", List.of("demo"))).orNull().ws_server(), "off unless said");
         assertInstanceOf(Decoded.Malformed.class, WorkspaceApp.CODEC.from(Map.of("ws_kind", List.of("demo"), "ws_server", List.of("https://elsewhere"))));
+    }
+
+    /** A route's page keeps its kind's own workspace; an address may name another of the kind, by the id its log is kept under, written as the log writes it. */
+    @Test
+    void theAddressNamesOneWorkspaceOfTheKind_orNoneForTheKindsOwn() {
+        assertFalse(pageAt("/notes").contains("ws_id"), "the route keeps the kind's own");
+        String id = "0f1b6c2e-5000-4000-8f1b-6c2e00000001";
+        var named = WorkspaceApp.CODEC.from(Map.of("ws_kind", List.of("notes"), "ws_id", List.of(id)));
+        assertTrue(named.isOk() && id.equals(named.orNull().ws_id()));
+        assertEquals(List.of(id), WorkspaceApp.CODEC.to(named.orNull()).get("ws_id"), "and written back as it was read");
+        assertNull(WorkspaceApp.CODEC.from(Map.of("ws_kind", List.of("notes"))).orNull().ws_id(), "absent, the kind's own");
+        for (String not : List.of("nope", id.toUpperCase(), "0f1b6c2e50004000-8f1b-6c2e00000001", "")) {
+            assertInstanceOf(Decoded.Malformed.class, WorkspaceApp.CODEC.from(Map.of("ws_kind", List.of("notes"), "ws_id", List.of(not))), not);
+        }
     }
 
     /**
