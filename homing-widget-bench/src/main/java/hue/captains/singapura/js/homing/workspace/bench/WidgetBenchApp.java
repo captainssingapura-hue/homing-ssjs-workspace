@@ -18,7 +18,8 @@ import java.util.Objects;
  * or a route of the bench's site. The address names the kind; the rest of it
  * is the widget's params, read by the kind's own {@link WidgetQuery}. The page
  * makes the widget with the container it is lent - the MPA's slot, made
- * resizable - and its params, and gives it nothing else.
+ * resizable - and its params, and gives it nothing else. The container is the
+ * bench's, so the bench watches it: a widget that misbehaves in it is said.
  */
 public record WidgetBenchApp() implements AppModule<WidgetBenchApp.Params, WidgetBenchApp> {
 
@@ -72,7 +73,7 @@ public record WidgetBenchApp() implements AppModule<WidgetBenchApp.Params, Widge
     public ImportsFor<WidgetBenchApp> imports() {
         return ImportsFor.<WidgetBenchApp>builder()
                 .add(new ModuleImports<>(List.of(new BenchWidgetsModule.BENCH_WIDGETS()), BenchWidgetsModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(new WidgetBenchStyles.wb_bench()), WidgetBenchStyles.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WidgetBenchStyles.wb_bench(), new WidgetBenchStyles.wb_misbehaves()), WidgetBenchStyles.INSTANCE))
                 .build();
     }
 
