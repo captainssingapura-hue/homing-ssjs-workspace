@@ -8,6 +8,7 @@ import java.util.List;
 
 import static hue.captains.singapura.js.homing.design.DesignClass.of;
 import static hue.captains.singapura.js.homing.design.Emphasis.Muted;
+import static hue.captains.singapura.js.homing.design.Layer.Recessed;
 import static hue.captains.singapura.js.homing.design.Target.Color;
 import static hue.captains.singapura.js.homing.design.Target.Type;
 import static hue.captains.singapura.js.homing.design.Text.Display;
@@ -80,6 +81,51 @@ public record BookStyles() implements CssGroup<BookStyles> {
         @Override public String body() { return "display: none;"; }
     }
 
+    /**
+     * The book browser's root: the whole of the box it is lent, its two boxes side by
+     * side - or, where the box is too narrow for both, one above the other, each line of
+     * them taking its share of the height.
+     */
+    public record bb_split() implements CssClass<BookStyles> {
+        @Override public String body() { return """
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: stretch;
+            gap: 8px;
+            min-width: 0;
+            min-height: 0;
+            box-sizing: border-box;
+            """;
+        }
+    }
+
+    /** The box the browser lends its grid: most of the width. */
+    public record bb_grid() implements CssClass<BookStyles> {
+        @Override public String body() { return """
+            position: relative;
+            flex: 3 1 320px;
+            min-width: 0;
+            min-height: 0;
+            """;
+        }
+    }
+
+    /** The box the browser lends its jumbotron: the rest, set a layer back. */
+    public record bb_chosen() implements CssClass<BookStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Recessed.class, Color.Surface.class)); }
+        @Override public String body() { return """
+            position: relative;
+            flex: 2 1 220px;
+            min-width: 0;
+            min-height: 0;
+            """;
+        }
+    }
+
     @Override
-    public List<CssClass<BookStyles>> cssClasses() { return List.of(new bj_frame(), new bj_stage(), new bj_title(), new bj_author(), new bj_none(), new bj_hidden()); }
+    public List<CssClass<BookStyles>> cssClasses() {
+        return List.of(new bj_frame(), new bj_stage(), new bj_title(), new bj_author(), new bj_none(), new bj_hidden(), new bb_split(), new bb_grid(), new bb_chosen());
+    }
 }

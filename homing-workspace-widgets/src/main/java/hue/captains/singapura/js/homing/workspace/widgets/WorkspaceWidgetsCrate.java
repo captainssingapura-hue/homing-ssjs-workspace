@@ -7,6 +7,9 @@ import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
 import hue.captains.singapura.js.homing.design.DesignCrate;
 import hue.captains.singapura.js.homing.relgrid.RelGridCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
+import hue.captains.singapura.js.homing.workspace.parties.WorkspacePartiesCrate;
+import hue.captains.singapura.js.homing.workspace.widgets.books.BookBrowserModule;
+import hue.captains.singapura.js.homing.workspace.widgets.books.BookBrowserSecretaryModule;
 import hue.captains.singapura.js.homing.workspace.widgets.books.BookJumbotronModule;
 import hue.captains.singapura.js.homing.workspace.widgets.books.BookSelectionModule;
 import hue.captains.singapura.js.homing.workspace.widgets.books.BookSelectionSecretaryModule;
@@ -34,7 +37,9 @@ public final class WorkspaceWidgetsCrate implements Crate {
                 // the books widget's grid and its stock cells
                 RelGridCrate.INSTANCE,
                 // the design words the books' sheet wears
-                DesignCrate.INSTANCE);
+                DesignCrate.INSTANCE,
+                // the messaging parties' runtime: a composed widget's own scope
+                WorkspacePartiesCrate.INSTANCE);
     }
 
     @Override
@@ -51,6 +56,9 @@ public final class WorkspaceWidgetsCrate implements Crate {
                 CrateEntry.of(BookSelectionSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
                 // the chosen book, big
                 CrateEntry.of(BookStyles.INSTANCE),
-                CrateEntry.of(BookJumbotronModule.INSTANCE, StandardJsModuleType.CONSUMER));
+                CrateEntry.of(BookJumbotronModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                // the two composed: they meet in a scope of the browser's own, its secretary keeping the edge
+                CrateEntry.of(BookBrowserSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
+                CrateEntry.of(BookBrowserModule.INSTANCE, StandardJsModuleType.CONSUMER));
     }
 }

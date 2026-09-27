@@ -3,8 +3,15 @@
 // Parties Are Joined Top-Down): flat — one secretary and its members — and of
 // one TYPE, which is its identity. What happens in it is actions: a member
 // tells; the secretary, pure, steps — its new state, and what to do: send to
-// one member, broadcast to all, or send to its parent. A send to the parent
-// has no party above it to go to yet, so it stops here, recorded.
+// one member, broadcast to all, or send to its parent.
+//
+// A party is flat, and a scope is a party of its own linked to the one above
+// it: link(upstream, name) joins this party to that one as a member named
+// `name`. What the party above says comes in to this secretary, from
+// "upstream"; what this secretary sends to its parent goes up through the
+// link — bubbling up is the secretary's to decide, kind by kind, and a
+// scope that sends nothing up terminates it. Not linked, a send to the
+// parent stops here, recorded.
 //
 // Every message is checked against the type's vocabulary where it enters, a
 // member's and the secretary's alike: one that does not read is refused,
@@ -21,12 +28,16 @@
 //       reactors { Kind: function (message, envelope) }
 //       m.id  m.name  m.tell(message) → true when it entered  m.leave()
 //   party.send(message, to?)  the substrate's own: to one member by id, or to all
+//   party.link(upstream, name) → the membership above: this party joined to a party of
+//                             its own type; unlink() leaves it. One link at a time
 //   party.state()             the secretary's state
 //   party.members()           [{ id, name, hears }]
 //   party.on(fn) → off        every passage: { dir, from?, to?, message?, name?, reason? } —
-//                             dir "joined", "left", "up" (to the secretary), "down" (to a
-//                             member), "stopped" (to a parent, none), "refused", "threw"
-//   party.inspect()           { type, state, members, refused, stopped, threw } — the lists bounded
+//                             dir "joined", "left", "linked", "unlinked", "up" (a member to the
+//                             secretary), "in" (from upstream to the secretary), "down" (to a
+//                             member), "out" (to the parent, through the link), "stopped" (to a
+//                             parent, none), "refused", "threw"
+//   party.inspect()           { type, state, linked, members, refused, stopped, bubbled, threw } — the lists bounded
 //   MessagingParty.check(type, message) → null, or why it does not read
 // =============================================================================
 
@@ -43,7 +54,9 @@ class MessagingParty {
         this._sinks = [];
         this._refused = [];
         this._stopped = [];
+        this._bubbled = [];
         this._threw = [];
+        this._link = null;   // this party's membership of the party above it, while linked
     }
 
     /** A member joins, by a name of its own and the kinds it hears. */
@@ -74,6 +87,30 @@ class MessagingParty {
         return true;
     }
 
+    /**
+     * Linked to the party above it, of its own type: joined there as `name`, hearing every
+     * kind - each brought in to this secretary, from "upstream". → the membership above,
+     * by which the scope may ask there too.
+     */
+    link(upstream, name) {
+        if (this._link) throw new Error("[MessagingParty] '" + this.type.name + "': linked already - unlink first");
+        if (!(upstream instanceof MessagingParty) || upstream === this) throw new Error("[MessagingParty] '" + this.type.name + "': a link is to another party");
+        if (upstream.type.name !== this.type.name) throw new Error("[MessagingParty] '" + this.type.name + "': a link is to a party of its own type, not '" + upstream.type.name + "'");
+        var self = this, hears = {};
+        Object.keys(this.type.kinds).forEach(function (k) { hears[k] = function (m) { self._in(m); }; });
+        this._link = upstream.join(name, hears);
+        this._said({ dir: "linked", name: name });
+        return this._link;
+    }
+
+    unlink() {
+        if (!this._link) return;
+        var name = this._link.name;
+        this._link.leave();
+        this._link = null;
+        this._said({ dir: "unlinked", name: name });
+    }
+
     state() { return this._state; }
 
     members() {
@@ -88,8 +125,8 @@ class MessagingParty {
     }
 
     inspect() {
-        return Object.freeze({ type: this.type.name, state: this._state, members: this.members(),
-                               refused: this._refused.slice(), stopped: this._stopped.slice(), threw: this._threw.slice() });
+        return Object.freeze({ type: this.type.name, state: this._state, linked: this._link ? this._link.name : null, members: this.members(),
+                               refused: this._refused.slice(), stopped: this._stopped.slice(), bubbled: this._bubbled.slice(), threw: this._threw.slice() });
     }
 
     /** Why a message does not read as one of the type's kinds, or null: every field declared, of its type, and no other. */
@@ -104,25 +141,39 @@ class MessagingParty {
 
     // ── the passages ───────────────────────────────────────────────────────
 
-    /** A member tells the secretary; the secretary steps, and its actions are done. */
+    /** A member tells the secretary. */
     _up(from, message) {
         if (!this._members.has(from)) return false;
         var m = this._entered(message, from);
         if (!m) return false;
-        var envelope = Object.freeze({ from: from, name: this._members.get(from).name, message: m });
-        this._said({ dir: "up", from: from, name: envelope.name, message: m });
-        var step;
+        var name = this._members.get(from).name;
+        this._said({ dir: "up", from: from, name: name, message: m });
+        this._step(Object.freeze({ from: from, name: name, message: m }));
+        return true;
+    }
+
+    /** The party above says something: in to this secretary, from "upstream". Checked there, and here. */
+    _in(message) {
+        var m = this._entered(message, "upstream");
+        if (!m) return;
+        var name = this._link ? this._link.name : "upstream";
+        this._said({ dir: "in", from: "upstream", name: name, message: m });
+        this._step(Object.freeze({ from: "upstream", name: name, message: m }));
+    }
+
+    /** The secretary steps: its state committed first, then its actions done - so what they cause meets the new state. */
+    _step(envelope) {
+        var step, m = envelope.message;
         try { step = this._secretary.behavior(this._state, envelope); }
         catch (e) {   // its state kept as it was, and nothing done
             MessagingParty._keep(this._threw, { member: "the secretary", kind: m.kind, error: String(e && e.message || e) });
-            this._said({ dir: "threw", from: from, name: "the secretary", message: m, reason: String(e && e.message || e) });
+            this._said({ dir: "threw", from: envelope.from, name: "the secretary", message: m, reason: String(e && e.message || e) });
             console.error("[MessagingParty] '" + this.type.name + "': the secretary threw on " + m.kind + ":", e);
-            return true;
+            return;
         }
         this._state = step.newState;
         var self = this;
         (step.actions || []).forEach(function (a) { self._act(a); });
-        return true;
     }
 
     _act(a) {
@@ -130,8 +181,16 @@ class MessagingParty {
         if (!m) return;
         if (a.kind === "BroadcastToMembers") this._broadcast("secretary", m);
         else if (a.kind === "SendToMember") this._deliver(a.to, "secretary", m);
-        else if (a.kind === "SendToParent") { MessagingParty._keep(this._stopped, m); this._said({ dir: "stopped", message: m }); }
+        else if (a.kind === "SendToParent") this._toParent(m);
         else this._refuse(a.message, "the secretary", "'" + (a && a.kind) + "' is not an action: SendToMember, BroadcastToMembers, SendToParent");
+    }
+
+    /** Up through the link, as this party's own word there; with none, it stops here. */
+    _toParent(m) {
+        if (!this._link) { MessagingParty._keep(this._stopped, m); this._said({ dir: "stopped", message: m }); return; }
+        MessagingParty._keep(this._bubbled, m);
+        this._said({ dir: "out", name: this._link.name, message: m });
+        this._link.tell(m);
     }
 
     _broadcast(from, m) {

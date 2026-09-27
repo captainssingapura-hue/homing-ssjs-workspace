@@ -17,9 +17,10 @@
 // Joined to a book selection party (Messaging Parties Are Joined Top-Down),
 // the grid's cursor is the choice: a move to another book tells the party it
 // is chosen — its id, its title and its author, as the store has them now, and
-// again when its title is edited — and what the party says is chosen, the
-// cursor moves to. On joining it asks what is chosen already. Not joined, it
-// works alone.
+// again when its title is edited — and so does a press on the row the cursor
+// is on, when that book is not the chosen one; what the party says is chosen,
+// the cursor moves to. On joining it asks what is chosen already. Not joined,
+// it works alone.
 //
 //   new BooksGrid(container, params)
 //     container  where it goes: its page's, lent - filled, never shaped. The
@@ -70,6 +71,8 @@ class BooksGrid {
                                    columnView: columns, label: "Books",
                                    onCursorMoved: function (pk) { if (self._selection && pk !== self._chosen) self._tell(pk); } });
         this._offStore = this._store.subscribe(function (pk, col) { if (self._selection && pk === self._chosen && col === "title") self._tell(pk); });
+        // a press on the row the cursor is already on - where it starts, or where it stayed when the choice was cleared - chooses it too
+        box.addEventListener("click", function () { var at = self._grid.cursor(); if (self._selection && at && at.pk !== self._chosen) self._tell(at.pk); });
         container.appendChild(root);
         // ITS OWN FOCUS PARTY: it is the member of it; its host grafts it where the keys should reach it
         this._focusParty = focusParties.mobile(name);

@@ -19,7 +19,10 @@ class MessagingPartyTest extends JsModuleTestBase {
 
     private static final String MODULE = "/homing/js/hue/captains/singapura/js/homing/workspace/parties/MessagingPartyModule.js";
 
-    /** A chimes party, as Java generates its type; a secretary that echoes a Ring to all and answers a Hush to its sender. */
+    /**
+     * A chimes party, as Java generates its type; a secretary that echoes a Ring to all - and up,
+     * unless it came from above, which would ring for ever - and answers a Hush to its sender.
+     */
     private static final String SHIM = new PartyType<>("door-chimes", PartyTypeTest.Chimes.class).js() + """
 
         var console = { error: function () {} };
@@ -28,7 +31,9 @@ class MessagingPartyTest extends JsModuleTestBase {
             initial: { rings: 0 },
             behavior: function (state, env) {
                 var m = env.message;
-                if (m.kind === "Ring") return { newState: { rings: state.rings + 1 }, actions: [{ kind: "BroadcastToMembers", message: m }, { kind: "SendToParent", message: m }] };
+                if (m.kind === "Ring") return { newState: { rings: state.rings + 1 }, actions: env.from === "upstream"
+                        ? [{ kind: "BroadcastToMembers", message: m }]
+                        : [{ kind: "BroadcastToMembers", message: m }, { kind: "SendToParent", message: m }] };
                 if (m.kind === "Hush") return { newState: state, actions: [{ kind: "SendToMember", to: env.from, message: { kind: "Hush" } }] };
                 return { newState: state, actions: [] };
             }
@@ -95,6 +100,37 @@ class MessagingPartyTest extends JsModuleTestBase {
         assertEquals("joined:a joined:b left:b", str("passages.filter(function (p) { return /joined|left/.test(p); }).join(' ')"));
         assertFalse(eval("b.tell({ kind: 'Hush' })").asBoolean(), "gone, it cannot tell");
         assertTrue(str("(function () { try { party.join('c', { Knock: function () {} }); return ''; } catch (e) { return e.message; } })()").contains("not a kind"));
+    }
+
+    /**
+     * A scope: a party linked to one above it. What its secretary sends to its parent goes up
+     * through the link, as the scope's own word there; what the party above says comes in to
+     * its secretary, from "upstream"; unlinked, it stops here again.
+     */
+    @Test
+    void aScopeLinkedAbove_bubblesUpThroughTheLink_andHearsWhatComesDown() {
+        eval("""
+            var above = new MessagingParty(CHIMES, echo), aboveHeard = [];
+            var peer = above.join("peer", { Ring: function (m) { aboveHeard.push("peer Ring " + m.who); } });
+            var up = party.link(above, "scope");
+            """);
+        assertEquals("scope", str("party.inspect().linked"));
+        assertTrue(str("above.members().map(function (m) { return m.name; }).join(' ')").contains("scope"), "the scope is a member above, by its name");
+        eval("heard = []; a.tell({ kind: 'Ring', who: 'Ann', times: 1, loud: true })");
+        assertEquals("peer Ring Ann", str("aboveHeard.join(' | ')"), "up through the link: the party above broadcast it");
+        assertEquals(1, eval("above.state().rings").asInt());
+        assertEquals(1, eval("party.inspect().bubbled.length").asInt());
+        assertEquals(0, eval("party.inspect().stopped.length").asInt());
+        // the party above's broadcast came back in to this secretary, from upstream - which rang again locally
+        assertEquals(2, eval("party.state().rings").asInt());
+        eval("heard = []; peer.tell({ kind: 'Hush' })");
+        assertEquals("", str("heard.join(' | ')"), "above answers its sender alone: not the scope");
+        eval("heard = []; above.send({ kind: 'Hush' })");
+        assertTrue(str("passages.join(' ')").contains("in:scope"), "what the party above says comes in, from upstream");
+        eval("party.unlink(); aboveHeard = []; a.tell({ kind: 'Ring', who: 'Bo', times: 1, loud: true })");
+        assertEquals("", str("aboveHeard.join(' | ')"), "unlinked, nothing goes up");
+        assertEquals(1, eval("party.inspect().stopped.length").asInt());
+        assertTrue(str("(function () { try { party.link(new MessagingParty({ name: 'other', kinds: {} }, echo), 'x'); return ''; } catch (e) { return e.message; } })()").contains("its own type"));
     }
 
     @Test
