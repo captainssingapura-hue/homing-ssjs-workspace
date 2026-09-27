@@ -5,7 +5,7 @@ import hue.captains.singapura.js.homing.component.keyboard.Key;
 import hue.captains.singapura.js.homing.component.keyboard.KeyBinding;
 import hue.captains.singapura.js.homing.component.keyboard.KeysModule;
 import hue.captains.singapura.js.homing.component.keyboard.NeedKeyboard;
-import hue.captains.singapura.js.homing.component.keyboard.focusParty;
+import hue.captains.singapura.js.homing.component.keyboard.focusParties;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -37,9 +37,9 @@ public record BooksGridModule() implements DomModule<BooksGridModule> {
     @Override
     public ImportsFor<BooksGridModule> imports() {
         return ImportsFor.<BooksGridModule>builder()
-                // its own DomOps party, from the party of parties; its focus root, as the focus party is today
+                // its own DomOps party and focus party, each from its party of parties
                 .add(new ModuleImports<>(List.of(new domOpsParties()), DomOpsPartyModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(new focusParty()), FocusPartyModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new KeysModule.Keys()), KeysModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new RelGridModule.RelGrid()), RelGridModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new BooksModule.BooksStore(), new BooksModule.BooksRelation()), BooksModule.INSTANCE))

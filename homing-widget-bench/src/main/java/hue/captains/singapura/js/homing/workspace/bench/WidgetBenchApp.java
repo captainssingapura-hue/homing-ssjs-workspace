@@ -1,5 +1,8 @@
 package hue.captains.singapura.js.homing.workspace.bench;
 
+import hue.captains.singapura.js.homing.component.keyboard.FocusPartyModule;
+import hue.captains.singapura.js.homing.component.keyboard.focusParties;
+import hue.captains.singapura.js.homing.component.keyboard.focusParty;
 import hue.captains.singapura.js.homing.core.AppModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -24,7 +27,7 @@ import java.util.Objects;
  * resizable - and its params, and gives it nothing else. The container is the
  * bench's, so the bench watches it: a widget that misbehaves in it is said.
  * The bench is the widget's host: it grafts the widget's own DomOps party into
- * the page's tree at its place there.
+ * the page's tree at its place there, and its own focus party into the page's.
  */
 public record WidgetBenchApp() implements AppModule<WidgetBenchApp.Params, WidgetBenchApp> {
 
@@ -80,6 +83,8 @@ public record WidgetBenchApp() implements AppModule<WidgetBenchApp.Params, Widge
                 .add(new ModuleImports<>(List.of(new BenchWidgetsModule.BENCH_WIDGETS()), BenchWidgetsModule.INSTANCE))
                 // the page's party, where the bench grafts the widget's own; the party of parties, which says the strays
                 .add(new ModuleImports<>(List.of(new domOpsParty(), new domOpsParties(), new DomOpsPartyModule.MobileDomOpsParty()), DomOpsPartyModule.INSTANCE))
+                // the page's focus party, where the bench grafts the widget's own; its party of parties
+                .add(new ModuleImports<>(List.of(new focusParty(), new focusParties(), new FocusPartyModule.MobileFocusParty()), FocusPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WidgetBenchStyles.wb_bench(), new WidgetBenchStyles.wb_misbehaves()), WidgetBenchStyles.INSTANCE))
                 .build();
     }

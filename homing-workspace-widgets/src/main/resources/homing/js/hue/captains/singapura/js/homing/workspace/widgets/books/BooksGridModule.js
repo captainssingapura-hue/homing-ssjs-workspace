@@ -4,9 +4,9 @@
 // its page lends it and its params, and nothing else. Its elements are minted
 // in a DomOpsParty of its own — a mobile party, from the party of parties —
 // which it offers its host as roots.dom, for the host to graft into the page's
-// tree where the host decides. It is a member of the page's focus party by a
-// root of its own, made here as the focus party is today. Its data is its own
-// too.
+// tree where the host decides; and it is the member of a focus party of its own
+// — a mobile one too — offered as roots.focus, for the host to graft where the
+// keys should reach it. Its data is its own too.
 //
 // The grid takes the browser's own focus in its cells: a native world inside
 // a widget that is only ever logically focused. A press anywhere in it claims
@@ -22,10 +22,10 @@
 //                title, author, year, rating, each once; all when absent - and
 //                numbers, "on" for a gutter of row numbers
 //   grid.root     its root, in the container
-//   grid.roots    what its host grafts: { dom } - its own DomOps party, a stray until grafted
-//   grid.focus    its membership of the focus party
-//   grid.dispose() both roots gone - its DomOps party dissolved (its proxy with it), its
-//                  membership left - and nothing left in the container
+//   grid.roots    what its host grafts: { dom, focus } - its own DomOps party and focus
+//                 party, each a stray until grafted
+//   grid.focus    its membership of its own focus party
+//   grid.dispose() both parties dissolved, each proxy with its party, and nothing left in the container
 // =============================================================================
 
 const _booksGridOwner = Object.freeze({ toString: () => "booksGrid" });
@@ -39,7 +39,6 @@ class BooksGrid {
         // ITS OWN DOMOPS PARTY: everything it mints is in it, and goes with it; its host grafts it
         this._dom = domOpsParties.mobile(name);
         this._dom.activate(_booksGridOwner);
-        this.roots = Object.freeze({ dom: this._dom });
         var root = this._dom.createElement("root", "div");
         css.addClass(root, wg_fill);
         var box = this._dom.createElement("box", "div");
@@ -53,9 +52,11 @@ class BooksGrid {
                                    header: { show: true, sticky: true }, rowNumbers: p.numbers === "on",
                                    columnView: BooksGrid._columns(p.columns), label: "Books" });
         container.appendChild(root);
-        // ITS OWN FOCUS ROOT: a member of the page's focus party, joined by itself
-        this.focus = focusParty.root.join(name, this);
+        // ITS OWN FOCUS PARTY: it is the member of it; its host grafts it where the keys should reach it
+        this._focusParty = focusParties.mobile(name);
+        this.focus = this._focusParty.root.join("grid", this);
         this._off = Keys.claimOn(root, this.focus);
+        this.roots = Object.freeze({ dom: this._dom, focus: this._focusParty });
     }
 
     /** The columns the address named, in its order; all of them when it named none. */
@@ -78,7 +79,7 @@ class BooksGrid {
 
     dispose() {
         if (this._off) { this._off(); this._off = null; }
-        if (this.focus && this.focus.in) this.focus.leave();
+        this._focusParty.dissolve();
         this._grid.destroy();
         this._relation.dispose();
         this._dom.dissolve();

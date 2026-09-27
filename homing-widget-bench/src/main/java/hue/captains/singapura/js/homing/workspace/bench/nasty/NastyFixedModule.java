@@ -5,7 +5,7 @@ import hue.captains.singapura.js.homing.component.keyboard.Key;
 import hue.captains.singapura.js.homing.component.keyboard.KeyBinding;
 import hue.captains.singapura.js.homing.component.keyboard.KeysModule;
 import hue.captains.singapura.js.homing.component.keyboard.NeedKeyboard;
-import hue.captains.singapura.js.homing.component.keyboard.focusParty;
+import hue.captains.singapura.js.homing.component.keyboard.focusParties;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -35,7 +35,7 @@ public record NastyFixedModule() implements DomModule<NastyFixedModule> {
     public ImportsFor<NastyFixedModule> imports() {
         return ImportsFor.<NastyFixedModule>builder()
                 .add(new ModuleImports<>(List.of(new domOpsParties()), DomOpsPartyModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(new focusParty()), FocusPartyModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new KeysModule.Keys()), KeysModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new NastyStyles.nasty_fixed()), NastyStyles.INSTANCE))
                 .build();

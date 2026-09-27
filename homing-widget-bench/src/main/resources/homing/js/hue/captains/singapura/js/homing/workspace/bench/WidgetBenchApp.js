@@ -8,8 +8,10 @@
 // The bench is the widget's host, and does what a host does with its roots:
 // the widget's DomOps party - a mobile party, offered as roots.dom - is
 // grafted into the page's tree at the bench's place in it, "widgetBench", as
-// "widget". The page's snapshot then reads the widget's party through that
-// proxy, at the page's levels.
+// "widget"; its focus party - roots.focus - into the page's focus party, at
+// the root, as "widget", where the page's steward reaches it. The page's
+// snapshot reads the widget's DomOps party through its proxy, and the steward
+// learns the widget's members through the other.
 //
 // The container is the MPA's slot, and the one facility the bench gives:
 // resizable by its corner. It never scrolls. A widget fills it, at whatever
@@ -17,9 +19,9 @@
 // widget. Since the container is the bench's, the bench watches it, and says
 // when a widget misbehaves: anything in the container but the widget's one
 // root, a root that does not fill it, anything overflowing it - and, in the
-// page's party, a branch the widget made there rather than in a party of its
-// own, or a mobile party no one has grafted. Said on the console, and worn by
-// the container, until the widget behaves again.
+// page's parties, a branch or a member the widget made there rather than in a
+// party of its own, or a mobile party no one has grafted. Said on the console,
+// and worn by the container, until the widget behaves again.
 //
 // The params reach the page as the address wrote them, strings, read and
 // checked on the server by the kind's own WidgetQuery.
@@ -41,13 +43,16 @@ function appMain(el, params) {
     var place = domOpsParty.createBranch("widgetBench");
     place.activate(_benchOwner);
     var pageBranches = domOpsParty.listBranches();
+    var pageMembers = focusParty.root.members.map(function (m) { return m.name; });
     // the widget's params: what the address said for it - not the bench's kind, not the page's steward
     var own = {};
     Object.keys(params).forEach(function (k) { if (k !== "widget" && k !== "keyboard") own[k] = params[k]; });
     var widget = new Widget(el, Object.freeze(own));
     var dom = widget.roots && widget.roots.dom;
     if (dom instanceof MobileDomOpsParty) place.graft("widget", dom);
-    _watch(el, params.widget, { widget: widget, pageBranches: pageBranches });
+    var focus = widget.roots && widget.roots.focus;
+    if (focus instanceof MobileFocusParty) focusParty.root.graft("widget", focus);
+    _watch(el, params.widget, { widget: widget, pageBranches: pageBranches, pageMembers: pageMembers });
 }
 
 /** What is wrong with the container, and the page's party, as the widget keeps them - or nothing. */
@@ -66,7 +71,13 @@ function _misbehaviours(el, seen) {
     var theirs = domOpsParty.listBranches().filter(function (n) { return seen.pageBranches.indexOf(n) < 0; });
     if (theirs.length) out.push("it made " + theirs.join(", ") + " in the page's party, not in a party of its own");
     var strays = domOpsParties.strays();
-    if (strays.length) out.push("mobile parties no one has grafted: " + strays.map(function (s) { return s.name; }).join(", "));
+    if (strays.length) out.push("DomOps parties no one has grafted: " + strays.map(function (s) { return s.name; }).join(", "));
+    var focus = seen.widget.roots && seen.widget.roots.focus;
+    if (!(focus instanceof MobileFocusParty)) out.push("it offers no focus party of its own for its host to graft (roots.focus)");
+    var joined = focusParty.root.members.map(function (m) { return m.name; }).filter(function (n) { return n !== "widget" && seen.pageMembers.indexOf(n) < 0; });
+    if (joined.length) out.push("it joined " + joined.join(", ") + " to the page's focus party, not to a party of its own");
+    var focusStrays = focusParties.strays();
+    if (focusStrays.length) out.push("focus parties no one has grafted: " + focusStrays.map(function (s) { return s.name; }).join(", "));
     return out;
 }
 
