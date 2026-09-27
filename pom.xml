@@ -36,6 +36,10 @@
         <module>homing-workspace-log</module>
         <!-- The workspace as a page: the desk and its docks, the recorder, the restore. -->
         <module>homing-workspace-shell</module>
+        <!-- The widgets, each self-contained: made with a container and its params, its roots its own. -->
+        <module>homing-workspace-widgets</module>
+        <!-- One widget on a page of its own, from its kind and its params on the address: the bench. -->
+        <module>homing-widget-bench</module>
         <!-- The repo's own demos, nested: a workspace is a thing you run, and
              a module that runs one is the only honest test of that. -->
         <module>homing-workspace-demos</module>

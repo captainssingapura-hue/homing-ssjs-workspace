@@ -42,6 +42,16 @@
             <artifactId>homing-workspace-shell</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-widgets</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-widget-bench</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
 
         <!-- THE CHECK: the rules, the engine that grades a run, the export that writes the report. -->
         <dependency>
