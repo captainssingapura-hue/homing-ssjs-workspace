@@ -64,6 +64,17 @@ class WidgetBenchTest {
         assertTrue(js.contains("\"nasty-fixed\": NastyFixed"), js);
     }
 
+    /** The monitors the bar floats, in its order: each its kind, its title, its toggle's mark, its class - kinds the bench also stands up alone. */
+    @Test
+    void thePageGeneratesTheMonitorsList_eachAKindOfTheBench() {
+        var js = String.join("\n", BenchWidgetsModule.INSTANCE.selfContent(null));
+        assertTrue(js.contains("const BENCH_MONITORS = Object.freeze([Object.freeze({ kind: \"focus-tree\", title: \"Focus tree\", mark: \"F\", Widget: FocusTree }), "
+                + "Object.freeze({ kind: \"steward-lamp\", title: \"Steward lamp\", mark: \"S\", Widget: StewardLamp }), "
+                + "Object.freeze({ kind: \"domops-tree\", title: \"DomOps tree\", mark: \"D\", Widget: DomOpsTree }), "
+                + "Object.freeze({ kind: \"party-log\", title: \"Party log\", mark: \"P\", Widget: PartyLog })]);"), js);
+        assertTrue(WidgetBench.KINDS.containsAll(WidgetBench.MONITORS));
+    }
+
     /** The nasty widget has a page like any kind, and no params: whatever the address says, it is the same. */
     @Test
     void theNastyWidgetStandsUpLikeAnyKind() {

@@ -23,11 +23,13 @@ import java.util.Objects;
  * One widget on a page of its own: {@code /app?app=widget-bench&widget=<kind>&…},
  * or a route of the bench's site. The address names the kind; the rest of it
  * is the widget's params, read by the kind's own {@link WidgetQuery}. The page
- * makes the widget with the container it is lent - the MPA's slot, made
+ * makes the widget with the container it is lent - the bench's own, made
  * resizable - and its params, and gives it nothing else. The container is the
  * bench's, so the bench watches it: a widget that misbehaves in it is said.
  * The bench is the widget's host: it grafts the widget's own DomOps party into
  * the page's tree at its place there, and its own focus party into the page's.
+ * Over the page float the monitors, each at a toggle of the bar above the
+ * container, each a widget like any other, hosted in a tab-pane.
  */
 public record WidgetBenchApp() implements AppModule<WidgetBenchApp.Params, WidgetBenchApp> {
 
@@ -80,12 +82,14 @@ public record WidgetBenchApp() implements AppModule<WidgetBenchApp.Params, Widge
     @Override
     public ImportsFor<WidgetBenchApp> imports() {
         return ImportsFor.<WidgetBenchApp>builder()
-                .add(new ModuleImports<>(List.of(new BenchWidgetsModule.BENCH_WIDGETS()), BenchWidgetsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new BenchWidgetsModule.BENCH_WIDGETS(), new BenchWidgetsModule.BENCH_MONITORS()), BenchWidgetsModule.INSTANCE))
+                // the monitors' bar, and the desk their floats lie on
+                .add(new ModuleImports<>(List.of(new BenchMonitorsModule.BenchMonitors()), BenchMonitorsModule.INSTANCE))
                 // the page's party, where the bench grafts the widget's own; the party of parties, which says the strays
                 .add(new ModuleImports<>(List.of(new domOpsParty(), new domOpsParties(), new DomOpsPartyModule.MobileDomOpsParty()), DomOpsPartyModule.INSTANCE))
                 // the page's focus party, where the bench grafts the widget's own; its party of parties
                 .add(new ModuleImports<>(List.of(new focusParty(), new focusParties(), new FocusPartyModule.MobileFocusParty()), FocusPartyModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(new WidgetBenchStyles.wb_bench(), new WidgetBenchStyles.wb_misbehaves()), WidgetBenchStyles.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WidgetBenchStyles.wb_page(), new WidgetBenchStyles.wb_bench(), new WidgetBenchStyles.wb_misbehaves()), WidgetBenchStyles.INSTANCE))
                 .build();
     }
 

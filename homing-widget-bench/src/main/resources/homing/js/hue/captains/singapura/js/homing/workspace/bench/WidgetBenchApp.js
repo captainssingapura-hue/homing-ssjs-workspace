@@ -13,7 +13,11 @@
 // snapshot reads the widget's DomOps party through its proxy, and the steward
 // learns the widget's members through the other.
 //
-// The container is the MPA's slot, and the one facility the bench gives:
+// The page is the MPA's slot: the monitors' bar, then the container, with the
+// monitors' floats over both (BenchMonitors) — made before the widget, as the
+// page's own, so that what the page had before the widget came is known.
+//
+// The container is the bench's, and the one facility it gives a widget:
 // resizable by its corner. It never scrolls. A widget fills it, at whatever
 // size it is made, by itself - and whatever needs scrolling scrolls inside the
 // widget. Since the container is the bench's, the bench watches it, and says
@@ -38,21 +42,26 @@ function appMain(el, params) {
         console.error("[widgetBench] no widget kind in the page's params");
         return;
     }
-    css.addClass(el, wb_bench);
+    css.addClass(el, wb_page);
     // the bench's place in the page's party, where the widget's party is grafted
     var place = domOpsParty.createBranch("widgetBench");
     place.activate(_benchOwner);
+    // the monitors' bar, and the desk their floats lie on: the page's own, made first
+    new BenchMonitors(place.createBranch("monitors"), { host: el, monitors: BENCH_MONITORS });
+    var container = place.createElement("container", "div");
+    css.addClass(container, wb_bench);
+    el.appendChild(container);
     var pageBranches = domOpsParty.listBranches();
     var pageMembers = focusParty.root.members.map(function (m) { return m.name; });
     // the widget's params: what the address said for it - not the bench's kind, not the page's steward
     var own = {};
     Object.keys(params).forEach(function (k) { if (k !== "widget" && k !== "keyboard") own[k] = params[k]; });
-    var widget = new Widget(el, Object.freeze(own));
+    var widget = new Widget(container, Object.freeze(own));
     var dom = widget.roots && widget.roots.dom;
     if (dom instanceof MobileDomOpsParty) place.graft("widget", dom);
     var focus = widget.roots && widget.roots.focus;
     if (focus instanceof MobileFocusParty) focusParty.root.graft("widget", focus);
-    _watch(el, params.widget, { widget: widget, pageBranches: pageBranches, pageMembers: pageMembers });
+    _watch(container, params.widget, { widget: widget, pageBranches: pageBranches, pageMembers: pageMembers });
 }
 
 /** What is wrong with the container, and the page's party, as the widget keeps them - or nothing. */

@@ -30,6 +30,12 @@ public interface WidgetDeclaration<P extends WidgetParams> {
     /** The kind's name on an address: {@code books-grid}. */
     String kind();
 
+    /** The kind's name for the eye - a tab's title, a toggle's label: its name, spaced and capitalised, unless said. */
+    default String title() {
+        String spaced = kind().replace('-', ' ');
+        return Character.toUpperCase(spaced.charAt(0)) + spaced.substring(1);
+    }
+
     /** The widget's params record. */
     Class<P> paramsType();
 

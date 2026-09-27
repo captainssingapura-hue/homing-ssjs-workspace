@@ -15,10 +15,13 @@ public final class WidgetBench {
 
     private WidgetBench() {}
 
+    /** The monitors: kinds the bench stands up like any other, and floats beside any other at a toggle. */
+    public static final List<WidgetDeclaration<?>> MONITORS = WorkspaceMonitorsCrate.KINDS;
+
     /** Every kind, the first the one the bench's root shows: the widgets, the monitors, and last the nasty ones the bench keeps to catch. */
     public static final List<WidgetDeclaration<?>> KINDS = Stream.of(
             Stream.<WidgetDeclaration<?>>of(BooksGridDeclaration.INSTANCE),
-            WorkspaceMonitorsCrate.KINDS.stream(),
+            MONITORS.stream(),
             Stream.<WidgetDeclaration<?>>of(NastyFixedDeclaration.INSTANCE)).flatMap(s -> s).toList();
 
     static {
@@ -26,6 +29,8 @@ public final class WidgetBench {
             if (!WidgetDeclaration.KIND.matcher(k.kind()).matches()) throw new IllegalStateException("not a kind's name: " + k.kind());
         }
         if (KINDS.stream().map(WidgetDeclaration::kind).distinct().count() != KINDS.size()) throw new IllegalStateException("two kinds of one name");
+        // a toggle's mark is its monitor's initial: two alike could not be told apart on the bar
+        if (MONITORS.stream().map(k -> k.title().substring(0, 1)).distinct().count() != MONITORS.size()) throw new IllegalStateException("two monitors of one mark");
     }
 
     /** The kind of that name, if the bench knows it. */

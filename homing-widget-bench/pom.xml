@@ -39,6 +39,12 @@
             <artifactId>homing-workspace-monitors</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <!-- The desk the monitors' floats lie on, from the ui-components. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ui-docking</artifactId>
+            <version>${homing.components.version}</version>
+        </dependency>
         <!-- The page model and the server: a Site and its router, the standard MPA
              (its definitions in core, its implementation in the ui-components),
              the designs its pages wear, and the host that serves it. -->

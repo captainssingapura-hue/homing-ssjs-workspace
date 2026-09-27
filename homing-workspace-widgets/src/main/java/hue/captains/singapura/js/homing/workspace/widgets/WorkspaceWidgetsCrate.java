@@ -34,6 +34,8 @@ public final class WorkspaceWidgetsCrate implements Crate {
     public List<CrateEntry> entries() {
         return List.of(
                 CrateEntry.of(WidgetStyles.INSTANCE),
+                // a widget where a component would stand: the host's side of the graft
+                CrateEntry.of(HostedWidgetModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 // the books, in the relation grid: native focus inside a widget
                 CrateEntry.of(BooksModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(BooksGridModule.INSTANCE, StandardJsModuleType.CONSUMER));

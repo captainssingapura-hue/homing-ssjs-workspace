@@ -13,6 +13,7 @@ public record DomOpsTreeDeclaration() implements WidgetDeclaration<NoParams> {
     public static final DomOpsTreeDeclaration INSTANCE = new DomOpsTreeDeclaration();
 
     @Override public String kind() { return "domops-tree"; }
+    @Override public String title() { return "DomOps tree"; }
     @Override public Class<NoParams> paramsType() { return NoParams.class; }
     @Override public WidgetQuery<NoParams> query() { return new NoParams.Query(); }
 

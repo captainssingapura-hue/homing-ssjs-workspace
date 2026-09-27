@@ -39,6 +39,20 @@ public record WidgetStyles() implements CssGroup<WidgetStyles> {
         }
     }
 
+    /**
+     * The container a host lends a widget where a component would stand - a
+     * tab's pane (HostedWidget): the whole of what holds it, positioned, so the
+     * widget's root has a box to fill. It never scrolls; the widget does.
+     */
+    public record wg_slot() implements CssClass<WidgetStyles> {
+        @Override public String body() { return """
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            """;
+        }
+    }
+
     @Override
-    public List<CssClass<WidgetStyles>> cssClasses() { return List.of(new wg_fill(), new wg_scroll()); }
+    public List<CssClass<WidgetStyles>> cssClasses() { return List.of(new wg_fill(), new wg_scroll(), new wg_slot()); }
 }
