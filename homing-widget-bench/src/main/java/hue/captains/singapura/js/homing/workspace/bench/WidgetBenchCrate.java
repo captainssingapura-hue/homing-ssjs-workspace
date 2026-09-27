@@ -3,7 +3,10 @@ package hue.captains.singapura.js.homing.workspace.bench;
 import hue.captains.singapura.js.homing.core.Crate;
 import hue.captains.singapura.js.homing.core.CrateEntry;
 import hue.captains.singapura.js.homing.core.StandardJsModuleType;
+import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
+import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyFixedModule;
+import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyStyles;
 import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceWidgetsCrate;
 
 import java.util.List;
@@ -21,6 +24,8 @@ public final class WidgetBenchCrate implements Crate {
         return List.of(
                 // the css manager the page's one class is added by
                 ServerCrate.INSTANCE,
+                // the DomOpsParty a nasty widget mints its root from, as every widget does
+                CoreJsCrate.INSTANCE,
                 // the widgets it stands up
                 WorkspaceWidgetsCrate.INSTANCE);
     }
@@ -30,6 +35,9 @@ public final class WidgetBenchCrate implements Crate {
         return List.of(
                 CrateEntry.of(WidgetBenchApp.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(BenchWidgetsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(WidgetBenchStyles.INSTANCE));
+                CrateEntry.of(WidgetBenchStyles.INSTANCE),
+                // the nasty widgets, which misbehave on purpose for the bench to catch
+                CrateEntry.of(NastyFixedModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                CrateEntry.of(NastyStyles.INSTANCE));
     }
 }

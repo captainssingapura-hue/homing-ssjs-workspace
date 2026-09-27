@@ -61,5 +61,15 @@ class WidgetBenchTest {
     void thePageGeneratesTheKindsList() {
         var js = String.join("\n", BenchWidgetsModule.INSTANCE.selfContent(null));
         assertTrue(js.contains("\"books-grid\": BooksGrid"), js);
+        assertTrue(js.contains("\"nasty-fixed\": NastyFixed"), js);
+    }
+
+    /** The nasty widget has a page like any kind, and no params: whatever the address says, it is the same. */
+    @Test
+    void theNastyWidgetStandsUpLikeAnyKind() {
+        assertTrue(pageAt("/nasty-fixed", Query.NONE).contains("\"widget\":\"nasty-fixed\""));
+        var ok = WidgetBenchApp.CODEC.from(Map.of("widget", List.of("nasty-fixed"), "columns", List.of("price")));
+        assertTrue(ok.isOk(), "its query reads nothing, so refuses nothing");
+        assertEquals(Map.of("widget", List.of("nasty-fixed")), WidgetBenchApp.CODEC.to(ok.orNull()));
     }
 }

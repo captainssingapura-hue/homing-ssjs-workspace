@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.bench;
 
+import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyFixedDeclaration;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetDeclaration;
 import hue.captains.singapura.js.homing.workspace.widgets.books.BooksGridDeclaration;
 
@@ -12,8 +13,8 @@ public final class WidgetBench {
 
     private WidgetBench() {}
 
-    /** Every kind, the first the one the bench's root shows. */
-    public static final List<WidgetDeclaration<?>> KINDS = List.of(BooksGridDeclaration.INSTANCE);
+    /** Every kind, the first the one the bench's root shows; after the widgets, the nasty ones the bench keeps to catch. */
+    public static final List<WidgetDeclaration<?>> KINDS = List.of(BooksGridDeclaration.INSTANCE, NastyFixedDeclaration.INSTANCE);
 
     static {
         for (var k : KINDS) {
