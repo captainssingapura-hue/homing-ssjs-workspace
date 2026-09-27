@@ -24,6 +24,10 @@
 //     logged    how many events the log already holds, for the bar
 //     checkpointer  a WorkspaceCheckpointer, told how many are recorded as they are:
 //               it folds a checkpoint every so many, off the page's thread
+//     readOnly  another page writes the log: nothing is recorded here, and the bar
+//               still counts and exports what the log holds
+//   ws.stopRecording()  nothing more recorded, and no more checkpoints - the log's
+//               lock was taken by another page
 //   ws.root .desk .docks .source .recorder .logBar .checkpointer .restored { same, state, read }
 //   ws.dispose()
 //
@@ -88,7 +92,7 @@ class Workspace {
             this.logBar = new WorkspaceLogBar(branch.createBranch("log"), { host: floor, store: o.log });
             this.logBar.count(logged);
             if (this.restored) this.logBar.restored(this.restored.same);
-            this.recorder = new WorkspaceRecorder({ store: o.log,
+            if (!o.readOnly) this.recorder = new WorkspaceRecorder({ store: o.log,
                 isRegion: function (slotId) { return !!self.docks.region(slotId); },
                 isFloat: function (slotId) { return !self.docks.region(slotId) && self.desk.docks().some(function (d) { return d.slotId === slotId; }); },
                 kindOf: function (tabId) { return self.source.kindOf(tabId); },
@@ -109,6 +113,14 @@ class Workspace {
             var tp = this.desk.register.get(ev.tabId);
             if (tp && !tp.pinned) this.desk.detach(tp);
         }
+    }
+
+    /** Nothing more recorded, and no more checkpoints: another page writes the log now. The workspace goes on, its changes kept by no one. */
+    stopRecording() {
+        if (this.recorder) this.recorder.stop();
+        this.recorder = null;
+        if (this.checkpointer) this.checkpointer.dispose();
+        this.checkpointer = null;
     }
 
     /** The recorder stopped first - taking the workspace down is not the user's closing its tabs; the desk, since a dock is disposed only empty; then the docks and their grid; then the floor. */

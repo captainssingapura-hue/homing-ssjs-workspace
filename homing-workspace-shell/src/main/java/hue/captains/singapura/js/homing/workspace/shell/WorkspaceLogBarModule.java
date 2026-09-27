@@ -6,6 +6,7 @@ import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.server.HrefManager;
+import hue.captains.singapura.js.homing.workspace.log.js.WriteLockModule;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogExportModule;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public record WorkspaceLogBarModule() implements DomModule<WorkspaceLogBarModule
     public ImportsFor<WorkspaceLogBarModule> imports() {
         return ImportsFor.<WorkspaceLogBarModule>builder()
                 .add(new ModuleImports<>(List.of(new WorkspaceLogExportModule.WorkspaceLogExport()), WorkspaceLogExportModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WriteLockModule.Held()), WriteLockModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new HrefManager.HrefManagerInstance()), HrefManager.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceStyles.ws_logbar(), new WorkspaceStyles.ws_logbar_count(),
                                                  new WorkspaceStyles.ws_logbar_link()), WorkspaceStyles.INSTANCE))

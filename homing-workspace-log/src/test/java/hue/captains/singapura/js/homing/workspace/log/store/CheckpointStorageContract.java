@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.log.store;
 
+import hue.captains.singapura.js.homing.workspace.log.LogKey;
 import hue.captains.singapura.js.homing.workspace.log.Checkpoint;
 import hue.captains.singapura.js.homing.workspace.log.Host;
 import hue.captains.singapura.js.homing.workspace.log.LogHeader;

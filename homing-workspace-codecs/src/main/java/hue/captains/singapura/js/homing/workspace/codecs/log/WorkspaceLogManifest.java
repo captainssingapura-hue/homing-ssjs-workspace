@@ -7,6 +7,7 @@ import hue.captains.singapura.js.homing.workspace.log.Host;
 import hue.captains.singapura.js.homing.workspace.log.Layout;
 import hue.captains.singapura.js.homing.workspace.log.LogHeader;
 import hue.captains.singapura.js.homing.workspace.log.LogIds;
+import hue.captains.singapura.js.homing.workspace.log.LogKey;
 import hue.captains.singapura.js.homing.workspace.log.LoggedEvent;
 import hue.captains.singapura.js.homing.workspace.log.RegionEvent;
 import hue.captains.singapura.js.homing.workspace.log.Scaled;
@@ -14,6 +15,7 @@ import hue.captains.singapura.js.homing.workspace.log.SetAsideLog;
 import hue.captains.singapura.js.homing.workspace.log.TabEvent;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
+import hue.captains.singapura.js.homing.workspace.log.WriteLock;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -86,7 +88,11 @@ public final class WorkspaceLogManifest {
             LogCodecEntry.record(WorkspaceState.class),
             LogCodecEntry.record(FoldedState.class),
             // that state written down as the log goes, and by which rules of the fold
-            LogCodecEntry.record(Checkpoint.class));
+            LogCodecEntry.record(Checkpoint.class),
+            // which log, and who writes it: one page at a time
+            LogCodecEntry.record(LogKey.class),
+            LogCodecEntry.enumeration(WriteLock.Held.class),
+            LogCodecEntry.record(WriteLock.class));
 
     /**
      * The manifest holds together, or the build stops here: one name per type,

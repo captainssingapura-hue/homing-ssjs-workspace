@@ -8,7 +8,9 @@
 // and the kind names the log: kept in IndexedDB, typed; the page comes back to
 // what the log folds to - from its latest checkpoint, folding only what came
 // after - and goes on logging, a checkpoint folded every so many events in a
-// worker, and posted to the server when the page's route says it keeps them. A log that cannot be read or
+// worker, and posted to the server when the page's route says it keeps them.
+// One page writes a log at a time: the one holding its write lock. Another page
+// of the same workspace reads it only, until it takes the workspace over. A log that cannot be read or
 // folded - an older format, a gap - is set aside whole, said, and the page
 // starts afresh; the bar exports what was set aside. What a tab may hold is,
 // for now, a fake.
@@ -36,11 +38,32 @@ function appMain(el, params) {
     }
     css.addClass(el, mpa_main_full);
     var log = new WorkspaceLogStore({ header: WorkspaceLogIdentity.header(kind, ""), backend: new IndexedDbLog() });
+    // One writer per log: the page that holds its lock records into it and takes
+    // its checkpoints; a page that does not reads it only, and writes nothing to it.
+    var lock = new WorkspaceWriteLock({ log: new LogKey(log.header.kind, log.header.workspaceId), onChange: lockSaid });
+    var ws = null;
+    function writes() { return WorkspaceWriteLock.writes(lock.state); }
+    // Taken by another page: nothing more is recorded here, and the bar says so.
+    function lockSaid(writeLock) {
+        if (!ws) return;
+        if (!WorkspaceWriteLock.writes(writeLock)) ws.stopRecording();
+        if (ws.logBar) ws.logBar.lock(writeLock, takeOver);
+    }
+    // Taken over: the workspace built again from the log, as the page that wrote it left it, and this page writes on.
+    function takeOver() {
+        lock.takeOver().then(function () {
+            if (ws) ws.dispose();
+            ws = null;
+            load();
+        });
+    }
     // The page made one keyboard steward for the document and handed it in the
     // params; everything under here that takes keys takes THAT one.
     function build(state, logged) {
-        new Workspace(domOpsParty.createBranch("workspace"), { host: el, kinds: _KINDS, keyboard: params && params.keyboard, menus: params && params.menus,
-                                                               budget: _BUDGET, log: log, state: state, logged: logged, checkpointer: checkpointer() });
+        ws = new Workspace(domOpsParty.createBranch("workspace"), { host: el, kinds: _KINDS, keyboard: params && params.keyboard, menus: params && params.menus,
+                                                                    budget: _BUDGET, log: log, state: state, logged: logged,
+                                                                    readOnly: !writes(), checkpointer: writes() ? checkpointer() : null });
+        if (ws.logBar) ws.logBar.lock(lock.state, takeOver);
     }
     // Checkpoints are folded in a module worker, off this thread; a page whose
     // route says the server keeps its states posts each one there too.
@@ -55,21 +78,27 @@ function appMain(el, params) {
         }
     }
     // The log's latest checkpoint, of this build's rules; one of others, or one
-    // that does not read, is dropped - it is only ever derived - and the log folded whole.
+    // that does not read, is not folded on - it is only ever derived - and the log
+    // is folded whole; the page that writes the log drops it.
     function latest() {
+        function dropped(why) {
+            console.warn("[workspaceApp] " + why + ": not folded on, and the log folded whole");
+            return writes() ? log.dropCheckpoint().then(function () { return null; }) : null;
+        }
         return log.checkpoint().then(function (c) {
-            if (!c || c.fold === Checkpoint.FOLD) return c;
-            console.warn("[workspaceApp] the checkpoint was folded by rules " + c.fold + ", not " + Checkpoint.FOLD + ": dropped, and the log folded whole");
-            return log.dropCheckpoint().then(function () { return null; });
-        }, function (e) {
-            console.warn("[workspaceApp] the checkpoint does not read, so it is dropped and the log folded whole: " + e.message);
-            return log.dropCheckpoint().then(function () { return null; });
-        });
+            return !c || c.fold === Checkpoint.FOLD ? c : dropped("the checkpoint was folded by rules " + c.fold + ", not " + Checkpoint.FOLD);
+        }, function (e) { return dropped("the checkpoint does not read (" + e.message + ")"); });
     }
     // A log that will not read or fold is set aside, not cleared: kept whole, to be
     // exported from the bar, and the page starts afresh. Should even that fail, the
-    // stored log is left as it is and this session is kept in memory only.
+    // stored log is left as it is and this session is kept in memory only. A page
+    // that does not write the log leaves it to the one that does.
     function afresh(why) {
+        if (!writes()) {
+            console.warn("[workspaceApp] the stored log does not read, and another page writes it: left to that page - " + why);
+            build(null, 0);
+            return;
+        }
         log.setAside(why).then(function (aside) {
             console.warn("[workspaceApp] the stored log does not read and is set aside" + (aside ? ", " + aside.lines.length + " lines" : "") + ": " + why);
             build(null, 0);
@@ -82,12 +111,15 @@ function appMain(el, params) {
     }
     // what the log folds to - the latest checkpoint, and what was logged after it
     // folded on - and the page built back to it; a log that will not fold starts the page afresh
-    latest().then(function (c) {
-        return log.eventsAfter(c ? c.folded.through.value : 0).then(function (events) {
-            var folded;
-            try { folded = WorkspaceFold.foldFrom(c ? c.folded : WorkspaceFold.start(log.header), events); }
-            catch (e) { afresh(e.message); return; }
-            build(folded.state, (c ? c.events : 0) + events.length);
-        });
-    }).then(null, function (e) { afresh(e && e.message); });
+    function load() {
+        latest().then(function (c) {
+            return log.eventsAfter(c ? c.folded.through.value : 0).then(function (events) {
+                var folded;
+                try { folded = WorkspaceFold.foldFrom(c ? c.folded : WorkspaceFold.start(log.header), events); }
+                catch (e) { afresh(e.message); return; }
+                build(folded.state, (c ? c.events : 0) + events.length);
+            });
+        }).then(null, function (e) { afresh(e && e.message); });
+    }
+    lock.acquire().then(load);
 }

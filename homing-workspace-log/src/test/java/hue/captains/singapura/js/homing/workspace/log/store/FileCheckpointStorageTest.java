@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.log.store;
 
+import hue.captains.singapura.js.homing.workspace.log.LogKey;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceKind;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;

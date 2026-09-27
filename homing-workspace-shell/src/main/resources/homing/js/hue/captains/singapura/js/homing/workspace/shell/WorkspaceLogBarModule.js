@@ -14,6 +14,8 @@
 //     store  the WorkspaceLogStore it exports
 //   bar.count(n)     says how many the log holds
 //   bar.restored(same)  says whether the page came back as its log has it
+//   bar.lock(writeLock, onTakeOver?)  says who writes the log - read-only when
+//                    another page does, with a Take over that calls onTakeOver
 //   bar.export()     → Promise<the log's text>, and the file saved
 //   bar.exportState() → Promise<the state's text>, and the file saved
 //   bar.asides()     → Promise<the set-aside logs>, and the bar says them
@@ -57,10 +59,19 @@ class WorkspaceLogBar {
         this._discardAside.type = "button";
         this._discardAside.textContent = "Discard set-aside";
         this._discardAside.addEventListener("click", function () { self.discardAsides(); });
+        // who writes the log: said while it is not this page, with the way to take it over
+        this._locked = branch.createElement("locked", "span");
+        css.addClass(this._locked, ws_logbar_count);
+        this._takeOver = branch.createElement("takeOver", "button");
+        this._takeOver.type = "button";
+        this._takeOver.textContent = "Take over";
+        this._takeOver.addEventListener("click", function () { if (self._onTakeOver) self._onTakeOver(); });
         // the file is handed over by a link the bar keeps, never shown
         this._link = branch.createElement("link", "a");
         css.addClass(this._link, ws_logbar_link);
         bar.appendChild(this._counted);
+        bar.appendChild(this._locked);
+        bar.appendChild(this._takeOver);
         bar.appendChild(button);
         bar.appendChild(state);
         bar.appendChild(this._aside);
@@ -71,9 +82,22 @@ class WorkspaceLogBar {
         this.root = bar;
         this._note = "";
         this._latest = null;
+        this._onTakeOver = null;
         this.count(0);
+        this.lock(null);
         this._said([]);
         this.asides();
+    }
+
+    /** Who writes the log, said while it is not simply this page; and, read-only, the way to take it over. */
+    lock(writeLock, onTakeOver) {
+        var held = writeLock ? writeLock.held : null;
+        this._locked.textContent = held === Held.ELSEWHERE ? " · read-only: another page writes this workspace"
+            : held === Held.TAKEN ? " · read-only: another page took this workspace over - what changes here is not kept"
+            : held === Held.UNGUARDED ? " · unguarded: this browser keeps no locks" : "";
+        this._locked.hidden = !this._locked.textContent;
+        this._onTakeOver = onTakeOver || null;
+        this._takeOver.hidden = !(this._onTakeOver && (held === Held.ELSEWHERE || held === Held.TAKEN));
     }
 
     count(n) {

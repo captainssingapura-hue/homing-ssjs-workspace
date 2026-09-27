@@ -38,6 +38,8 @@ public final class WorkspaceLogCrate implements Crate {
                 // checkpoints: the next one's fold, the worker it runs in, and what takes them as the log goes
                 CrateEntry.of(hue.captains.singapura.js.homing.workspace.log.fold.CheckpointFoldModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(CheckpointWorkerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(WorkspaceCheckpointerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
+                CrateEntry.of(WorkspaceCheckpointerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                // one writer per log
+                CrateEntry.of(WorkspaceWriteLockModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
     }
 }

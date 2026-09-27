@@ -1,14 +1,13 @@
-package hue.captains.singapura.js.homing.workspace.log.store;
+package hue.captains.singapura.js.homing.workspace.log;
 
-import hue.captains.singapura.js.homing.workspace.log.LogHeader;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceInstanceId;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceKind;
 
 import java.util.Objects;
 
 /**
- * Which log: its kind and its workspace - what a server keeps one checkpoint
- * of, and what a storage keys it by.
+ * Which log: its kind and its workspace. What a page's write lock is named
+ * from, what a server keeps one checkpoint of and a storage keys it by.
  *
  * @param kind      the kind of workspace
  * @param workspace the one workspace of that kind

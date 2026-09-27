@@ -13,6 +13,8 @@ import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceKind;
 import hue.captains.singapura.js.homing.workspace.log.fold.WorkspaceFoldModule;
 import hue.captains.singapura.js.homing.workspace.log.js.CheckpointModule;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceCheckpointerModule;
+import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceWriteLockModule;
+import hue.captains.singapura.js.homing.workspace.log.js.LogKeyModule;
 import hue.captains.singapura.js.homing.workspace.shell.server.WorkspaceServer;
 import hue.captains.singapura.js.homing.workspace.log.store.IndexedDbLogModule;
 import hue.captains.singapura.js.homing.workspace.log.store.MemoryLogModule;
@@ -97,6 +99,8 @@ public record WorkspaceApp() implements AppModule<WorkspaceApp.Params, Workspace
                 .add(new ModuleImports<>(List.of(new MemoryLogModule.MemoryLog()), MemoryLogModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceFoldModule.WorkspaceFold()), WorkspaceFoldModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceCheckpointerModule.WorkspaceCheckpointer()), WorkspaceCheckpointerModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceWriteLockModule.WorkspaceWriteLock()), WorkspaceWriteLockModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new LogKeyModule.LogKey()), LogKeyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new CheckpointModule.Checkpoint()), CheckpointModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceAddressesModule.WORKSPACE_ADDRESSES()), WorkspaceAddressesModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new FakeWidgetsModule.FakeNote(), new FakeWidgetsModule.FakeCounter(),
