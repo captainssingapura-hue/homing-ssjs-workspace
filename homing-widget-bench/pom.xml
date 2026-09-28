@@ -45,6 +45,12 @@
             <artifactId>homing-workspace-parties</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <!-- The workspace's headless core: the workspace of one pane is built on it. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-core</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
         <!-- The desk the monitors' floats lie on, from the ui-components. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>

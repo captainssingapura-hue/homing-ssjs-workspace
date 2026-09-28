@@ -34,6 +34,9 @@ public record WidgetBenchSite() implements Site {
     static final Map<String, AppPage<?, ?>> PAGES = WidgetBench.KINDS.stream().collect(Collectors.toMap(WidgetDeclaration::kind,
             k -> MPA.page(WidgetBenchApp.INSTANCE, new WidgetBenchApp.Params(k.kind(), defaults(k)))));
 
+    /** A workspace of one pane, beside the kinds' pages: {@code /workspace}. No kind is named so. */
+    static final AppPage<?, ?> WORKSPACE = MPA.page(WorkspaceBenchApp.INSTANCE, new WorkspaceBenchApp.Params());
+
     @Override public String name() { return "widget-bench"; }
 
     @Override
@@ -41,6 +44,10 @@ public record WidgetBenchSite() implements Site {
         return path -> {
             if (path.isRoot()) return Optional.of(placed(WidgetBench.KINDS.get(0).kind(), path));
             if (path.depth() != 1) return Optional.empty();
+            if (path.head().filter("workspace"::equals).isPresent()) {
+                var trail = Trail.NONE.then("Widget bench", "/").then("workspace", path.toString());
+                return Optional.of((Navigable) q -> WORKSPACE.html(trail, q));
+            }
             return path.head().filter(PAGES::containsKey).map(kind -> placed(kind, path));
         };
     }

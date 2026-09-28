@@ -83,4 +83,13 @@ class WidgetBenchTest {
         assertTrue(ok.isOk(), "its query reads nothing, so refuses nothing");
         assertEquals(Map.of("widget", List.of("nasty-fixed")), WidgetBenchApp.CODEC.to(ok.orNull()));
     }
+
+    /** A workspace of one pane has a page of its own beside the kinds', no kind being named so; the kinds' pages stay as they are. */
+    @Test
+    void theWorkspaceOfOnePane_hasAPageOfItsOwn() {
+        String page = pageAt("/workspace", Query.NONE);
+        assertTrue(page.contains(WorkspaceBenchApp.class.getCanonicalName()), "the workspace's page, not a kind's");
+        assertTrue(WidgetBench.kind("workspace").isEmpty(), "no kind is named so");
+        assertTrue(pageAt("/books-grid", Query.NONE).contains("\"widget\":\"books-grid\""));
+    }
 }

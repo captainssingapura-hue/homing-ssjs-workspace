@@ -247,9 +247,40 @@ public record WidgetBenchStyles() implements CssGroup<WidgetBenchStyles> {
         }
     }
 
+    /** A workspace of one pane: its bar over its pane. */
+    public record wb_ws() implements CssClass<WidgetBenchStyles> {
+        @Override public String body() { return """
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            flex: 0 0 auto;
+            min-width: 0;
+            """;
+        }
+    }
+
+    /** Its bar: a kind to open, what is shown, and the buttons, in a row. */
+    public record wb_ws_bar() implements CssClass<WidgetBenchStyles> {
+        @Override public String body() { return """
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            """;
+        }
+    }
+
+    /** A word before a control on the bar. */
+    public record wb_ws_label() implements CssClass<WidgetBenchStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Muted.class, Color.Ink.class), of(Caption.class, Type.Scale.class)); }
+        @Override public String body() { return "flex: 0 0 auto;"; }
+    }
+
     @Override
     public List<CssClass<WidgetBenchStyles>> cssClasses() {
         return List.of(new wb_page(), new wb_bench(), new wb_misbehaves(), new wb_bar(), new wb_toggle(), new wb_toggle_on(), new wb_bar_gap(),
-                       new wb_sim(), new wb_sim_note(), new wb_sim_log(), new wb_sim_input(), new wb_sim_bar(), new wb_sim_pick(), new wb_sim_said(), new wb_sim_error());
+                       new wb_sim(), new wb_sim_note(), new wb_sim_log(), new wb_sim_input(), new wb_sim_bar(), new wb_sim_pick(), new wb_sim_said(), new wb_sim_error(),
+                       new wb_ws(), new wb_ws_bar(), new wb_ws_label());
     }
 }

@@ -11,6 +11,7 @@ import hue.captains.singapura.js.homing.ui.elements.UiElementsCrate;
 import hue.captains.singapura.js.homing.ui.focus.UiFocusCrate;
 import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyFixedModule;
 import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyStyles;
+import hue.captains.singapura.js.homing.workspace.core.WorkspaceCoreCrate;
 import hue.captains.singapura.js.homing.workspace.monitors.WorkspaceMonitorsCrate;
 import hue.captains.singapura.js.homing.workspace.parties.WorkspacePartiesCrate;
 import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceWidgetsCrate;
@@ -44,7 +45,9 @@ public final class WidgetBenchCrate implements Crate {
                 WorkspacePartiesCrate.INSTANCE,
                 // the simulator's button, and its log's lines as the monitors' rows
                 UiElementsCrate.INSTANCE,
-                UiFocusCrate.INSTANCE);
+                UiFocusCrate.INSTANCE,
+                // the workspace of one pane: its headless core, and the parties beside it
+                WorkspaceCoreCrate.INSTANCE);
     }
 
     @Override
@@ -58,6 +61,10 @@ public final class WidgetBenchCrate implements Crate {
                 // the parties the widget joins, at the root: the manual secretary, and its simulator
                 CrateEntry.of(BenchSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
                 CrateEntry.of(PartySimulatorModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                // a workspace of one pane, on its headless core: its placement, the workspace, its page
+                CrateEntry.of(SinglePaneModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                CrateEntry.of(SinglePaneWorkspaceModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                CrateEntry.of(WorkspaceBenchApp.INSTANCE, StandardJsModuleType.CONSUMER),
                 // the nasty widgets, which misbehave on purpose for the bench to catch
                 CrateEntry.of(NastyFixedModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(NastyStyles.INSTANCE));
