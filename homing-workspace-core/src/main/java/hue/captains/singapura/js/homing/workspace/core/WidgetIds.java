@@ -72,6 +72,18 @@ public final class WidgetIds {
         return String.format("%08x", h);
     }
 
+    /**
+     * The concise form of the params an id was made with - what its prefix holds
+     * after the kind and its underscore - or nothing, when it was made with none.
+     * The inverse of {@link #prefix}: a kind holds no underscore, so the first one
+     * in a prefix is the one {@code prefix} put there.
+     */
+    public static String conciseOf(WidgetId id) {
+        String prefix = id.prefix();
+        int at = prefix.indexOf('_');
+        return at < 0 ? "" : prefix.substring(at + 1);
+    }
+
     /** The id of the n-th widget of a prefix: the prefix, a hyphen, the sequence - a WidgetId, which is a prefix and a sequence. */
     public static WidgetId of(String prefix, int n) {
         if (n < 1) throw new IllegalArgumentException("a sequence starts at 1: " + n);

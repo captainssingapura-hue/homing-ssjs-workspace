@@ -66,6 +66,17 @@ class WorkspaceDeclarationTest {
         assertTrue(e.getMessage().contains("a secretary put at the root of chimes, which no kind joins"), e.getMessage());
         e = assertThrows(IllegalStateException.class, () -> new Books(BooksGridDeclaration.INSTANCE, BooksGridDeclaration.INSTANCE).rootParties());
         assertTrue(e.getMessage().contains("two kinds named books-grid"), e.getMessage());
+        e = assertThrows(IllegalStateException.class, () -> new Books(BooksGridDeclaration.INSTANCE, new Alike()).rootParties());
+        assertTrue(e.getMessage().contains("two kinds titled Books grid"), e.getMessage());
+    }
+
+    /** Another kind under the grid's title: its widgets and the grid's would be called alike. */
+    record Alike() implements WidgetDeclaration<NoParams> {
+        @Override public String kind() { return "grid-of-books"; }
+        @Override public String title() { return "Books grid"; }
+        @Override public Class<NoParams> paramsType() { return NoParams.class; }
+        @Override public WidgetQuery<NoParams> query() { return new NoParams.Query(); }
+        @Override public ModuleImports<?> constructs() { return BookJumbotronDeclaration.INSTANCE.constructs(); }
     }
 
     @Test

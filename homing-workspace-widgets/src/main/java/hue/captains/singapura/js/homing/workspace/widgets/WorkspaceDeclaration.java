@@ -55,7 +55,8 @@ public interface WorkspaceDeclaration extends StatelessFunctionalObject {
     /**
      * The root parties of a declaration: one of each type its kinds declare, in the
      * order first declared, each with its secretary. Refused, every reason named:
-     * a name not a workspace's; two kinds of one name; two types of one name; a
+     * a name not a workspace's; two kinds of one name, or of one title - their widgets
+     * would be called alike; two types of one name; a
      * type not served on a page, or with no secretary for its root; a secretary put
      * at the root of a type no kind joins.
      */
@@ -63,9 +64,11 @@ public interface WorkspaceDeclaration extends StatelessFunctionalObject {
         var problems = new ArrayList<String>();
         if (d.name() == null || !NAME.matcher(d.name()).matches()) problems.add("its name '" + d.name() + "' is not a workspace's: letters, digits, hyphen, underscore");
         var kinds = new HashSet<String>();
+        var titles = new HashSet<String>();
         var types = new LinkedHashMap<String, PartyType<?>>();
         for (WidgetDeclaration<?> k : d.kinds()) {
             if (!kinds.add(k.kind())) problems.add("two kinds named " + k.kind());
+            if (!titles.add(k.title())) problems.add("two kinds titled " + k.title() + ": their widgets would be called alike");
             for (PartyType<?> t : k.parties()) {
                 PartyType<?> was = types.putIfAbsent(t.name(), t);
                 if (was != null && !was.equals(t)) problems.add("two types named " + t.name() + ": " + k.kind() + "'s is not the one declared before it");

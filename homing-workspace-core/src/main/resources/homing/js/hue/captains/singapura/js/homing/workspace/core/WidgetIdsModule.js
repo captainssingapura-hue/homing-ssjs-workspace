@@ -15,6 +15,7 @@
 //   WidgetIds.concise(params)      → "" for none
 //   WidgetIds.of(prefix, n)        → "books-grid-3"
 //   WidgetIds.split(id)            → { prefix, n }, or null when it is not one `of` makes
+//   WidgetIds.conciseOf(id)        → the params' concise form in its prefix, "" for none: prefix's inverse
 //   WidgetIds.GRAMMAR              the log's WidgetId: a prefix of letters, digits, hyphens and
 //                                  underscores, a hyphen, a sequence from 1 of at most nine digits
 // =============================================================================
@@ -58,6 +59,13 @@ class WidgetIds {
         var id = prefix + "-" + n;
         if (!WidgetIds.GRAMMAR.test(id)) throw new Error("'" + id + "' - a prefix of letters, digits, hyphen, underscore; a sequence of at most nine digits");
         return id;
+    }
+
+    static conciseOf(id) {
+        var s = WidgetIds.split(id);
+        if (!s) throw new Error("'" + id + "' is not an id WidgetIds makes");
+        var at = s.prefix.indexOf("_");
+        return at < 0 ? "" : s.prefix.slice(at + 1);
     }
 
     static split(id) {
