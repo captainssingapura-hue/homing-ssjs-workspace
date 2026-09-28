@@ -7,12 +7,13 @@ import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
 import hue.captains.singapura.js.homing.design.DesignCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
 import hue.captains.singapura.js.homing.ui.focus.UiFocusCrate;
+import hue.captains.singapura.js.homing.workspace.shell.WorkspaceShellCrate;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetDeclaration;
 import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceWidgetsCrate;
 
 import java.util.List;
 
-/** The monitors, as widgets: the page's parties on view, each monitor self-contained. */
+/** The monitors, as widgets: the page's parties on view, each monitor self-contained; runnable, a workspace of them on the shell's page. */
 public final class WorkspaceMonitorsCrate implements Crate {
 
     public static final WorkspaceMonitorsCrate INSTANCE = new WorkspaceMonitorsCrate();
@@ -37,7 +38,9 @@ public final class WorkspaceMonitorsCrate implements Crate {
                 // the design words the monitors' sheet wears
                 DesignCrate.INSTANCE,
                 // what a widget fills its container by
-                WorkspaceWidgetsCrate.INSTANCE);
+                WorkspaceWidgetsCrate.INSTANCE,
+                // the page a workspace of them is: the shell's, handed their manifest
+                WorkspaceShellCrate.INSTANCE);
     }
 
     @Override
@@ -48,6 +51,9 @@ public final class WorkspaceMonitorsCrate implements Crate {
                 CrateEntry.of(FocusTreeModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(StewardLampModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(DomOpsTreeModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(PartyLogModule.INSTANCE, StandardJsModuleType.CONSUMER));
+                CrateEntry.of(PartyLogModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                // runnable: the monitors' workspace, its manifest from its declaration, and its page
+                CrateEntry.of(MonitorsWorkspaceModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(MonitorsWorkspaceApp.INSTANCE, StandardJsModuleType.CONSUMER));
     }
 }
