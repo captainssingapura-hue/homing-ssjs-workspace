@@ -58,33 +58,6 @@
             <artifactId>rel-grid</artifactId>
             <version>${homing.relgrid.version}</version>
         </dependency>
-        <!-- RUNNABLE: the shell's workspace page, handed this set's manifest; the site it is a page of,
-             the standard MPA, the designs it wears, and the server's routes beside the site's. -->
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
-            <artifactId>homing-workspace-shell</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-site-base</artifactId>
-            <version>${homing.core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-site-mpa</artifactId>
-            <version>${homing.core.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-site-mpa-standard</artifactId>
-            <version>${homing.components.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-designs</artifactId>
-            <version>${homing.core.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -110,20 +83,12 @@
             <version>${homing.core.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-designs</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <!-- mvn -pl homing-workspace-demo-widgets exec:java -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.5.0</version>
-                <configuration>
-                    <mainClass>hue.captains.singapura.js.homing.workspace.demowidgets.BooksWorkspaceServer</mainClass>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

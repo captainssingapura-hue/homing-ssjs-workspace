@@ -9,6 +9,7 @@ import hue.captains.singapura.js.homing.workspace.bench.WidgetBenchCrate;
 import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogCrate;
 import hue.captains.singapura.js.homing.workspace.core.WorkspaceCoreCrate;
+import hue.captains.singapura.js.homing.workspace.demo.WorkspaceDemoCrate;
 import hue.captains.singapura.js.homing.workspace.demowidgets.WorkspaceDemoWidgetsCrate;
 import hue.captains.singapura.js.homing.workspace.layers.WorkspaceLayersCrate;
 import hue.captains.singapura.js.homing.workspace.monitors.WorkspaceMonitorsCrate;
@@ -21,7 +22,7 @@ import java.util.List;
 
 /**
  * This repo's crates, as the conformance export grades them: the log's
- * generated types, the log, the shell, the messaging parties, the headless core, the layers, the widgets, the demo widgets, the monitors and the bench. Graded by the framework's policy,
+ * generated types, the log, the shell, the messaging parties, the headless core, the layers, the widgets, the demo widgets, the monitors, the demo and the bench. Graded by the framework's policy,
  * unextended, and strictly: there is no baseline, the debt this repo was
  * copied with having left with the old stack.
  */
@@ -40,6 +41,7 @@ public final class WorkspaceConformance {
             WorkspaceWidgetsCrate.INSTANCE,
             WorkspaceDemoWidgetsCrate.INSTANCE,
             WorkspaceMonitorsCrate.INSTANCE,
+            WorkspaceDemoCrate.INSTANCE,
             WidgetBenchCrate.INSTANCE);
 
     /** The framework's policy: this repo declares no module types of its own. */

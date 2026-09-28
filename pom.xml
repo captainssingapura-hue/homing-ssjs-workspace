@@ -47,10 +47,12 @@
         <!-- The workspace as a page, knowing no widget: the desk and its dock grid on the core, the recorder,
              the restore; a page any widget set hands its manifest to. -->
         <module>homing-workspace-shell</module>
-        <!-- The demo's widgets, a set of their own: the books. The shell never knows them. -->
+        <!-- The demo's widgets, a set of their own and nothing else: the books. The shell never knows them. -->
         <module>homing-workspace-demo-widgets</module>
-        <!-- The monitors, as widgets: the page's parties on view, each monitor self-contained. -->
+        <!-- The monitors, as widgets and nothing else: the page's parties on view, for any workspace to offer. -->
         <module>homing-workspace-monitors</module>
+        <!-- The demo workspace, runnable: the two widget sets declared together, on the shell's page, 8098. -->
+        <module>homing-workspace-demo</module>
         <!-- One widget on a page of its own, from its kind and its params on the address: the bench. -->
         <module>homing-widget-bench</module>
         <!-- The conformance of this repo's crates, graded on every build; and the studio that shows the

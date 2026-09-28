@@ -1,4 +1,4 @@
-package hue.captains.singapura.js.homing.workspace.demowidgets;
+package hue.captains.singapura.js.homing.workspace.demo;
 
 import hue.captains.singapura.js.homing.core.ParamCodec.Decoded;
 import hue.captains.singapura.js.homing.site.Path;
@@ -9,39 +9,40 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * The widget set runs on its own: a site whose one page is the books
- * workspace, the shell's page handed this set's manifest. What this checks is
- * the handover - the page names this set's app, which hands the manifest on;
- * past that it is the shell's.
+ * The demo runs on its own: a site whose one page is the demo workspace, the
+ * shell's page handed the demo's manifest - the two widget sets put together.
+ * What this checks is the handover; past it, the shell's.
  */
-class BooksWorkspaceSiteTest {
-
-    private static String pageAt(String path) {
-        var found = BooksWorkspaceSite.INSTANCE.router().resolve(Path.parse(path));
-        assertTrue(found.isPresent(), "no page at " + path);
-        return found.get().html(Query.NONE).body();
-    }
+class WorkspaceDemoSiteTest {
 
     @Test
-    void theRootIsTheBooksWorkspace_itsServerKeepingItsStates() {
-        String html = pageAt("/");
-        assertTrue(html.contains(BooksWorkspaceApp.class.getCanonicalName()), "the page imports this set's app and calls its appMain");
+    void theRootIsTheDemoWorkspace_itsServerKeepingItsStates() {
+        var found = WorkspaceDemoSite.INSTANCE.router().resolve(Path.parse("/"));
+        assertTrue(found.isPresent());
+        String html = found.get().html(Query.NONE).body();
+        assertTrue(html.contains(DemoWorkspaceApp.class.getCanonicalName()), "the page imports the demo's app and calls its appMain");
         assertTrue(html.contains("appMain(page.main"), "the app is handed the MPA's slot");
         assertTrue(html.contains("\"ws_server\":\"on\""), "the route says the server keeps its states");
         assertFalse(html.contains("ws_id"), "the route keeps the kind's own workspace");
-        assertFalse(BooksWorkspaceSite.INSTANCE.router().resolve(Path.parse("/elsewhere")).isPresent());
+        assertFalse(WorkspaceDemoSite.INSTANCE.router().resolve(Path.parse("/elsewhere")).isPresent());
     }
 
+    /** Both sets' kinds, in one manifest; the one root party is the books'. */
     @Test
-    void theManifestIsTheDeclarations() {
-        String js = String.join("\n", BooksWorkspaceModule.INSTANCE.selfContent(null));
-        assertTrue(js.contains("const BOOKS_WORKSPACE = Object.freeze({ name: \"books\""), js);
-        for (String kind : List.of("\"books-grid\"", "\"book-jumbotron\"", "\"book-browser\"")) assertTrue(js.contains(kind), kind + " in " + js);
+    void theManifestPutsBothWidgetSetsTogether() {
+        String js = String.join("\n", DemoWorkspaceModule.INSTANCE.selfContent(null));
+        assertTrue(js.contains("const DEMO_WORKSPACE = Object.freeze({ name: \"demo\""), js);
+        for (String kind : List.of("\"books-grid\"", "\"book-jumbotron\"", "\"book-browser\"",
+                                   "\"focus-tree\"", "\"steward-lamp\"", "\"domops-tree\"", "\"party-log\"")) {
+            assertTrue(js.contains(kind), kind + " in " + js);
+        }
+        assertEquals(1, DemoWorkspace.INSTANCE.rootParties().size(), "the book selection; the monitors join none");
     }
 
     /** A workspace page's params: which workspace of the kind, by the id its log is kept under, and the server's word - only "on". */

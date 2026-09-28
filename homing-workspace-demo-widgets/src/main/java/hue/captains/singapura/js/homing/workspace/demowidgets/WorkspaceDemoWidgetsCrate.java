@@ -7,24 +7,36 @@ import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
 import hue.captains.singapura.js.homing.design.DesignCrate;
 import hue.captains.singapura.js.homing.relgrid.RelGridCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
+import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookBrowserDeclaration;
 import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookBrowserModule;
 import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookBrowserSecretaryModule;
+import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookJumbotronDeclaration;
 import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookJumbotronModule;
 import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookSelectionModule;
 import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookSelectionSecretaryModule;
 import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookStyles;
+import hue.captains.singapura.js.homing.workspace.demowidgets.books.BooksGridDeclaration;
 import hue.captains.singapura.js.homing.workspace.demowidgets.books.BooksGridModule;
 import hue.captains.singapura.js.homing.workspace.demowidgets.books.BooksModule;
 import hue.captains.singapura.js.homing.workspace.parties.WorkspacePartiesCrate;
-import hue.captains.singapura.js.homing.workspace.shell.WorkspaceShellCrate;
+import hue.captains.singapura.js.homing.workspace.widgets.WidgetDeclaration;
 import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceWidgetsCrate;
 
 import java.util.List;
 
-/** The demo's widgets, a set of their own: the books - in the relation grid, big, and the two composed - and the party they meet in; runnable, a workspace of them on the shell's page. */
+/**
+ * The demo's widgets, a set of their own and nothing else: the books - in the
+ * relation grid, big, and the two composed - and the party they meet in. Any
+ * workspace may declare them among its kinds ({@link #KINDS}); none is declared
+ * here, and nothing here knows a shell or a page.
+ */
 public final class WorkspaceDemoWidgetsCrate implements Crate {
 
     public static final WorkspaceDemoWidgetsCrate INSTANCE = new WorkspaceDemoWidgetsCrate();
+
+    /** The demo's widget kinds, for a workspace that offers them. */
+    public static final List<WidgetDeclaration<?>> KINDS = List.of(
+            BooksGridDeclaration.INSTANCE, BookJumbotronDeclaration.INSTANCE, BookBrowserDeclaration.INSTANCE);
 
     private WorkspaceDemoWidgetsCrate() {}
 
@@ -43,9 +55,7 @@ public final class WorkspaceDemoWidgetsCrate implements Crate {
                 // the messaging parties' runtime: a composed widget's own scope
                 WorkspacePartiesCrate.INSTANCE,
                 // what a widget is: the sheet it fills its container by
-                WorkspaceWidgetsCrate.INSTANCE,
-                // the page a workspace of them is: the shell's, handed their manifest
-                WorkspaceShellCrate.INSTANCE);
+                WorkspaceWidgetsCrate.INSTANCE);
     }
 
     @Override
@@ -62,9 +72,6 @@ public final class WorkspaceDemoWidgetsCrate implements Crate {
                 CrateEntry.of(BookJumbotronModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 // the two composed: they meet in a scope of the browser's own, its secretary keeping the edge
                 CrateEntry.of(BookBrowserSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
-                CrateEntry.of(BookBrowserModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                // runnable: the books workspace, its manifest from its declaration, and its page
-                CrateEntry.of(BooksWorkspaceModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(BooksWorkspaceApp.INSTANCE, StandardJsModuleType.CONSUMER));
+                CrateEntry.of(BookBrowserModule.INSTANCE, StandardJsModuleType.CONSUMER));
     }
 }
