@@ -1,6 +1,7 @@
 package hue.captains.singapura.js.homing.workspace.core;
 
 import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetId;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -45,12 +46,15 @@ class WorkspaceCoreParityTest extends JsModuleTestBase {
         core.open("books-grid", Map.of());
         core.open("books-grid", Map.of("columns", "title,rating"));
         core.open("books-grid", Map.of());
-        core.close(new WidgetId("books-grid-1"));
+        core.close(WidgetId.of("books-grid-1"));
         core.open("books-grid", Map.of());
-        core.open("book-jumbotron", Map.of(), new WidgetId("book-jumbotron-5"));
+        core.open("book-jumbotron", Map.of(), WidgetId.of("book-jumbotron-5"));
         core.open("book-jumbotron", Map.of());
         try { core.open("book-jumbotron", Map.of("mode", "fail")); } catch (IllegalStateException e) { said.add("refused"); }
         core.open("book-jumbotron", Map.of("mode", "fail-not"));
+        core.spend("books-grid", 7);
+        core.spend("books-grid", 2);
+        core.open("books-grid", Map.of());
         said.add("roster " + String.join(" ", core.entries().stream().map(e -> e.id().value()).toList()));
         return said;
     }
@@ -75,6 +79,9 @@ class WorkspaceCoreParityTest extends JsModuleTestBase {
         core.open("book-jumbotron", {});
         try { core.open("book-jumbotron", { mode: "fail" }); } catch (e) { said.push("refused"); }
         core.open("book-jumbotron", { mode: "fail-not" });
+        core.spend("books-grid", 7);
+        core.spend("books-grid", 2);
+        core.open("books-grid", {});
         said.push("roster " + core.entries().map(function (e) { return e.id; }).join(" "));
         """;
 
@@ -89,7 +96,8 @@ class WorkspaceCoreParityTest extends JsModuleTestBase {
         assertTrue(java.contains("opened books-grid-3"), "a closed widget's id is never given again: " + java);
         assertTrue(java.contains("opened book-jumbotron-6"), "the sequence goes on past an id given: " + java);
         assertTrue(java.contains("release book-jumbotron_fail-1"), "a widget that could not be made gives its container back, its id spent: " + java);
-        assertEquals("roster books-grid_title-rating-1 books-grid-2 books-grid-3 book-jumbotron-5 book-jumbotron-6 book-jumbotron_fail-not-1", java.get(java.size() - 1));
+        assertTrue(java.contains("opened books-grid-8"), "spent up to 7, never back: the next is past it: " + java);
+        assertEquals("roster books-grid_title-rating-1 books-grid-2 books-grid-3 book-jumbotron-5 book-jumbotron-6 book-jumbotron_fail-not-1 books-grid-8", java.get(java.size() - 1));
     }
 
     @Test
@@ -101,11 +109,11 @@ class WorkspaceCoreParityTest extends JsModuleTestBase {
             @Override public String lend(WorkspaceCore.Entry<?> e) { return "slot"; }
             @Override public void release(WorkspaceCore.Entry<?> e) {}
         });
-        core.open("note", Map.of(), new WidgetId("note-2"));
-        assertThrows(IllegalArgumentException.class, () -> core.open("note", Map.of(), new WidgetId("note-2")), "held already");
-        assertThrows(IllegalArgumentException.class, () -> core.open("note", Map.of("t", "x"), new WidgetId("note-3")), "not what its params make");
+        core.open("note", Map.of(), WidgetId.of("note-2"));
+        assertThrows(IllegalArgumentException.class, () -> core.open("note", Map.of(), WidgetId.of("note-2")), "held already");
+        assertThrows(IllegalArgumentException.class, () -> core.open("note", Map.of("t", "x"), WidgetId.of("note-3")), "not what its params make");
         assertThrows(IllegalArgumentException.class, () -> core.open("sheet", Map.of()), "no such kind");
-        assertThrows(IllegalArgumentException.class, () -> core.close(new WidgetId("note-9")), "no such widget");
+        assertThrows(IllegalArgumentException.class, () -> core.close(WidgetId.of("note-9")), "no such widget");
         assertEquals("note-3", core.open("note", Map.of()).id().value());
     }
 }

@@ -1,6 +1,9 @@
 package hue.captains.singapura.js.homing.workspace.widgets.books;
 
+import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.workspace.parties.PartyType;
+
+import java.util.List;
 
 /**
  * What a book selection party carries: the choosing of a book, and the fact of
@@ -25,6 +28,12 @@ public sealed interface BookSelection {
     /** The party says: no book is chosen. */
     record Cleared() implements BookSelection {}
 
-    /** The type: {@code book-selection}, its identity on a page. */
-    PartyType<BookSelection> TYPE = new PartyType<>("book-selection", BookSelection.class);
+    /**
+     * The type: {@code book-selection}, its identity on a page - its constant
+     * served as {@code BOOK_SELECTION}, and a root instance's secretary, unless
+     * a workspace puts its own, {@code BookSelectionSecretary}.
+     */
+    PartyType<BookSelection> TYPE = new PartyType<>("book-selection", BookSelection.class)
+            .servedFrom(new ModuleImports<>(List.of(new BookSelectionModule.BOOK_SELECTION()), BookSelectionModule.INSTANCE))
+            .withSecretary(new ModuleImports<>(List.of(new BookSelectionSecretaryModule.BookSelectionSecretary()), BookSelectionSecretaryModule.INSTANCE));
 }

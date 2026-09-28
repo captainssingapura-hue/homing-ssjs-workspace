@@ -9,6 +9,7 @@ import hue.captains.singapura.js.homing.workspace.bench.WidgetBenchCrate;
 import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogCrate;
 import hue.captains.singapura.js.homing.workspace.core.WorkspaceCoreCrate;
+import hue.captains.singapura.js.homing.workspace.layers.WorkspaceLayersCrate;
 import hue.captains.singapura.js.homing.workspace.monitors.WorkspaceMonitorsCrate;
 import hue.captains.singapura.js.homing.workspace.parties.WorkspacePartiesCrate;
 import hue.captains.singapura.js.homing.workspace.shell.WorkspaceShellCrate;
@@ -34,6 +35,7 @@ public final class WorkspaceConformance {
             WorkspaceShellCrate.INSTANCE,
             WorkspacePartiesCrate.INSTANCE,
             WorkspaceCoreCrate.INSTANCE,
+            WorkspaceLayersCrate.INSTANCE,
             WorkspaceWidgetsCrate.INSTANCE,
             WorkspaceMonitorsCrate.INSTANCE,
             WidgetBenchCrate.INSTANCE);

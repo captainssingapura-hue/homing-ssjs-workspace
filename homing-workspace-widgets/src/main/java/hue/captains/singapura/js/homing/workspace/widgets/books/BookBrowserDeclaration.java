@@ -22,11 +22,11 @@ public record BookBrowserDeclaration() implements WidgetDeclaration<NoParams> {
     @Override public Class<NoParams> paramsType() { return NoParams.class; }
     @Override public WidgetQuery<NoParams> query() { return new NoParams.Query(); }
 
-    /** The union of its subordinates': the grid, made at its defaults, and the jumbotron. */
+    /** The union of its subordinates': the grid's and the jumbotron's. */
     @Override
-    public List<PartyType<?>> parties(NoParams params) {
-        return Stream.of(BooksGridDeclaration.INSTANCE.parties(BooksGridDeclaration.Params.DEFAULT),
-                         BookJumbotronDeclaration.INSTANCE.parties(NoParams.INSTANCE))
+    public List<PartyType<?>> parties() {
+        return Stream.of(BooksGridDeclaration.INSTANCE.parties(),
+                         BookJumbotronDeclaration.INSTANCE.parties())
                 .flatMap(List::stream).distinct().toList();
     }
 

@@ -15,7 +15,8 @@
 // of the same workspace reads it only, until it takes the workspace over, or
 // opens a new workspace of the kind instead. A log that cannot be read or
 // folded - an older format, a gap - is set aside whole, said, and the page
-// starts afresh; the bar exports what was set aside. What a tab may hold is,
+// starts afresh (WorkspaceLoad, the load every placement shares); the bar exports
+// what was set aside. What a tab may hold is,
 // for now, a fake.
 // =============================================================================
 
@@ -95,49 +96,14 @@ function appMain(el, params) {
             return null;
         }
     }
-    // The log's latest checkpoint, of this build's rules; one of others, or one
-    // that does not read, is not folded on - it is only ever derived - and the log
-    // is folded whole; the page that writes the log drops it.
-    function latest() {
-        function dropped(why) {
-            console.warn("[workspaceApp] " + why + ": not folded on, and the log folded whole");
-            return writes() ? log.dropCheckpoint().then(function () { return null; }) : null;
-        }
-        return log.checkpoint().then(function (c) {
-            return !c || c.fold === Checkpoint.FOLD ? c : dropped("the checkpoint was folded by rules " + c.fold + ", not " + Checkpoint.FOLD);
-        }, function (e) { return dropped("the checkpoint does not read (" + e.message + ")"); });
-    }
-    // A log that will not read or fold is set aside, not cleared: kept whole, to be
-    // exported from the bar, and the page starts afresh. Should even that fail, the
-    // stored log is left as it is and this session is kept in memory only. A page
-    // that does not write the log leaves it to the one that does.
-    function afresh(why) {
-        if (!writes()) {
-            console.warn("[workspaceApp] the stored log does not read, and another page writes it: left to that page - " + why);
-            build(null, 0);
-            return;
-        }
-        log.setAside(why).then(function (aside) {
-            console.warn("[workspaceApp] the stored log does not read and is set aside" + (aside ? ", " + aside.lines.length + " lines" : "") + ": " + why);
-            build(null, 0);
-        }, function (e) {
-            console.error("[workspaceApp] the stored log does not read and could not be set aside, so it is left as it is and this session is kept in memory only: "
-                          + (e && e.message));
-            log = new WorkspaceLogStore({ header: log.header, backend: new MemoryLog() });
-            build(null, 0);
-        });
-    }
-    // what the log folds to - the latest checkpoint, and what was logged after it
-    // folded on - and the page built back to it; a log that will not fold starts the page afresh
+    // What the log folds to - its latest checkpoint and what came after, every
+    // layer at once - and the page built back to the grid's; a log that will not
+    // fold is set aside, and the page starts afresh (WorkspaceLoad).
     function load() {
-        latest().then(function (c) {
-            return log.eventsAfter(c ? c.folded.through.value : 0).then(function (events) {
-                var folded;
-                try { folded = WorkspaceFold.foldFrom(c ? c.folded : WorkspaceFold.start(log.header), events); }
-                catch (e) { afresh(e.message); return; }
-                build(folded.state.grid, (c ? c.events : 0) + events.length);
-            });
-        }).then(null, function (e) { afresh(e && e.message); });
+        WorkspaceLoad.load(log, { writes: writes() }).then(function (r) {
+            log = r.log;
+            build(r.folded ? r.folded.state.grid : null, r.logged);
+        });
     }
     lock.acquire().then(load);
 }

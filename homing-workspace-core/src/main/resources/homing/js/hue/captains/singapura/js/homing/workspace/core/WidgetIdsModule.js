@@ -15,7 +15,8 @@
 //   WidgetIds.concise(params)      → "" for none
 //   WidgetIds.of(prefix, n)        → "books-grid-3"
 //   WidgetIds.split(id)            → { prefix, n }, or null when it is not one `of` makes
-//   WidgetIds.GRAMMAR              letters, digits, hyphen, underscore: the log's ids'
+//   WidgetIds.GRAMMAR              the log's WidgetId: a prefix of letters, digits, hyphens and
+//                                  underscores, a hyphen, a sequence from 1 of at most nine digits
 // =============================================================================
 
 class WidgetIds {
@@ -55,12 +56,12 @@ class WidgetIds {
     static of(prefix, n) {
         if (!(n >= 1) || Math.floor(n) !== n) throw new Error("a sequence starts at 1: " + n);
         var id = prefix + "-" + n;
-        if (!WidgetIds.GRAMMAR.test(id)) throw new Error("'" + id + "' - letters, digits, hyphen, underscore");
+        if (!WidgetIds.GRAMMAR.test(id)) throw new Error("'" + id + "' - a prefix of letters, digits, hyphen, underscore; a sequence of at most nine digits");
         return id;
     }
 
     static split(id) {
-        var m = /^(.+)-([1-9][0-9]*)$/.exec(String(id));
+        var m = /^(.+)-([1-9][0-9]{0,8})$/.exec(String(id));
         return m ? Object.freeze({ prefix: m[1], n: Number(m[2]) }) : null;
     }
 }
@@ -69,4 +70,4 @@ class WidgetIds {
 WidgetIds.CONCISE_MAX = 24;
 
 /** The grammar of an id: the log's ids'. */
-WidgetIds.GRAMMAR = /^[A-Za-z0-9_-]+$/;
+WidgetIds.GRAMMAR = /^[A-Za-z0-9_-]+-[1-9][0-9]{0,8}$/;

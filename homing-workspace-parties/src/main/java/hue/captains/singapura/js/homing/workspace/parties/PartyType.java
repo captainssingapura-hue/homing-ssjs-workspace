@@ -1,9 +1,12 @@
 package hue.captains.singapura.js.homing.workspace.parties;
 
+import hue.captains.singapura.js.homing.core.ModuleImports;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -20,18 +23,45 @@ import java.util.stream.Collectors;
  * with their types - so a page checks every message against what Java
  * declared, and no second list can drift from it.</p>
  *
+ * <p>How a page has it: the module its constant is served from, and its
+ * DEFAULT ROOT SECRETARY - the secretary of a root instance of the type, the
+ * one a workspace puts there unless it puts its own. A workspace's root
+ * parties are resolved from its kinds' types, in Java, and a type with no
+ * secretary for its root - neither its default nor the workspace's - fails
+ * the build, never the page. A type that is never on a page needs neither.</p>
+ *
  * @param name       the type's name, which is its identity on a page: {@code book-selection}
  * @param vocabulary the sealed interface its messages are records of
+ * @param constant   the import of its constant, {@link #constName()}, from the module that serves it
+ * @param secretary  the import of its default root secretary, if it has one
  * @param <M>        the vocabulary
  */
-public record PartyType<M>(String name, Class<M> vocabulary) {
+public record PartyType<M>(String name, Class<M> vocabulary, Optional<ModuleImports<?>> constant, Optional<ModuleImports<?>> secretary) {
 
     /** A type's name: lowercase letters, digits and hyphens, a letter first. */
     public static final Pattern NAME = Pattern.compile("[a-z][a-z0-9-]*");
 
+    /** A type as Java has it, not yet on a page: no constant served, no default secretary. */
+    public PartyType(String name, Class<M> vocabulary) { this(name, vocabulary, Optional.empty(), Optional.empty()); }
+
+    /** The same type, its constant served by the import given: one export, named {@link #constName()}. */
+    public PartyType<M> servedFrom(ModuleImports<?> imports) { return new PartyType<>(name, vocabulary, Optional.of(imports), secretary); }
+
+    /** The same type, the import given its default root secretary: one export. */
+    public PartyType<M> withSecretary(ModuleImports<?> imports) { return new PartyType<>(name, vocabulary, constant, Optional.of(imports)); }
+
+    /** The one export an import brings: a constant's, a secretary's name in JavaScript. */
+    public static String exportName(ModuleImports<?> imports) {
+        List<?> all = imports.allImports();
+        if (all.size() != 1) throw new IllegalArgumentException("one export, not " + all.size() + ": " + all);
+        return all.get(0).getClass().getSimpleName();
+    }
+
     public PartyType {
         Objects.requireNonNull(name, "PartyType.name");
         Objects.requireNonNull(vocabulary, "PartyType.vocabulary");
+        Objects.requireNonNull(constant, "PartyType.constant");
+        Objects.requireNonNull(secretary, "PartyType.secretary");
         if (!NAME.matcher(name).matches()) throw new IllegalArgumentException("PartyType.name '" + name + "': lowercase letters, digits and hyphens, a letter first");
         if (!vocabulary.isInterface() || !vocabulary.isSealed()) throw new IllegalArgumentException("PartyType '" + name + "': its vocabulary is a sealed interface, not " + vocabulary.getName());
         var seen = new HashSet<String>();
@@ -44,6 +74,11 @@ public record PartyType<M>(String name, Class<M> vocabulary) {
             }
         }
         if (seen.isEmpty()) throw new IllegalArgumentException("PartyType '" + name + "': a vocabulary of no kinds");
+        String constName = name.replace('-', '_').toUpperCase(Locale.ROOT);
+        constant.ifPresent(c -> {
+            if (!exportName(c).equals(constName)) throw new IllegalArgumentException("PartyType '" + name + "': its constant is served as " + constName + ", not " + exportName(c));
+        });
+        secretary.ifPresent(PartyType::exportName);
     }
 
     /** The kinds, in the order the vocabulary declares them. */

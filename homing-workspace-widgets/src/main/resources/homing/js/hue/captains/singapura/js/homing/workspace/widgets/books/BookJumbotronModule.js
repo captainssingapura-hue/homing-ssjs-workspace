@@ -15,7 +15,7 @@
 //   new BookJumbotron(container, params)   params: none
 //   jumbo.root      its root, in the container
 //   jumbo.roots     { dom, focus }: what its host grafts
-//   jumbo.parties   the types it joins for its full function: [BOOK_SELECTION]
+//   (its kind declares, in Java, the types it joins for its full function: book-selection)
 //   jumbo.join(given)   given: { [type name]: party }; a second join without a leave is refused
 //   jumbo.leave()
 //   jumbo.shown()   the book it shows, { id, title, author }, or null
@@ -56,7 +56,6 @@ class BookJumbotron {
         this.focus = this._focusParty.root.join("jumbotron", this);
         this._off = Keys.claimOn(root, this.focus);
         this.roots = Object.freeze({ dom: this._dom, focus: this._focusParty });
-        this.parties = Object.freeze([BOOK_SELECTION]);
         this._selection = null;
         this._joined = false;
         this._show(null);

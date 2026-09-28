@@ -20,6 +20,8 @@
 //   core.open(kind, params, id?) → the entry { id, kind, params, widget }: under the id given
 //                (a widget coming back) — one its kind and params would make, not held — else
 //                the next of its prefix; the sequence goes on past it
+//   core.spend(prefix, last)  the ids of a prefix spent up to last, held or not — a workspace
+//                coming back, which gave them before: the next of the prefix is past it
 //   core.close(id)
 //   core.entry(id) → the entry, or null     core.entries() → in the order opened
 //   core.on(fn) → off   notices, in the order they happen:
@@ -58,6 +60,12 @@ class WorkspaceCore {
         this._roster.set(wid, entry);
         this._say({ kind: "WidgetOpened", entry: entry });
         return entry;
+    }
+
+    spend(prefix, last) {
+        if (!Number.isInteger(last) || last < 1) throw new Error("[WorkspaceCore] a sequence starts at 1: " + last);
+        if (typeof prefix !== "string") throw new Error("[WorkspaceCore] spend wants a prefix");
+        this._sequences.set(prefix, Math.max(this._sequences.get(prefix) || 0, last));
     }
 
     _given(id, prefix) {

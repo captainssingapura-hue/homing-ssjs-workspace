@@ -23,7 +23,7 @@
 //
 //   new BookBrowser(container, params)   params: none
 //   browser.root  browser.roots   { dom, focus }: its own, its subordinates' grafted in them
-//   browser.parties   the union of its subordinates': [BOOK_SELECTION]
+//   (its kind declares, in Java, the union of its subordinates' types: book-selection)
 //   browser.join(given)   given: { [type name]: party }; a second join without a leave is refused
 //   browser.leave()
 //   browser.scope()   its own book selection party, once joined: kept across a leave
@@ -61,7 +61,6 @@ class BookBrowser {
         this._focusParty.root.graft("grid", this._grid.roots.focus);
         this._focusParty.root.graft("chosen", this._jumbotron.roots.focus);
         this.roots = Object.freeze({ dom: this._dom, focus: this._focusParty });
-        this.parties = Object.freeze([BOOK_SELECTION]);
         this._scope = null;
         this._joined = false;
     }

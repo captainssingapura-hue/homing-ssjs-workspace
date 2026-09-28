@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.workspace.core;
 
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetId;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -82,7 +84,7 @@ public final class WorkspaceCore<C, W> {
         var p = params == null ? Map.<String, String>of() : params;
         String prefix = WidgetIds.prefix(kind, p);
         WidgetId wid = id == null ? WidgetIds.of(prefix, sequences.getOrDefault(prefix, 0) + 1) : given(id, prefix);
-        sequences.merge(prefix, WidgetIds.split(wid).orElseThrow().n(), Math::max);
+        sequences.merge(prefix, wid.sequence(), Math::max);
         var lent = new Entry<W>(wid, kind, p, null);
         C container = placement.lend(lent);
         W widget;
@@ -94,10 +96,19 @@ public final class WorkspaceCore<C, W> {
         return entry;
     }
 
+    /**
+     * The ids of a prefix spent up to the sequence given, whether the widgets are
+     * held or not - a workspace coming back, which gave them before: the next of
+     * the prefix is past it. Never back.
+     */
+    public void spend(String prefix, int last) {
+        if (last < 1) throw new IllegalArgumentException("[WorkspaceCore] a sequence starts at 1: " + last);
+        sequences.merge(Objects.requireNonNull(prefix, "prefix"), last, Math::max);
+    }
+
     private WidgetId given(WidgetId id, String prefix) {
         if (roster.containsKey(id)) throw new IllegalArgumentException("[WorkspaceCore] '" + id + "' is held already");
-        var s = WidgetIds.split(id).orElseThrow(() -> new IllegalArgumentException("[WorkspaceCore] '" + id + "' is not an id the core makes"));
-        if (!s.prefix().equals(prefix)) throw new IllegalArgumentException("[WorkspaceCore] '" + id + "' is not what its kind and params make: " + prefix + "-n");
+        if (!id.prefix().equals(prefix)) throw new IllegalArgumentException("[WorkspaceCore] '" + id + "' is not what its kind and params make: " + prefix + "-n");
         return id;
     }
 

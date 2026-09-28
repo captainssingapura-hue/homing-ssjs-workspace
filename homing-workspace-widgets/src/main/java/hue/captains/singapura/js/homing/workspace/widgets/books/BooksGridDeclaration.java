@@ -67,7 +67,7 @@ public record BooksGridDeclaration() implements WidgetDeclaration<BooksGridDecla
     @Override public String kind() { return "books-grid"; }
     @Override public Class<Params> paramsType() { return Params.class; }
     @Override public WidgetQuery<Params> query() { return new Query(); }
-    @Override public List<PartyType<?>> parties(Params params) { return List.of(BookSelection.TYPE); }
+    @Override public List<PartyType<?>> parties() { return List.of(BookSelection.TYPE); }
 
     @Override
     public ModuleImports<?> constructs() {

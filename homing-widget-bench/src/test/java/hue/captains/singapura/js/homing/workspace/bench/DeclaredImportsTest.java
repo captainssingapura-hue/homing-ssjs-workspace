@@ -67,6 +67,29 @@ class DeclaredImportsTest {
         assertEquals(List.of(), problems);
     }
 
+    /**
+     * A plain module never imports a DOM module. A DOM module is served with the
+     * page's theme, and a plain module's imports without it: a DOM module a plain
+     * one imports loads a second time, a copy of its own - its classes not the
+     * page's, so an instance made by one fails `instanceof` in the other (the
+     * Keyboard's §15 hazard). The log's events came out of the layers so, and the
+     * store refused every one.
+     */
+    @Test
+    void noPlainModuleImportsADomModule() {
+        var problems = new ArrayList<String>();
+        for (Crate c : CrateClosure.of(TOP)) {
+            if (!c.name().startsWith("homing-workspace") && !c.name().equals("homing-widget-bench")) continue;
+            for (CrateEntry e : c.entries()) {
+                if (e.module() instanceof hue.captains.singapura.js.homing.core.DomModule<?>) continue;
+                for (var mi : e.module().imports().getAllImports().values()) {
+                    if (mi.from() instanceof hue.captains.singapura.js.homing.core.DomModule<?> d) problems.add(e.moduleClass() + " is plain, and imports the DOM module " + d.getClass().getName());
+                }
+            }
+        }
+        assertEquals(List.of(), problems);
+    }
+
     /** A capitalised name read as a value, not as a member: not after a dot. */
     private static final Pattern NAME = Pattern.compile("(?<![\\w$.])([A-Z][A-Za-z0-9_$]*)\\b");
     private static final Pattern DECLARED = Pattern.compile("\\b(?:class|function|const|let|var)\\s+([A-Za-z_$][\\w$]*)");

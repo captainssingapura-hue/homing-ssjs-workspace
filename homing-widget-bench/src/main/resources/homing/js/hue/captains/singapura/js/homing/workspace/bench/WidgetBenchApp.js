@@ -17,7 +17,7 @@
 // monitors' floats over both (BenchMonitors) — made before the widget, as the
 // page's own, so that what the page had before the widget came is known.
 //
-// The bench is the substrate of the messaging parties the widget says it joins
+// The bench is the substrate of the messaging parties the widget's kind declares
 // (Messaging Parties Are Joined Top-Down): a party of each type at the root,
 // its secretary a manual one, driven from a simulator on the bar — so the
 // widget is tried against whatever a person types — and the widget joined
@@ -67,18 +67,17 @@ function appMain(el, params) {
     if (dom instanceof MobileDomOpsParty) place.graft("widget", dom);
     var focus = widget.roots && widget.roots.focus;
     if (focus instanceof MobileFocusParty) focusParty.root.graft("widget", focus);
-    _joined(el, tools, widget);
-    _watch(container, params.widget, { widget: widget, pageBranches: pageBranches, pageMembers: pageMembers });
+    _joined(el, tools, widget, BENCH_PARTIES[params.widget] || []);
+    _watch(container, params.widget, { widget: widget, types: BENCH_PARTIES[params.widget] || [], pageBranches: pageBranches, pageMembers: pageMembers });
 }
 
 /**
- * The widget's messaging parties, simulated: for every type it says it joins,
+ * The widget's messaging parties, simulated: for every type its kind declares,
  * a party at the root, its secretary the bench's manual one, its simulator
  * floated from the bar - open, so that the joining is seen - and then the
  * widget joined, given each by its type. Placement has nothing to do with it.
  */
-function _joined(el, tools, widget) {
-    var types = Array.isArray(widget.parties) ? widget.parties : [];
+function _joined(el, tools, widget, types) {
     if (!types.length || typeof widget.join !== "function") return;
     var given = {};
     types.forEach(function (type, i) {
@@ -112,9 +111,9 @@ function _misbehaviours(el, seen) {
     if (!(focus instanceof MobileFocusParty)) out.push("it offers no focus party of its own for its host to graft (roots.focus)");
     var joined = focusParty.root.members.map(function (m) { return m.name; }).filter(function (n) { return n !== "widget" && seen.pageMembers.indexOf(n) < 0; });
     if (joined.length) out.push("it joined " + joined.join(", ") + " to the page's focus party, not to a party of its own");
-    var types = seen.widget.parties;
-    if (types != null && !Array.isArray(types)) out.push("its parties are not a list of the types it joins");
-    else if (types && types.length && typeof seen.widget.join !== "function") out.push("it says it joins " + types.map(function (t) { return t.name; }).join(", ") + ", and cannot join");
+    if (seen.widget.parties !== undefined) out.push("it says its parties on itself: its kind declares them, in Java, and it is given those");
+    var types = seen.types;
+    if (types.length && typeof seen.widget.join !== "function") out.push("its kind declares " + types.map(function (t) { return t.name; }).join(", ") + ", and it cannot join");
     var focusStrays = focusParties.strays();
     if (focusStrays.length) out.push("focus parties no one has grafted: " + focusStrays.map(function (s) { return s.name; }).join(", "));
     return out;

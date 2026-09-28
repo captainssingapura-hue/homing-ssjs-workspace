@@ -9,7 +9,12 @@ import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.core.ParamCodec;
 import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
 import hue.captains.singapura.js.homing.core.js.domOpsParty;
-import hue.captains.singapura.js.homing.workspace.widgets.books.BookSelectionSecretaryModule;
+import hue.captains.singapura.js.homing.workspace.log.js.LogKeyModule;
+import hue.captains.singapura.js.homing.workspace.log.store.IndexedDbLogModule;
+import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLoadModule;
+import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogIdentityModule;
+import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogStoreModule;
+import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceWriteLockModule;
 
 import java.util.List;
 
@@ -38,12 +43,19 @@ public record WorkspaceBenchApp() implements AppModule<WorkspaceBenchApp.Params,
     @Override
     public ImportsFor<WorkspaceBenchApp> imports() {
         return ImportsFor.<WorkspaceBenchApp>builder()
-                .add(new ModuleImports<>(List.of(new BenchWidgetsModule.BENCH_WIDGETS(), new BenchWidgetsModule.BENCH_MONITORS()), BenchWidgetsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new BenchWidgetsModule.BENCH_MONITORS()), BenchWidgetsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new BenchMonitorsModule.BenchMonitors()), BenchMonitorsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new PartySimulatorModule.PartySimulator()), PartySimulatorModule.INSTANCE))
-                // the workspace, and the secretary of the one party type its widgets declare
+                // the workspace, and what it is: its manifest, from its declaration
                 .add(new ModuleImports<>(List.of(new SinglePaneWorkspaceModule.SinglePaneWorkspace()), SinglePaneWorkspaceModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(new BookSelectionSecretaryModule.BookSelectionSecretary()), BookSelectionSecretaryModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new BenchWorkspaceModule.BENCH_WORKSPACE()), BenchWorkspaceModule.INSTANCE))
+                // its log: the store, where it is kept, whose it is, one writer at a time, and the load
+                .add(new ModuleImports<>(List.of(new WorkspaceLogStoreModule.WorkspaceLogStore()), WorkspaceLogStoreModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new IndexedDbLogModule.IndexedDbLog()), IndexedDbLogModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceLogIdentityModule.WorkspaceLogIdentity()), WorkspaceLogIdentityModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceWriteLockModule.WorkspaceWriteLock()), WorkspaceWriteLockModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new LogKeyModule.LogKey()), LogKeyModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceLoadModule.WorkspaceLoad()), WorkspaceLoadModule.INSTANCE))
                 // the page's parties, where the workspace is mounted
                 .add(new ModuleImports<>(List.of(new domOpsParty()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new focusParty()), FocusPartyModule.INSTANCE))

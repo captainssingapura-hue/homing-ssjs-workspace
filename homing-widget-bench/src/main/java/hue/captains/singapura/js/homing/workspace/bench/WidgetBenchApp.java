@@ -83,7 +83,7 @@ public record WidgetBenchApp() implements AppModule<WidgetBenchApp.Params, Widge
     @Override
     public ImportsFor<WidgetBenchApp> imports() {
         return ImportsFor.<WidgetBenchApp>builder()
-                .add(new ModuleImports<>(List.of(new BenchWidgetsModule.BENCH_WIDGETS(), new BenchWidgetsModule.BENCH_MONITORS()), BenchWidgetsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new BenchWidgetsModule.BENCH_WIDGETS(), new BenchWidgetsModule.BENCH_MONITORS(), new BenchWidgetsModule.BENCH_PARTIES()), BenchWidgetsModule.INSTANCE))
                 // the monitors' bar, and the desk their floats lie on
                 .add(new ModuleImports<>(List.of(new BenchMonitorsModule.BenchMonitors()), BenchMonitorsModule.INSTANCE))
                 // the parties the widget joins, at the root: the runtime, the bench's manual secretary, and its simulator

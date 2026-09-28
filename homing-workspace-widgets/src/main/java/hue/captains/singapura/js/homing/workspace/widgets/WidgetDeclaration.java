@@ -2,6 +2,7 @@ package hue.captains.singapura.js.homing.workspace.widgets;
 
 import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.workspace.parties.PartyType;
+import hue.captains.singapura.tao.ontology.StatelessFunctionalObject;
 
 import java.util.List;
 import java.util.Map;
@@ -21,9 +22,13 @@ import java.util.regex.Pattern;
  * (A Widget Is an Operational Unit; Widgets Are Independent; Parties Are
  * Grafted Hierarchies).</p>
  *
+ * <p>A stateless object: what it says is the kind's, the same for every
+ * widget of it, and a page, a bench or a workspace reads it before any widget
+ * is made.</p>
+ *
  * @param <P> the widget's params
  */
-public interface WidgetDeclaration<P extends WidgetParams> {
+public interface WidgetDeclaration<P extends WidgetParams> extends StatelessFunctionalObject {
 
     /** A kind's name: lowercase letters, digits and hyphens, a letter first. */
     Pattern KIND = Pattern.compile("[a-z][a-z0-9-]*");
@@ -58,13 +63,14 @@ public interface WidgetDeclaration<P extends WidgetParams> {
 
     /**
      * The messaging parties' types a widget of this kind joins for its full
-     * function (Messaging Parties Are Joined Top-Down): deterministic once it is
-     * made - a function of its params - and declared here, in Java. A widget
-     * works alone without them; each joined adds what that type is for. None,
-     * unless said. The widget says the same of itself, made: {@code widget.parties}.
+     * function (Messaging Parties Are Joined Top-Down): a function of the kind
+     * alone - the same for every widget of it, whatever its params - declared
+     * here, in Java, so what a host must give is known before anything runs. A
+     * kind whose needs would vary with its params declares all it may need. A
+     * widget works alone without them; each joined adds what that type is for.
+     * An umbrella's are its subordinates' union, derived from their
+     * declarations, less a type it keeps wholly to itself. None, unless said.
+     * The widget is given these, and only these: it never says them itself.
      */
-    default List<PartyType<?>> parties(P params) { return List.of(); }
-
-    /** The types, for params held as the interface. */
-    default List<PartyType<?>> partiesOf(WidgetParams params) { return parties(paramsType().cast(params)); }
+    default List<PartyType<?>> parties() { return List.of(); }
 }

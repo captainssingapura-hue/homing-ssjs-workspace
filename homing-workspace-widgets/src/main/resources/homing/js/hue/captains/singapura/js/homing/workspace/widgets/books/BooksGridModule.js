@@ -33,7 +33,7 @@
 //   grid.roots    what its host grafts: { dom, focus } - its own DomOps party and focus
 //                 party, each a stray until grafted
 //   grid.focus    its membership of its own focus party
-//   grid.parties  the messaging parties' types it joins for its full function: [BOOK_SELECTION]
+//   (its kind declares, in Java, the types it joins for its full function: book-selection)
 //   grid.join(given)  given: { [type name]: party }; a second join without a leave is refused
 //   grid.leave()
 //   grid.dispose() it leaves; both parties dissolved, each proxy with its party, and nothing left in the container
@@ -61,7 +61,6 @@ class BooksGrid {
         this._store = new BooksStore();
         this._relation = new BooksRelation(this._store, { branch: this._dom.createBranch("cells") });
         // the book selection party, while joined: its membership, and the book last told or heard
-        this.parties = Object.freeze([BOOK_SELECTION]);
         this._selection = null;
         this._chosen = null;
         this._joined = false;

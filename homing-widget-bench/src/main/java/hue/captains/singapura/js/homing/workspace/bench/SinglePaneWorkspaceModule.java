@@ -6,6 +6,8 @@ import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
+import hue.captains.singapura.js.homing.workspace.layers.PaneLayerModule;
+import hue.captains.singapura.js.homing.workspace.layers.RosterLayerModule;
 import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
 import hue.captains.singapura.js.homing.core.js.domOpsParties;
 import hue.captains.singapura.js.homing.ui.elements.Elements;
@@ -38,6 +40,9 @@ public record SinglePaneWorkspaceModule() implements DomModule<SinglePaneWorkspa
                 // the headless core, and the parties beside it
                 .add(new ModuleImports<>(List.of(new WorkspaceCoreModule.WorkspaceCore()), WorkspaceCoreModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspacePartiesModule.WorkspaceParties()), WorkspacePartiesModule.INSTANCE))
+                // its layers of the log, live: recorded, and come back to
+                .add(new ModuleImports<>(List.of(new RosterLayerModule.RosterLayer()), RosterLayerModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new PaneLayerModule.PaneLayer()), PaneLayerModule.INSTANCE))
                 // its placement, and its bar
                 .add(new ModuleImports<>(List.of(new SinglePaneModule.SinglePane()), SinglePaneModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new Elements.ButtonBuilder()), Elements.INSTANCE))

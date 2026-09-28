@@ -16,7 +16,7 @@ public record BookJumbotronDeclaration() implements WidgetDeclaration<NoParams> 
     @Override public String kind() { return "book-jumbotron"; }
     @Override public Class<NoParams> paramsType() { return NoParams.class; }
     @Override public WidgetQuery<NoParams> query() { return new NoParams.Query(); }
-    @Override public List<PartyType<?>> parties(NoParams params) { return List.of(BookSelection.TYPE); }
+    @Override public List<PartyType<?>> parties() { return List.of(BookSelection.TYPE); }
 
     @Override
     public ModuleImports<?> constructs() {

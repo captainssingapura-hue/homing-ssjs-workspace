@@ -12,6 +12,9 @@ import hue.captains.singapura.js.homing.ui.focus.UiFocusCrate;
 import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyFixedModule;
 import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyStyles;
 import hue.captains.singapura.js.homing.workspace.core.WorkspaceCoreCrate;
+import hue.captains.singapura.js.homing.workspace.layers.WorkspaceLayersCrate;
+import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
+import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogCrate;
 import hue.captains.singapura.js.homing.workspace.monitors.WorkspaceMonitorsCrate;
 import hue.captains.singapura.js.homing.workspace.parties.WorkspacePartiesCrate;
 import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceWidgetsCrate;
@@ -47,7 +50,11 @@ public final class WidgetBenchCrate implements Crate {
                 UiElementsCrate.INSTANCE,
                 UiFocusCrate.INSTANCE,
                 // the workspace of one pane: its headless core, and the parties beside it
-                WorkspaceCoreCrate.INSTANCE);
+                WorkspaceCoreCrate.INSTANCE,
+                // its layers of the log, live; and the log it keeps: the store, the load, the lock
+                WorkspaceLayersCrate.INSTANCE,
+                WorkspaceLogCrate.INSTANCE,
+                WorkspaceLogCodecCrate.INSTANCE);
     }
 
     @Override
@@ -55,6 +62,7 @@ public final class WidgetBenchCrate implements Crate {
         return List.of(
                 CrateEntry.of(WidgetBenchApp.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(BenchWidgetsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(BenchWorkspaceModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WidgetBenchStyles.INSTANCE),
                 // the monitors' bar, and the desk their floats lie on
                 CrateEntry.of(BenchMonitorsModule.INSTANCE, StandardJsModuleType.CONSUMER),

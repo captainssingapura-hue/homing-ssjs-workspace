@@ -51,6 +51,17 @@
             <artifactId>homing-workspace-core</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <!-- The workspace of one pane, logged: its layers, live; the log it keeps - the store, the load, the lock. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-layers</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-log</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
         <!-- The desk the monitors' floats lie on, from the ui-components. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>

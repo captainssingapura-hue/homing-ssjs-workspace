@@ -35,6 +35,12 @@
             <artifactId>homing-core</artifactId>
             <version>${homing.core.version}</version>
         </dependency>
+        <!-- The log's value objects: a widget's id is the log's WidgetId. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
         <!-- The messaging parties' runtime: the root instances the core's parties are. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>

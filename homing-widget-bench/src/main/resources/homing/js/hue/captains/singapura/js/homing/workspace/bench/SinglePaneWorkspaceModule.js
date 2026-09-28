@@ -1,24 +1,32 @@
 // =============================================================================
 // SinglePaneWorkspace — a workspace of one pane (RFC 0066 E3, the workspace
-// detour: the next experiment), self-contained as a widget is. Its DomOps and
-// focus parties are its own, everything built under them while they are
-// strays, offered as roots for the page to graft when it mounts it. Its
-// widgets are its headless core's (WorkspaceCore) — each opened under an id
+// detour), self-contained as a widget is. Its DomOps and focus parties are its
+// own, everything built under them while they are strays, offered as roots for
+// the page to graft when it mounts it. What it is comes from its manifest,
+// generated from its declaration in Java (WorkspaceDeclaration): the kinds that
+// can be opened, each with the types it is given; and its ROOT PARTIES, made
+// here, with it, before any widget opens (WorkspaceParties).
+//
+// Its widgets are its headless core's (WorkspaceCore) — each opened under an id
 // that says what it is, its DomOps root grafted under the workspace's
-// `widgets` branch — and their messaging parties the core's too, beside it
-// (WorkspaceParties). What is shown is its placement's, a single pane
-// (SinglePane): a dropdown of the widgets the workspace holds, one of them
-// shown at a time, the others still there, still joined, unshown.
+// `widgets` branch. What is shown is its placement's, a single pane
+// (SinglePane, over the headless PanePlacement): one widget at a time, the
+// others still there, still joined, unshown.
+//
+// It comes back as its log folds — ROSTER FIRST, every widget made again under
+// its id, then what the pane showed — and is recorded after, each layer beside
+// what it records (RosterLayer, PaneLayer): nothing of the coming back is logged.
 //
 // Its bar: a kind to open, and Open — the widget opened is shown; what is
 // shown, picked from the widgets it holds; and Close, the one shown closed,
 // the next shown in its place.
 //
-//   new SinglePaneWorkspace(container, { kinds, secretaries, name? })
-//     kinds        { [kind]: { Widget, title? } } — what can be opened
-//     secretaries  { [party type name]: secretary } — each root party's
+//   new SinglePaneWorkspace(container, { manifest, name? })
+//     manifest  { name, kinds: { [kind]: { Widget, title, parties } }, parties: [{ type, secretary }] }
 //   ws.roots    { dom, focus }: its own, for the page to graft
 //   ws.core  ws.parties  ws.pane
+//   ws.restore(state) → { opened, skipped, shown }   state: a WorkspaceState, as its log folds
+//   ws.record(log) → off   its roster and its pane recorded: log.append(event)
 //   ws.open(kind, params?) → the entry, shown     ws.show(id | null)     ws.close(id)
 // =============================================================================
 
@@ -29,7 +37,8 @@ class SinglePaneWorkspace {
     constructor(container, opts) {
         if (!container || typeof container.appendChild !== "function") throw new Error("[SinglePaneWorkspace] a container is required");
         var o = opts || {}, self = this, name = o.name || "workspace-" + (++_spWorkspaces);
-        this._kinds = o.kinds || {};
+        if (!o.manifest || !o.manifest.kinds) throw new Error("[SinglePaneWorkspace] opts.manifest is required: the workspace's, generated from its declaration");
+        this._kinds = o.manifest.kinds;
         // ITS OWN ROOTS: built under while strays, grafted when the page mounts it
         this._dom = domOpsParties.mobile(name);
         this._dom.activate(_spwOwner);
@@ -47,12 +56,27 @@ class SinglePaneWorkspace {
         root.appendChild(paneBox);
         container.appendChild(root);
         this.root = root;
-        // THE PLACEMENT, THE CORE, THE PARTIES: the core knows the pane only as its port
-        this.pane = new SinglePane(this._dom.createBranch("placement"), { host: paneBox, focus: this._focusParty.root });
+        // THE PLACEMENT, THE CORE, THE PARTIES: the core knows the pane only as its port; the parties made now
+        this.pane = new SinglePane(this._dom.createBranch("placement"), { host: paneBox, focus: this._focusParty.root,
+                                                                         entry: function (id) { return self.core.entry(id); } });
         this.core = new WorkspaceCore({ kinds: this._kinds, placement: this.pane });
-        this.parties = new WorkspaceParties(this.core, { secretaries: o.secretaries || {} });
+        this.parties = new WorkspaceParties(this.core, { parties: o.manifest.parties || [], kinds: this._kinds });
         this.core.on(function (n) { self._heard(n); });
+        this.pane.model.on(function () { self._showing.value = self.pane.shown() || ""; });
         this._refill();
+    }
+
+    /** Come back to what its log folds to: the roster first, then what the pane showed. Not recorded. */
+    restore(state) {
+        var back = RosterLayer.restore(this.core, state.roster);
+        var shown = PaneLayer.restore(this.pane.model, state.pane);
+        return Object.freeze({ opened: back.opened, skipped: back.skipped, shown: shown });
+    }
+
+    /** Recorded from now on: the roster's word and the pane's, each by its own layer. */
+    record(log) {
+        var offs = [RosterLayer.record(this.core, log), PaneLayer.record(this.pane.model, log)];
+        return function () { offs.forEach(function (off) { off(); }); };
     }
 
     open(kind, params) {
@@ -61,10 +85,7 @@ class SinglePaneWorkspace {
         return entry;
     }
 
-    show(id) {
-        this.pane.show(id == null ? null : this.core.entry(id));
-        this._showing.value = this.pane.shown() || "";
-    }
+    show(id) { this.pane.show(id == null ? null : this.core.entry(id)); }
 
     close(id) { this.core.close(id); }
 
@@ -84,7 +105,6 @@ class SinglePaneWorkspace {
             // a widget disposed has dissolved its party, and the graft with it; one that did not is taken off
             if (name && this._widgets.listBranches().indexOf(name) >= 0) this._widgets.detach(name);
             this._refill();
-            if (!this.pane.shown()) { var next = this.core.entries()[0]; this.show(next ? next.id : null); }
         }
     }
 

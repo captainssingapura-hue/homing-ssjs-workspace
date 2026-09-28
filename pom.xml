@@ -40,6 +40,8 @@
         <module>homing-workspace-parties</module>
         <!-- The workspace's headless core: the roster, its ids, the widgets' life; the parties beside it. Its dual in Java. -->
         <module>homing-workspace-core</module>
+        <!-- The log's layers, live and headless: the roster recorded and come back to; the one pane, and its layer. -->
+        <module>homing-workspace-layers</module>
         <!-- The widgets, each self-contained: made with a container and its params, its roots its own. -->
         <module>homing-workspace-widgets</module>
         <!-- The monitors, as widgets: the page's parties on view, each monitor self-contained. -->

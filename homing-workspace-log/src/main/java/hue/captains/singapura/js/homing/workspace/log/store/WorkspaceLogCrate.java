@@ -31,6 +31,8 @@ public final class WorkspaceLogCrate implements Crate {
                 CrateEntry.of(MemoryLogModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WorkspaceLogExportModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WorkspaceLogIdentityModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                // a log read back to what it folds to, or set aside: the load every placement shares
+                CrateEntry.of(WorkspaceLoadModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // the fold: the log's meaning, as the Java fold makes it
                 CrateEntry.of(hue.captains.singapura.js.homing.workspace.log.fold.ExactShareModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(hue.captains.singapura.js.homing.workspace.log.fold.LayoutAlgebraModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),

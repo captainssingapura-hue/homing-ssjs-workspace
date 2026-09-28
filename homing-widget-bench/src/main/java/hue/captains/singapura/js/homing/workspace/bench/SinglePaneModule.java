@@ -5,6 +5,7 @@ import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
+import hue.captains.singapura.js.homing.workspace.layers.PanePlacementModule;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetStyles;
 
 import java.util.List;
@@ -26,6 +27,8 @@ public record SinglePaneModule() implements DomModule<SinglePaneModule> {
     public ImportsFor<SinglePaneModule> imports() {
         return ImportsFor.<SinglePaneModule>builder()
                 .add(new ModuleImports<>(List.of(new WidgetStyles.wg_slot()), WidgetStyles.INSTANCE))
+                // what it shows, headless
+                .add(new ModuleImports<>(List.of(new PanePlacementModule.PanePlacement()), PanePlacementModule.INSTANCE))
                 .build();
     }
 

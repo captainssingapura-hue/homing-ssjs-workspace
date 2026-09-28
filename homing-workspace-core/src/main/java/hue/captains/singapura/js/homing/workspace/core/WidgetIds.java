@@ -1,7 +1,8 @@
 package hue.captains.singapura.js.homing.workspace.core;
 
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetId;
+
 import java.util.Map;
-import java.util.Optional;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
@@ -29,7 +30,6 @@ public final class WidgetIds {
 
     private static final Pattern KIND = Pattern.compile("[a-z][a-z0-9-]*");
     private static final Pattern NOT_ALNUM = Pattern.compile("[^A-Za-z0-9]+");
-    private static final Pattern SEQUENCED = Pattern.compile("(.+)-([1-9][0-9]*)");
 
     /** A widget's prefix: its kind, and {@code _} and the concise form of its params when it has any. */
     public static String prefix(String kind, Map<String, String> params) {
@@ -72,20 +72,9 @@ public final class WidgetIds {
         return String.format("%08x", h);
     }
 
-    /** The id of the n-th widget of a prefix. */
+    /** The id of the n-th widget of a prefix: the prefix, a hyphen, the sequence - a WidgetId, which is a prefix and a sequence. */
     public static WidgetId of(String prefix, int n) {
         if (n < 1) throw new IllegalArgumentException("a sequence starts at 1: " + n);
-        return new WidgetId(prefix + "-" + n);
+        return WidgetId.of(prefix, n);
     }
-
-    /** An id taken apart: its prefix and its sequence - or nothing, when it is not one {@link #of} makes. */
-    public static Optional<Sequenced> split(WidgetId id) {
-        var m = SEQUENCED.matcher(id.value());
-        if (!m.matches()) return Optional.empty();
-        try { return Optional.of(new Sequenced(m.group(1), Integer.parseInt(m.group(2)))); }
-        catch (NumberFormatException e) { return Optional.empty(); }
-    }
-
-    /** An id's prefix and its sequence. */
-    public record Sequenced(String prefix, int n) {}
 }
