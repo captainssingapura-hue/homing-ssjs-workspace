@@ -8,7 +8,6 @@ import hue.captains.singapura.js.homing.workspace.log.LoggedEvent;
 import hue.captains.singapura.js.homing.workspace.log.PaneEvent;
 import hue.captains.singapura.js.homing.workspace.log.RegionEvent;
 import hue.captains.singapura.js.homing.workspace.log.RosterEvent;
-import hue.captains.singapura.js.homing.workspace.log.RosterState;
 import hue.captains.singapura.js.homing.workspace.log.TabEvent;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
@@ -23,8 +22,9 @@ import java.util.List;
  * handed, by its family, to its layer's fold - the roster's ({@link
  * RosterFold}), the one pane's ({@link PaneFold}), the split grid's ({@link
  * GridFold}) - which folds it into that layer's state and refuses it, naming
- * it, when it cannot be where it falls. A placement stands on the roster: the
- * pane's fold reads it, and follows it when a widget is closed. A family with
+ * it, when it cannot be where it falls. Each layer's fold handles its own
+ * family and no other: a placement never reads the roster, since while it
+ * places it records every consequence of the roster itself. A family with
  * no layer yet would be decoded and kept, and passed by here unfolded. The
  * JavaScript fold is this, line for line, and the two agree to the byte.
  */
@@ -82,11 +82,8 @@ public final class WorkspaceFold {
     /** One event on a state, handed to its layer: the state after it. */
     public static WorkspaceState apply(WorkspaceState state, WorkspaceEvent event) {
         return switch (event) {
-            case RosterEvent e -> {
-                RosterState roster = RosterFold.apply(state.roster(), e);
-                yield new WorkspaceState(roster, PaneFold.follow(state.pane(), e), state.grid());
-            }
-            case PaneEvent e   -> state.withPane(PaneFold.apply(state.pane(), e, state.roster()));
+            case RosterEvent e -> state.withRoster(RosterFold.apply(state.roster(), e));
+            case PaneEvent e   -> state.withPane(PaneFold.apply(state.pane(), e));
             case TabEvent e    -> state.withGrid(GridFold.apply(state.grid(), e));
             case RegionEvent e -> state.withGrid(GridFold.apply(state.grid(), e));
             case FloatEvent e  -> state.withGrid(GridFold.apply(state.grid(), e));

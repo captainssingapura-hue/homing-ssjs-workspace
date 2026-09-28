@@ -6,8 +6,8 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * The one pane's layer of what a workspace log folds to: which of the roster's
- * widgets it shows, if any.
+ * The one pane's layer of what a workspace log folds to: which widget it
+ * shows, if any - its own events alone folded into it.
  *
  * @param shown the widget shown, or none
  */

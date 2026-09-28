@@ -5,8 +5,9 @@
 // each event is handed, by its family, to its layer's fold — the roster's
 // (RosterFold), the one pane's (PaneFold), the split grid's (GridFold) — which
 // folds it into that layer's state and refuses it, naming it, when it cannot
-// be where it falls. A placement stands on the roster: the pane's fold reads
-// it, and follows it when a widget is closed. Java's WorkspaceFold,
+// be where it falls. Each layer's fold handles its own family and no other: a
+// placement never reads the roster, since while it places it records every
+// consequence of the roster itself. Java's WorkspaceFold,
 // transcribed: the two agree to the byte.
 //
 //   WorkspaceFold.opening()              → the WorkspaceState every log starts from
@@ -48,9 +49,9 @@ class WorkspaceFold {
 
     static apply(state, e) {
         if (e instanceof RosterEvent) {
-            return new WorkspaceState(RosterFold.apply(state.roster, e), PaneFold.follow(state.pane, e), state.grid);
+            return new WorkspaceState(RosterFold.apply(state.roster, e), state.pane, state.grid);
         }
-        if (e instanceof PaneEvent) return new WorkspaceState(state.roster, PaneFold.apply(state.pane, e, state.roster), state.grid);
+        if (e instanceof PaneEvent) return new WorkspaceState(state.roster, PaneFold.apply(state.pane, e), state.grid);
         if (e instanceof TabEvent || e instanceof RegionEvent || e instanceof FloatEvent) {
             return new WorkspaceState(state.roster, state.pane, GridFold.apply(state.grid, e));
         }

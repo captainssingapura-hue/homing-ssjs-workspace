@@ -1,6 +1,7 @@
 package hue.captains.singapura.js.homing.workspace.log.store;
 
 import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
+import hue.captains.singapura.js.homing.workspace.log.Checkpoint;
 import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,7 +72,7 @@ class WorkspaceLoadTest extends JsModuleTestBase {
                 """);
         assertEquals("books-grid-1,books-grid-2", str("got.r.folded.state.roster.widgets.map((w) => w.id.value).join(',')"), "folded whole");
         assertTrue(js.eval("js", "got.after === null").asBoolean(), "the page that writes the log drops it");
-        assertTrue(str("said.join('|')").contains("folded by rules " + 3 + ", not 2"), str("said.join('|')"));
+        assertTrue(str("said.join('|')").contains("folded by rules " + (Checkpoint.FOLD + 1) + ", not " + Checkpoint.FOLD), str("said.join('|')"));
     }
 
     @Test

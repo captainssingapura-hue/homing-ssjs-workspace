@@ -131,7 +131,7 @@ class WorkspaceFoldParityTest extends JsModuleTestBase {
          * The roster's and the pane's steps: a widget opened - its prefix's next id,
          * now and then one past it, as an id spent unlogged leaves; a widget closed -
          * the pane, when it showed it, told what it shows next first, as a live pane
-         * is, or not, as a pane not showing then is; the pane shown a widget, or none.
+         * always is, placing; the pane shown a widget, or none.
          */
         void widgets(int pick) {
             var held = s.roster().widgets();
@@ -143,7 +143,7 @@ class WorkspaceFoldParityTest extends JsModuleTestBase {
                 does(new WidgetOpened(WidgetId.of(prefix, n), WidgetKind.of(prefix.replaceAll("_.*", "")), params));
             } else if (pick < 24) {
                 WidgetId gone = any(held).id();
-                if (s.pane().shown().equals(Optional.of(gone)) && rnd.nextBoolean()) {
+                if (s.pane().shown().equals(Optional.of(gone))) {
                     var rest = held.stream().filter(w -> !w.id().equals(gone)).toList();
                     does(new PaneShown(rest.isEmpty() ? Optional.empty() : Optional.of(any(rest).id())));
                 }
@@ -276,7 +276,7 @@ class WorkspaceFoldParityTest extends JsModuleTestBase {
         System.out.println("[WorkspaceFoldParityTest] " + compared + " checkpoint chains folded to the whole, alike");
     }
 
-    /** What the roster and the pane refuse, both languages refuse. */
+    /** What the roster refuses, both languages refuse. */
     @Test
     void theLayersRefuseAlike_inBothLanguages() {
         WidgetId g1 = WidgetId.of("books-grid-1"), g2 = WidgetId.of("books-grid-2");
@@ -285,9 +285,7 @@ class WorkspaceFoldParityTest extends JsModuleTestBase {
                 List.of(o1, o1),
                 List.of(o1, new WidgetClosed(g1), o1),
                 List.of(o2, o1),
-                List.of(new WidgetClosed(g1)),
-                List.of(o1, new PaneShown(Optional.of(g2))),
-                List.of(o1, new WidgetClosed(g1), new PaneShown(Optional.of(g1))));
+                List.of(new WidgetClosed(g1)));
         for (var events : refused) {
             var logged = new ArrayList<LoggedEvent>();
             for (int i = 0; i < events.size(); i++) logged.add(new LoggedEvent(EventSeq.of(i + 1), Instant.ofEpochMilli(1_790_000_000_000L + i), events.get(i)));

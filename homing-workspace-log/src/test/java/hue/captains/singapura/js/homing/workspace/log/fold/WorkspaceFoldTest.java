@@ -81,24 +81,24 @@ class WorkspaceFoldTest {
     }
 
     @Test
-    void thePaneShowsWhatTheRosterHolds_orNothing() {
+    void thePaneShowsAWidget_orNothing() {
         var s = fold(opened(G1), opened(J1), shown(J1));
         assertEquals(Optional.of(J1), s.pane().shown());
         assertEquals(Optional.empty(), fold(opened(G1), shown(G1), shown(null)).pane().shown());
-        assertThrows(WorkspaceFold.Refused.class, () -> fold(opened(G1), shown(J1)), "not in the roster");
-        assertThrows(WorkspaceFold.Refused.class, () -> fold(opened(G1), new WidgetClosed(G1), shown(G1)), "closed");
     }
 
+    /**
+     * The pane folds its own events alone: it never reads the roster, nor follows
+     * it. While it places, it says what it shows next before the widget it showed
+     * is closed - so its own event carries the consequence.
+     */
     @Test
-    void thePaneFollowsTheRoster_aWidgetClosedIsShownNowhere() {
-        // a live pane says what it shows next, then the widget is closed
+    void thePaneFoldsItsOwnEventsAlone() {
         var live = fold(opened(G1), opened(J1), shown(G1), shown(J1), new WidgetClosed(G1));
-        assertEquals(Optional.of(J1), live.pane().shown());
-        // the pane was not showing when the widget closed: the workspace laid out by another placement
-        var other = fold(opened(G1), opened(J1), shown(G1), new WidgetClosed(G1));
-        assertEquals(Optional.empty(), other.pane().shown());
-        var kept = fold(opened(G1), opened(J1), shown(J1), new WidgetClosed(G1));
-        assertEquals(Optional.of(J1), kept.pane().shown(), "another widget closed: the pane keeps what it shows");
+        assertEquals(Optional.of(J1), live.pane().shown(), "the pane's own word, before the close");
+        var unsaid = fold(opened(G1), opened(J1), shown(G1), new WidgetClosed(G1));
+        assertEquals(Optional.of(G1), unsaid.pane().shown(), "a close the pane did not answer is not the pane's to fold");
+        assertEquals(Optional.of(J1), fold(opened(G1), shown(J1)).pane().shown(), "a widget it is handed: not asked of the roster");
     }
 
     @Test
@@ -114,9 +114,7 @@ class WorkspaceFoldTest {
     }
 
     @Test
-    void aStateShowingWhatTheRosterDoesNotHold_isRefused() {
-        assertThrows(IllegalArgumentException.class,
-                () -> new WorkspaceState(RosterState.empty(), new PaneState(Optional.of(G1)), GridState.opening()));
+    void aRosterHoldingAWidgetPastItsPrefixsLast_isRefused() {
         assertThrows(IllegalArgumentException.class,
                 () -> new RosterState(List.of(new RosterState.RosterEntry(G2, WidgetKind.of("books-grid"), List.of())),
                                       List.of(new PrefixSequence("books-grid", 1))), "held past its prefix's last");
