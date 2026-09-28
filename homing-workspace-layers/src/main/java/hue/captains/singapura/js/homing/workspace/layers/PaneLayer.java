@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.layers;
 
+import hue.captains.singapura.js.homing.workspace.core.WorkspaceCore;
 import hue.captains.singapura.js.homing.workspace.core.models.WidgetId;
 import hue.captains.singapura.js.homing.workspace.log.PaneEvent;
 import hue.captains.singapura.js.homing.workspace.log.PaneState;
@@ -31,9 +32,15 @@ public final class PaneLayer {
         return pane.on(n -> log.accept(event(n)));
     }
 
-    /** What the pane showed come back to, the roster having come back first: the widget shown, if it came back. */
-    public static Optional<WidgetId> restore(PanePlacement pane, PaneState state) {
-        Optional<WidgetId> shown = state.shown().filter(pane.lent()::contains);
+    /**
+     * What the pane showed come back to, the roster having come back first: every
+     * widget the core holds mounted behind, in the order opened - in single mode
+     * every widget opened is mounted in the pane - then the one the log last
+     * showed, if it came back. Gives the widget shown.
+     */
+    public static Optional<WidgetId> restore(PanePlacement pane, WorkspaceCore<?, ?, ?> core, PaneState state) {
+        for (var e : core.entries()) pane.mount(e, PanePlacement.Location.BEHIND);
+        Optional<WidgetId> shown = state.shown().filter(pane.mounted()::contains);
         pane.show(shown);
         return shown;
     }

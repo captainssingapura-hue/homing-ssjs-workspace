@@ -6,19 +6,19 @@ import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.workspace.layers.PanePlacementModule;
-import hue.captains.singapura.js.homing.workspace.widgets.WidgetStyles;
 
 import java.util.List;
 
 /**
- * A placement of one pane: {@code new SinglePane(branch, { host, focus })} - every
- * widget of the workspace lent a slot of its own, one shown at a time, the others
- * kept whole and unshown. The port the headless core lends and takes back through.
+ * A placement of one pane: {@code new SinglePane(branch, { host, focus, panes, entry })} -
+ * it mounts and unmounts the widgets' panes, one shown at a time, the others kept whole
+ * and unshown, and never creates or closes one; with a transient picker of its own. The
+ * core's placement port, called only in executing a request.
  */
 public record SinglePaneModule() implements DomModule<SinglePaneModule> {
 
     public record SinglePane() implements BranchComponent<SinglePaneModule> {
-        @Override public String summary() { return "A placement of one pane: each widget lent a slot, one shown at a time - its slot in the pane, its focus root grafted - the others kept whole."; }
+        @Override public String summary() { return "A placement of one pane: widgets' panes mounted and unmounted, one shown at a time - its slot in the pane, its focus root grafted - the others kept whole; a transient picker of its own."; }
     }
 
     public static final SinglePaneModule INSTANCE = new SinglePaneModule();
@@ -26,7 +26,8 @@ public record SinglePaneModule() implements DomModule<SinglePaneModule> {
     @Override
     public ImportsFor<SinglePaneModule> imports() {
         return ImportsFor.<SinglePaneModule>builder()
-                .add(new ModuleImports<>(List.of(new WidgetStyles.wg_slot()), WidgetStyles.INSTANCE))
+                // its transient picker pane
+                .add(new ModuleImports<>(List.of(new PanePickerModule.PanePicker()), PanePickerModule.INSTANCE))
                 // what it shows, headless
                 .add(new ModuleImports<>(List.of(new PanePlacementModule.PanePlacement()), PanePlacementModule.INSTANCE))
                 .build();

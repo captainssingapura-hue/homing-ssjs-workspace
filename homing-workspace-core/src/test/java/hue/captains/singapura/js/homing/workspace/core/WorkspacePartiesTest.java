@@ -38,7 +38,10 @@ class WorkspacePartiesTest extends JsModuleTestBase {
         class Plain { constructor() {} dispose() {} }
         class Deaf { constructor() {} dispose() {} }
         var kinds = { chooser: { Widget: Chooser, parties: [CHOICE] }, plain: { Widget: Plain, parties: [] }, deaf: { Widget: Deaf, parties: [CHOICE] } };
-        var core = new WorkspaceCore({ kinds: kinds, placement: { lend: function (e) { return e.id; }, release: function () {} } });
+        var core = new WorkspaceCore({ kinds: kinds, panes: { lend: function (e) { return e.id; }, release: function () {} },
+                                       placement: { mount: function () {}, unmount: function () {} } });
+        function open(kind) { return core.execute(WorkspaceRequest.open(kind, {}, null)); }
+        function close(id) { core.execute(WorkspaceRequest.close(id)); }
         var parties = new WorkspaceParties(core, { parties: [{ type: CHOICE, secretary: relay }], kinds: kinds });
         """;
 
@@ -46,6 +49,7 @@ class WorkspacePartiesTest extends JsModuleTestBase {
     void load() {
         loadModule(PARTY);
         loadModule(CORE + "WidgetIdsModule.js");
+        loadModule(CORE + "WorkspaceRequestModule.js");
         loadModule(CORE + "WorkspaceCoreModule.js");
         loadModule(CORE + "WorkspacePartiesModule.js");
         js.eval("js", SHIM);
@@ -56,7 +60,7 @@ class WorkspacePartiesTest extends JsModuleTestBase {
     @Test
     void theRootPartiesAreMadeWithTheWorkspace_andAWidgetIsGivenItsKindsTypes() {
         assertEquals("choice", str("parties.names().join(',')"), "made before any widget opens");
-        js.eval("js", "var a = core.open('chooser', {}).widget; var b = core.open('chooser', {}).widget; core.open('plain', {});");
+        js.eval("js", "var a = open('chooser').widget; var b = open('chooser').widget; open('plain');");
         assertEquals("choice", str("a.given"), "its kind's types - not the OTHER it says of itself");
         js.eval("js", "a.pick('Solaris')");
         assertEquals("chooser-1 heard Solaris | chooser-2 heard Solaris", str("heard.join(' | ')"));
@@ -66,7 +70,7 @@ class WorkspacePartiesTest extends JsModuleTestBase {
 
     @Test
     void aWidgetClosedLeaves_theOthersStillHear() {
-        js.eval("js", "var a = core.open('chooser', {}).widget; var b = core.open('chooser', {}).widget; core.close('chooser-1'); heard = []; b.pick('QED')");
+        js.eval("js", "var a = open('chooser').widget; var b = open('chooser').widget; close('chooser-1'); heard = []; b.pick('QED')");
         assertEquals("chooser-2 heard QED", str("heard.join(' | ')"));
         assertEquals(1, js.eval("js", "parties.party('choice').members().length").asInt());
     }
@@ -75,7 +79,7 @@ class WorkspacePartiesTest extends JsModuleTestBase {
     void aKindGivenATypeWithNoRootParty_isRefusedBeforeAnyWidget_andAWidgetThatCannotJoinIsSaid() {
         String why = str("(function () { try { new WorkspaceParties(core, { parties: [], kinds: kinds }); return ''; } catch (e) { return e.message; } })()");
         assertTrue(why.contains("the kind 'chooser' is given 'choice', which has no root party"), why);
-        js.eval("js", "core.open('deaf', {})");
+        js.eval("js", "open('deaf')");
         assertEquals(1, js.eval("js", "core.entries().length").asInt(), "opened all the same: a notice's listener does not undo it");
         assertTrue(str("errors.join('|')").contains("'deaf-1' is of a kind given choice, and cannot join"), str("errors.join('|')"));
     }

@@ -6,7 +6,8 @@
 //
 // A workspace comes back ROSTER FIRST — every id its prefixes gave spent,
 // closed or not, so the ids go on past them; then each widget held made again
-// under its id, in the order opened — and its placement after. Nothing of the
+// under its id, in the order opened, created and mounted nowhere — and its
+// placement after, mounting them as its own state has them. Nothing of the
 // coming back is recorded: the recorder is attached after it.
 //
 // Java's RosterLayer, step for step; the two write the same lines
@@ -44,7 +45,7 @@ class RosterLayer {
             var params = {};
             w.params.forEach(function (p) { params[p.key] = p.value; });
             try {
-                core.open(w.kind.value, params, w.id.value);
+                core.create(w.kind.value, params, w.id.value);
                 opened.push(w.id.value);
             } catch (e) {
                 console.error("[RosterLayer] '" + w.id.value + "' does not come back: " + e.message);

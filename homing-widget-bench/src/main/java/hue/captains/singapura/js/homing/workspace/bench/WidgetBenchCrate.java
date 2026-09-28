@@ -70,6 +70,8 @@ public final class WidgetBenchCrate implements Crate {
                 CrateEntry.of(BenchSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
                 CrateEntry.of(PartySimulatorModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 // a workspace of one pane, on its headless core: its placement, the workspace, its page
+                CrateEntry.of(PaneSlotsModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                CrateEntry.of(PanePickerModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(SinglePaneModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(SinglePaneWorkspaceModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(WorkspaceBenchApp.INSTANCE, StandardJsModuleType.CONSUMER),

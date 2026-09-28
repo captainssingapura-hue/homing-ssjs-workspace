@@ -277,10 +277,25 @@ public record WidgetBenchStyles() implements CssGroup<WidgetBenchStyles> {
         @Override public String body() { return "flex: 0 0 auto;"; }
     }
 
+    /** A picker, the transient pane its host owns: what can be opened, one button a row, and Cancel. */
+    public record wb_picker() implements CssClass<WidgetBenchStyles> {
+        @Override public String body() { return """
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 12px;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow: auto;
+            """;
+        }
+    }
+
     @Override
     public List<CssClass<WidgetBenchStyles>> cssClasses() {
         return List.of(new wb_page(), new wb_bench(), new wb_misbehaves(), new wb_bar(), new wb_toggle(), new wb_toggle_on(), new wb_bar_gap(),
                        new wb_sim(), new wb_sim_note(), new wb_sim_log(), new wb_sim_input(), new wb_sim_bar(), new wb_sim_pick(), new wb_sim_said(), new wb_sim_error(),
-                       new wb_ws(), new wb_ws_bar(), new wb_ws_label());
+                       new wb_ws(), new wb_ws_bar(), new wb_ws_label(), new wb_picker());
     }
 }

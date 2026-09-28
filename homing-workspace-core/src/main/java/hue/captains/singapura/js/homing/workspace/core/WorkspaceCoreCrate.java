@@ -26,6 +26,7 @@ public final class WorkspaceCoreCrate implements Crate {
     public List<CrateEntry> entries() {
         return List.of(
                 CrateEntry.of(WidgetIdsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(WorkspaceRequestModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WorkspaceCoreModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(KindAndParamsTitleModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WorkspacePartiesModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));

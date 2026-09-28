@@ -7,27 +7,27 @@
 // can be opened, each with the types it is given; and its ROOT PARTIES, made
 // here, with it, before any widget opens (WorkspaceParties).
 //
-// Its widgets are its headless core's (WorkspaceCore) — each opened under an id
-// that says what it is, its DomOps root grafted under the workspace's
-// `widgets` branch. What is shown is its placement's, a single pane
-// (SinglePane, over the headless PanePlacement): one widget at a time, the
-// others still there, still joined, unshown.
+// Three roles (requests): its headless CORE (WorkspaceCore) keeps the widgets
+// and their panes' life — its register of panes, PaneSlots — and EXECUTES what
+// a user asks: an open is create, then mount; a close is unmount, then close.
+// Its PLACEMENT, a single pane (SinglePane, over the headless PanePlacement),
+// mounts and unmounts, one widget shown at a time. Its CONTROLS only ask: the
+// pane's picker, Close, the list of what can be shown.
 //
-// It comes back as its log folds — ROSTER FIRST, every widget made again under
-// its id, then what the pane showed — and is recorded after, each layer beside
-// what it records (RosterLayer, PaneLayer): nothing of the coming back is logged.
-//
-// Its bar: a kind to open, and Open — the widget opened is shown; what is
-// shown, picked from the widgets it holds; and Close, the one shown closed,
-// the next shown in its place.
+// It comes back as its log folds — ROSTER FIRST, every widget created again
+// under its id, then mounted in the pane and the one it showed shown — and is
+// recorded after, each layer beside what it records (RosterLayer, PaneLayer):
+// nothing of the coming back is logged.
 //
 //   new SinglePaneWorkspace(container, { manifest, name? })
 //     manifest  { name, kinds: { [kind]: { Widget, title, parties } }, parties: [{ type, secretary }] }
 //   ws.roots    { dom, focus }: its own, for the page to graft
-//   ws.core  ws.parties  ws.pane
+//   ws.core  ws.parties  ws.pane  ws.slots
+//   ws.request(request) → what the core gives, or null when it could not be done (said)
+//   ws.open(kind, params?, location?) → the entry — asked as a request; location "shown" unless said
+//   ws.close(id)   asked as a request      ws.show(id | null)   the pane's own
 //   ws.restore(state) → { opened, skipped, shown }   state: a WorkspaceState, as its log folds
 //   ws.record(log) → off   its roster and its pane recorded: log.append(event)
-//   ws.open(kind, params?) → the entry, shown     ws.show(id | null)     ws.close(id)
 // =============================================================================
 
 const _spwOwner = Object.freeze({ toString: () => "singlePaneWorkspace" });
@@ -56,20 +56,21 @@ class SinglePaneWorkspace {
         root.appendChild(paneBox);
         container.appendChild(root);
         this.root = root;
-        // THE PLACEMENT, THE CORE, THE PARTIES: the core knows the pane only as its port; the parties made now
-        this.pane = new SinglePane(this._dom.createBranch("placement"), { host: paneBox, focus: this._focusParty.root,
+        // THE REGISTER OF PANES, THE PLACEMENT, THE CORE, THE PARTIES
+        this.slots = new PaneSlots(this._dom.createBranch("panes"));
+        this.pane = new SinglePane(this._dom.createBranch("placement"), { host: paneBox, focus: this._focusParty.root, panes: this.slots,
                                                                          entry: function (id) { return self.core.entry(id); } });
-        this.core = new WorkspaceCore({ kinds: this._kinds, placement: this.pane });
+        this.core = new WorkspaceCore({ kinds: this._kinds, panes: this.slots, placement: this.pane });
         this.parties = new WorkspaceParties(this.core, { parties: o.manifest.parties || [], kinds: this._kinds });
         this.core.on(function (n) { self._heard(n); });
         this.pane.model.on(function () { self._showing.value = self.pane.shown() || ""; });
         this._refill();
     }
 
-    /** Come back to what its log folds to: the roster first, then what the pane showed. Not recorded. */
+    /** Come back to what its log folds to: the roster first, then the pane. Not recorded. */
     restore(state) {
         var back = RosterLayer.restore(this.core, state.roster);
-        var shown = PaneLayer.restore(this.pane.model, state.pane);
+        var shown = PaneLayer.restore(this.pane.model, this.core, state.pane);
         return Object.freeze({ opened: back.opened, skipped: back.skipped, shown: shown });
     }
 
@@ -79,15 +80,16 @@ class SinglePaneWorkspace {
         return function () { offs.forEach(function (off) { off(); }); };
     }
 
-    open(kind, params) {
-        var entry = this.core.open(kind, params || {});
-        this.show(entry.id);
-        return entry;
+    request(r) {
+        try { return this.core.execute(r); }
+        catch (e) { console.error("[SinglePaneWorkspace] " + r.kind + " was not done: " + e.message); return null; }
     }
 
-    show(id) { this.pane.show(id == null ? null : this.core.entry(id)); }
+    open(kind, params, location) { return this.request(WorkspaceRequest.open(kind, params || {}, location || "shown")); }
 
-    close(id) { this.core.close(id); }
+    close(id) { return this.request(WorkspaceRequest.close(id)); }
+
+    show(id) { this.pane.show(id == null ? null : id); }
 
     /** The core's word: a widget's DomOps root grafted when it opens, and the bar kept as the roster is. */
     _heard(n) {
@@ -119,14 +121,11 @@ class SinglePaneWorkspace {
         sel.value = shown || "";
     }
 
-    /** The bar: a kind to open and Open; what is shown; and Close. */
+    /** The bar: Open…, the pane's picker; what is shown; and Close - each only asks. */
     _bar() {
         var self = this, d = this._dom, bar = d.createElement("bar", "div");
         css.addClass(bar, wb_ws_bar);
-        var kinds = d.createElement("kinds", "select");
-        css.addClass(kinds, wb_sim_pick);
-        kinds.setAttribute("aria-label", "A kind of widget to open");
-        Object.keys(this._kinds).forEach(function (k, i) { kinds.appendChild(SinglePaneWorkspace._option(d, "kind-" + i, k, self._kinds[k].title || k)); });
+        var kinds = Object.keys(this._kinds).map(function (k) { return { id: k, title: self._kinds[k].title || k }; });
         this._showing = d.createElement("showing", "select");
         css.addClass(this._showing, wb_sim_pick);
         this._showing.setAttribute("aria-label", "The widget shown");
@@ -134,9 +133,10 @@ class SinglePaneWorkspace {
         this._options = null;
         this._refills = 0;
         var b = new ButtonBuilder(), c = new ButtonBuilder();
-        var open = b.label("Open").plain().size(-1).onClick(function () { if (kinds.value) self.open(kinds.value); }).build(d.createElement("open", b.tag));
+        var open = b.label("Open…").plain().size(-1).onClick(function () { self.pane.pick(kinds, function (kind) { self.open(kind, {}, "shown"); }); })
+                    .build(d.createElement("open", b.tag));
         var close = c.label("Close").plain().size(-1).onClick(function () { var id = self.pane.shown(); if (id) self.close(id); }).build(d.createElement("close", c.tag));
-        [this._label("open-label", "Open a"), kinds, open.el, this._label("showing-label", "Showing"), this._showing, close.el].forEach(function (el) { bar.appendChild(el); });
+        [open.el, this._label("showing-label", "Showing"), this._showing, close.el].forEach(function (el) { bar.appendChild(el); });
         return bar;
     }
 
@@ -155,7 +155,7 @@ class SinglePaneWorkspace {
     }
 
     dispose() {
-        this.core.entries().slice().reverse().forEach(function (e) { this.core.close(e.id); }, this);
+        this.core.dispose();
         this.parties.dispose();
         this._focusParty.dissolve();
         this._dom.dissolve();

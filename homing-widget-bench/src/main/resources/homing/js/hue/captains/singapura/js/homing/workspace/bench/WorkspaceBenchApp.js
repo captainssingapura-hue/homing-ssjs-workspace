@@ -14,7 +14,7 @@
 // writes the log at a time — the one holding its lock; another reads it only.
 // A log that will not fold is set aside, and the page starts afresh.
 //
-// Afresh, it opens a books grid and a book jumbotron, the grid shown: choose a
+// Afresh, it asks for a books grid, shown, and a book jumbotron behind it: choose a
 // book in it, then show the jumbotron — it heard the choice while nothing
 // showed it.
 //
@@ -51,10 +51,9 @@ function appMain(el, params) {
             // COMING BACK, not recorded; then recorded, when this page writes the log
             if (r.folded) ws.restore(r.folded.state);
             if (writes) stop = ws.record(log);
-            if (writes && r.logged === 0) {
-                ws.open("books-grid");
-                ws.open("book-jumbotron");
-                ws.show("books-grid-1");
+            if (writes && r.logged === 0) {   // afresh: what a user would ask, asked
+                ws.open("books-grid", {}, "shown");
+                ws.open("book-jumbotron", {}, "behind");
             }
             // MOUNTED LAST: its roots grafted into the page's
             place.graft("workspace", ws.roots.dom);

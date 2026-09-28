@@ -13,6 +13,7 @@ import hue.captains.singapura.js.homing.core.js.domOpsParties;
 import hue.captains.singapura.js.homing.ui.elements.Elements;
 import hue.captains.singapura.js.homing.workspace.core.WorkspaceCoreModule;
 import hue.captains.singapura.js.homing.workspace.core.WorkspacePartiesModule;
+import hue.captains.singapura.js.homing.workspace.core.WorkspaceRequestModule;
 import hue.captains.singapura.js.homing.workspace.widgets.SelfContainedWidget;
 
 import java.util.List;
@@ -39,11 +40,13 @@ public record SinglePaneWorkspaceModule() implements DomModule<SinglePaneWorkspa
                 .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))
                 // the headless core, and the parties beside it
                 .add(new ModuleImports<>(List.of(new WorkspaceCoreModule.WorkspaceCore()), WorkspaceCoreModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceRequestModule.WorkspaceRequest()), WorkspaceRequestModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspacePartiesModule.WorkspaceParties()), WorkspacePartiesModule.INSTANCE))
                 // its layers of the log, live: recorded, and come back to
                 .add(new ModuleImports<>(List.of(new RosterLayerModule.RosterLayer()), RosterLayerModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new PaneLayerModule.PaneLayer()), PaneLayerModule.INSTANCE))
                 // its placement, and its bar
+                .add(new ModuleImports<>(List.of(new PaneSlotsModule.PaneSlots()), PaneSlotsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new SinglePaneModule.SinglePane()), SinglePaneModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new Elements.ButtonBuilder()), Elements.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WidgetBenchStyles.wb_ws(), new WidgetBenchStyles.wb_ws_bar(), new WidgetBenchStyles.wb_ws_label(),

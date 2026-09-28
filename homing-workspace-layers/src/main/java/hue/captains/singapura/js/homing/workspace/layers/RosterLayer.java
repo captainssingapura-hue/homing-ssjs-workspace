@@ -21,7 +21,8 @@ import java.util.function.Consumer;
  *
  * <p>A workspace comes back ROSTER FIRST - every id its prefixes gave spent,
  * closed or not, so the ids go on past them; then each widget held made again
- * under its id, in the order opened - and its placement after. Nothing of the
+ * under its id, in the order opened, created and mounted nowhere - and its
+ * placement after, mounting them as its own state has them. Nothing of the
  * coming back is recorded: the recorder is attached after it.</p>
  *
  * <p>The JavaScript is this, step for step (RosterLayerModule.js), and the two
@@ -42,7 +43,7 @@ public final class RosterLayer {
     }
 
     /** The core's word recorded into a log, as it is said; the runnable returned stops it. */
-    public static Runnable record(WorkspaceCore<?, ?> core, Consumer<? super WorkspaceEvent> log) {
+    public static Runnable record(WorkspaceCore<?, ?, ?> core, Consumer<? super WorkspaceEvent> log) {
         return core.on(n -> event(n).ifPresent(log));
     }
 
@@ -52,13 +53,13 @@ public final class RosterLayer {
     }
 
     /** A roster come back to: its ids spent, then its widgets made again under them, in the order opened. */
-    public static Restored restore(WorkspaceCore<?, ?> core, RosterState roster) {
+    public static Restored restore(WorkspaceCore<?, ?, ?> core, RosterState roster) {
         for (var s : roster.sequences()) core.spend(s.prefix(), s.last());
         var opened = new ArrayList<WidgetId>();
         var skipped = new ArrayList<WidgetId>();
         for (var w : roster.widgets()) {
             try {
-                core.open(w.kind().value(), WidgetParam.asMap(w.params()), w.id());
+                core.create(w.kind().value(), WidgetParam.asMap(w.params()), w.id());
                 opened.add(w.id());
             } catch (RuntimeException e) {
                 skipped.add(w.id());
