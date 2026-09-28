@@ -1,8 +1,8 @@
-package hue.captains.singapura.js.homing.workspace.widgets.books;
+package hue.captains.singapura.js.homing.workspace.demowidgets.books;
 
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetDeclaration;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetQuery.Read;
-import hue.captains.singapura.js.homing.workspace.widgets.books.BooksGridDeclaration.Params;
+import hue.captains.singapura.js.homing.workspace.demowidgets.books.BooksGridDeclaration.Params;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

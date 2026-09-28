@@ -33,6 +33,12 @@
             <artifactId>homing-workspace-widgets</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <!-- The demo's widgets: the books. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-demo-widgets</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
         <!-- The monitors, as widgets: the page's parties on view. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>

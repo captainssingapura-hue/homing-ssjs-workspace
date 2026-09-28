@@ -1,4 +1,4 @@
-package hue.captains.singapura.js.homing.workspace.widgets.books;
+package hue.captains.singapura.js.homing.workspace.demowidgets.books;
 
 import hue.captains.singapura.js.homing.component.keyboard.FocusPartyModule;
 import hue.captains.singapura.js.homing.component.keyboard.Key;

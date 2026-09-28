@@ -3,9 +3,9 @@ package hue.captains.singapura.js.homing.workspace.bench;
 import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyFixedDeclaration;
 import hue.captains.singapura.js.homing.workspace.monitors.WorkspaceMonitorsCrate;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetDeclaration;
-import hue.captains.singapura.js.homing.workspace.widgets.books.BookBrowserDeclaration;
-import hue.captains.singapura.js.homing.workspace.widgets.books.BookJumbotronDeclaration;
-import hue.captains.singapura.js.homing.workspace.widgets.books.BooksGridDeclaration;
+import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookBrowserDeclaration;
+import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookJumbotronDeclaration;
+import hue.captains.singapura.js.homing.workspace.demowidgets.books.BooksGridDeclaration;
 
 import java.util.List;
 import java.util.Optional;

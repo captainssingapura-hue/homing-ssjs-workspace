@@ -1,4 +1,4 @@
-package hue.captains.singapura.js.homing.workspace.widgets.books;
+package hue.captains.singapura.js.homing.workspace.demowidgets.books;
 
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.Exportable;

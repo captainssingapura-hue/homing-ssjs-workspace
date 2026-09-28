@@ -44,8 +44,10 @@
         <module>homing-workspace-core</module>
         <!-- The log's layers, live and headless: the roster recorded and come back to; the one pane, and its layer. -->
         <module>homing-workspace-layers</module>
-        <!-- The widgets, each self-contained: made with a container and its params, its roots its own. -->
+        <!-- What a widget is to a workspace: its declaration, its query, the manifest; no widget of its own. -->
         <module>homing-workspace-widgets</module>
+        <!-- The demo's widgets, a set of their own: the books. The shell never knows them. -->
+        <module>homing-workspace-demo-widgets</module>
         <!-- The monitors, as widgets: the page's parties on view, each monitor self-contained. -->
         <module>homing-workspace-monitors</module>
         <!-- One widget on a page of its own, from its kind and its params on the address: the bench. -->

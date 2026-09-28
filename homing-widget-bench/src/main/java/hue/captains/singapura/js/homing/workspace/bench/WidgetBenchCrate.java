@@ -12,6 +12,7 @@ import hue.captains.singapura.js.homing.ui.focus.UiFocusCrate;
 import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyFixedModule;
 import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyStyles;
 import hue.captains.singapura.js.homing.workspace.core.WorkspaceCoreCrate;
+import hue.captains.singapura.js.homing.workspace.demowidgets.WorkspaceDemoWidgetsCrate;
 import hue.captains.singapura.js.homing.workspace.layers.WorkspaceLayersCrate;
 import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogCrate;
@@ -38,6 +39,8 @@ public final class WidgetBenchCrate implements Crate {
                 CoreJsCrate.INSTANCE,
                 // the widgets it stands up, and the host's side of the graft for one in a tab
                 WorkspaceWidgetsCrate.INSTANCE,
+                // the demo's widgets: the books
+                WorkspaceDemoWidgetsCrate.INSTANCE,
                 // the monitors, which it stands up as widgets like any other, and floats
                 WorkspaceMonitorsCrate.INSTANCE,
                 // the desk the monitors' floats lie on

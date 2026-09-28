@@ -3,7 +3,7 @@ package hue.captains.singapura.js.homing.workspace.bench;
 import hue.captains.singapura.js.homing.core.ParamCodec.Decoded;
 import hue.captains.singapura.js.homing.site.Path;
 import hue.captains.singapura.js.homing.site.Query;
-import hue.captains.singapura.js.homing.workspace.widgets.books.BooksGridDeclaration;
+import hue.captains.singapura.js.homing.workspace.demowidgets.books.BooksGridDeclaration;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

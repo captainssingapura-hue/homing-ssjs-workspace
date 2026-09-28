@@ -1,4 +1,4 @@
-package hue.captains.singapura.js.homing.workspace.widgets.books;
+package hue.captains.singapura.js.homing.workspace.demowidgets.books;
 
 import hue.captains.singapura.js.homing.ssjs.test.SecretaryTestBase;
 import org.graalvm.polyglot.Value;
@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class BookSelectionSecretaryTest extends SecretaryTestBase {
 
-    private static final String MODULE = "/homing/js/hue/captains/singapura/js/homing/workspace/widgets/books/BookSelectionSecretaryModule.js";
+    private static final String MODULE = "/homing/js/hue/captains/singapura/js/homing/workspace/demowidgets/books/BookSelectionSecretaryModule.js";
     private static final String PARTY = "/homing/js/hue/captains/singapura/js/homing/workspace/parties/MessagingPartyModule.js";
 
     private static final Map<String, Object> SOLARIS = Map.of("id", "solaris", "title", "Solaris", "author", "Stanislaw Lem");

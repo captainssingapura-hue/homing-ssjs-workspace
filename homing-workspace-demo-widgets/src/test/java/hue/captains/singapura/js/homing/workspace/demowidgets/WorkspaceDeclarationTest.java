@@ -1,12 +1,17 @@
-package hue.captains.singapura.js.homing.workspace.widgets;
+package hue.captains.singapura.js.homing.workspace.demowidgets;
 
 import hue.captains.singapura.js.homing.core.ModuleImports;
+import hue.captains.singapura.js.homing.workspace.widgets.NoParams;
+import hue.captains.singapura.js.homing.workspace.widgets.WidgetDeclaration;
+import hue.captains.singapura.js.homing.workspace.widgets.WidgetQuery;
+import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceDeclaration;
+import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceManifest;
 import hue.captains.singapura.js.homing.workspace.parties.PartyType;
-import hue.captains.singapura.js.homing.workspace.widgets.books.BookBrowserDeclaration;
-import hue.captains.singapura.js.homing.workspace.widgets.books.BookBrowserSecretaryModule;
-import hue.captains.singapura.js.homing.workspace.widgets.books.BookJumbotronDeclaration;
-import hue.captains.singapura.js.homing.workspace.widgets.books.BookSelection;
-import hue.captains.singapura.js.homing.workspace.widgets.books.BooksGridDeclaration;
+import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookBrowserDeclaration;
+import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookBrowserSecretaryModule;
+import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookJumbotronDeclaration;
+import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookSelection;
+import hue.captains.singapura.js.homing.workspace.demowidgets.books.BooksGridDeclaration;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
