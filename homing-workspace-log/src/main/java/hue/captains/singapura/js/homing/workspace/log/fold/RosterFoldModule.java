@@ -5,7 +5,7 @@ import hue.captains.singapura.js.homing.core.Exportable;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
-import hue.captains.singapura.js.homing.workspace.log.js.LogIdsModule;
+import hue.captains.singapura.js.homing.workspace.log.js.WidgetIdModule;
 import hue.captains.singapura.js.homing.workspace.log.js.RosterEventModule;
 import hue.captains.singapura.js.homing.workspace.log.js.RosterStateModule;
 
@@ -21,7 +21,7 @@ public record RosterFoldModule() implements DomModule<RosterFoldModule> {
     @Override
     public ImportsFor<RosterFoldModule> imports() {
         return ImportsFor.<RosterFoldModule>builder()
-                .add(new ModuleImports<>(List.of(new LogIdsModule.WidgetId()), LogIdsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WidgetIdModule.WidgetId()), WidgetIdModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new RosterEventModule.WidgetOpened(), new RosterEventModule.WidgetClosed()), RosterEventModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new RosterStateModule.RosterState(), new RosterStateModule.RosterEntry(), new RosterStateModule.PrefixSequence()), RosterStateModule.INSTANCE))
                 .build();

@@ -1,7 +1,7 @@
 package hue.captains.singapura.js.homing.workspace.core;
 
 import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
-import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetId;
+import hue.captains.singapura.js.homing.workspace.core.models.WidgetId;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;

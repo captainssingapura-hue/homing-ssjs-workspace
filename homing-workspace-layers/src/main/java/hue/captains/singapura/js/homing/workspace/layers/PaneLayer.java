@@ -1,6 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.layers;
 
-import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetId;
+import hue.captains.singapura.js.homing.workspace.core.models.WidgetId;
 import hue.captains.singapura.js.homing.workspace.log.PaneEvent;
 import hue.captains.singapura.js.homing.workspace.log.PaneState;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;

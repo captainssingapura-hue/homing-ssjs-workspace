@@ -24,7 +24,7 @@ import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceKind;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
 import hue.captains.singapura.js.homing.workspace.log.GridState;
 import hue.captains.singapura.js.homing.workspace.log.WidgetParam;
-import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetId;
+import hue.captains.singapura.js.homing.workspace.core.models.WidgetId;
 import hue.captains.singapura.js.homing.workspace.log.RosterEvent.WidgetOpened;
 import hue.captains.singapura.js.homing.workspace.log.RosterEvent.WidgetClosed;
 import hue.captains.singapura.js.homing.workspace.log.PaneEvent.PaneShown;

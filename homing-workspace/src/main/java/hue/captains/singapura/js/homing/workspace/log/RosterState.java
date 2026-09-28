@@ -1,6 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.log;
 
-import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetId;
+import hue.captains.singapura.js.homing.workspace.core.models.WidgetId;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetKind;
 
 import java.util.HashMap;

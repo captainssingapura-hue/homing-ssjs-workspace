@@ -9,18 +9,14 @@
         <version>LOCAL-SNAPSHOT</version>
     </parent>
 
-    <artifactId>homing-workspace</artifactId>
+    <artifactId>homing-workspace-core-models</artifactId>
 
     <description>
-        The workspace's value objects, declared in Java (package log): the
-        events a workspace log carries, the state they fold to, the header
-        and the lines of its file, and the JSON they are written in. Every
-        other form of them - their JavaScript classes, their codecs in both
-        languages - is generated from these declarations
-        (homing-workspace-codecs). A widget is named by the core's own id
-        (homing-workspace-core-models), which the log records and the core
-        makes; the log never depends on the core. Plain records: nothing here
-        needs more than the JDK.
+        The core's models (RFC 0066 E3, the workspace detour): the vocabulary
+        the workspace's core and its log share - a widget's id. The core
+        depends on it, and so do the log's value objects; neither depends on
+        the other, and the layers are where they meet. Plain records: nothing
+        here needs more than the JDK.
     </description>
 
     <properties>
@@ -30,12 +26,6 @@
     </properties>
 
     <dependencies>
-        <!-- The vocabulary it shares with the core: a widget's id. -->
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
-            <artifactId>homing-workspace-core-models</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

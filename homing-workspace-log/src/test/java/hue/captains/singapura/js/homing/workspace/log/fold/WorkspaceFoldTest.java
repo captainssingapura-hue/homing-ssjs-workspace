@@ -4,7 +4,7 @@ import hue.captains.singapura.js.homing.workspace.log.GridState;
 import hue.captains.singapura.js.homing.workspace.log.Host;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.RegionId;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.TabId;
-import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetId;
+import hue.captains.singapura.js.homing.workspace.core.models.WidgetId;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetKind;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetTitle;
 import hue.captains.singapura.js.homing.workspace.log.PaneEvent.PaneShown;
@@ -78,15 +78,6 @@ class WorkspaceFoldTest {
         assertThrows(WorkspaceFold.Refused.class, () -> fold(opened(G2), opened(G1)), "not past the last its prefix gave");
         assertThrows(WorkspaceFold.Refused.class, () -> fold(new WidgetClosed(G1)), "not held");
         fold(opened(G1), opened(WidgetId.of("books-grid-3")));   // a gap: an id spent unlogged
-    }
-
-    @Test
-    void theIdIsAPrefixAndASequence() {
-        assertEquals("books-grid_title-rating", WidgetId.of("books-grid_title-rating-12").prefix());
-        assertEquals(12, WidgetId.of("books-grid_title-rating-12").sequence());
-        assertThrows(IllegalArgumentException.class, () -> WidgetId.of("books-grid"), "no sequence");
-        assertThrows(IllegalArgumentException.class, () -> WidgetId.of("books-grid-0"), "a sequence from 1");
-        assertThrows(IllegalArgumentException.class, () -> WidgetId.of("books-grid-1234567890"), "more than nine digits");
     }
 
     @Test

@@ -51,7 +51,7 @@ class WorkspaceLogJsGenTest extends JsModuleTestBase {
             for (var e : m.entries()) assertEquals(m.top(), LogModules.top(e.type()), e.type().getName());
             for (String x : m.exports()) assertTrue(global(x).canInstantiate() || global(x).hasMembers(), x);
         }
-        assertEquals(List.of("LogIdsModule", "ScaledModule", "HostModule", "LayoutModule", "WidgetParamModule", "RosterEventModule", "PaneEventModule", "TabEventModule", "RegionEventModule",
+        assertEquals(List.of("WidgetIdModule", "LogIdsModule", "ScaledModule", "HostModule", "LayoutModule", "WidgetParamModule", "RosterEventModule", "PaneEventModule", "TabEventModule", "RegionEventModule",
                 "FloatEventModule", "WorkspaceEventModule", "LoggedEventModule", "LogHeaderModule", "SetAsideLogModule",
                 "RosterStateModule", "PaneStateModule", "GridStateModule", "WorkspaceStateModule", "FoldedStateModule", "CheckpointModule", "LogKeyModule", "WriteLockModule", "WorkspaceEntryModule"), names);
     }

@@ -5,7 +5,7 @@ import hue.captains.singapura.js.homing.workspace.core.WorkspaceCore;
 import hue.captains.singapura.js.homing.workspace.log.FoldedState;
 import hue.captains.singapura.js.homing.workspace.log.LogHeader;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.EventSeq;
-import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetId;
+import hue.captains.singapura.js.homing.workspace.core.models.WidgetId;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceInstanceId;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceKind;
 import hue.captains.singapura.js.homing.workspace.log.LoggedEvent;

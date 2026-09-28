@@ -1,7 +1,7 @@
 package hue.captains.singapura.js.homing.workspace.layers;
 
 import hue.captains.singapura.js.homing.workspace.core.WorkspaceCore;
-import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetId;
+import hue.captains.singapura.js.homing.workspace.core.models.WidgetId;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetKind;
 import hue.captains.singapura.js.homing.workspace.log.RosterEvent;
 import hue.captains.singapura.js.homing.workspace.log.RosterState;

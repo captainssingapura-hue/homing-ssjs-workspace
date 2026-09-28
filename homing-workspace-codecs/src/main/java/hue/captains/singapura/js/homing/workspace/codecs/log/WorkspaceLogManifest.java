@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.codecs.log;
 
+import hue.captains.singapura.js.homing.workspace.core.models.WidgetId;
 import hue.captains.singapura.js.homing.workspace.log.Checkpoint;
 import hue.captains.singapura.js.homing.workspace.log.FloatEvent;
 import hue.captains.singapura.js.homing.workspace.log.FoldedState;
@@ -41,12 +42,13 @@ public final class WorkspaceLogManifest {
     private WorkspaceLogManifest() {}
 
     public static final List<LogCodecEntry<?>> ENTRIES = List.of(
+            // the core's models: a widget's id, which the core and the log share
+            LogCodecEntry.id(WidgetId.class),
             // LogIds: identifiers and names, one scalar each, bare on the wire
             LogCodecEntry.id(LogIds.TabId.class),
             LogCodecEntry.id(LogIds.RegionId.class),
             LogCodecEntry.id(LogIds.FloatId.class),
             LogCodecEntry.id(LogIds.WidgetKind.class),
-            LogCodecEntry.id(LogIds.WidgetId.class),
             LogCodecEntry.id(LogIds.WidgetTitle.class),
             LogCodecEntry.id(LogIds.SplitPath.class),
             LogCodecEntry.id(LogIds.EventSeq.class),

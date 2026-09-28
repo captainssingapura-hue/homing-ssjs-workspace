@@ -5,7 +5,7 @@ import hue.captains.singapura.js.homing.core.Exportable;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
-import hue.captains.singapura.js.homing.workspace.log.js.LogIdsModule;
+import hue.captains.singapura.js.homing.workspace.log.js.WidgetIdModule;
 import hue.captains.singapura.js.homing.workspace.log.js.PaneEventModule;
 
 import java.util.List;
@@ -20,7 +20,7 @@ public record PaneLayerModule() implements DomModule<PaneLayerModule> {
     @Override
     public ImportsFor<PaneLayerModule> imports() {
         return ImportsFor.<PaneLayerModule>builder()
-                .add(new ModuleImports<>(List.of(new LogIdsModule.WidgetId()), LogIdsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WidgetIdModule.WidgetId()), WidgetIdModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new PaneEventModule.PaneShown()), PaneEventModule.INSTANCE))
                 .build();
     }
