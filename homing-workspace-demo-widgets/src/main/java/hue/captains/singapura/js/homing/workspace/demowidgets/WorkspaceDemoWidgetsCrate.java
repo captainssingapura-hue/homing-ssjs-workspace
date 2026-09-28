@@ -16,11 +16,12 @@ import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookStyles;
 import hue.captains.singapura.js.homing.workspace.demowidgets.books.BooksGridModule;
 import hue.captains.singapura.js.homing.workspace.demowidgets.books.BooksModule;
 import hue.captains.singapura.js.homing.workspace.parties.WorkspacePartiesCrate;
+import hue.captains.singapura.js.homing.workspace.shell.WorkspaceShellCrate;
 import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceWidgetsCrate;
 
 import java.util.List;
 
-/** The demo's widgets, a set of their own: the books - in the relation grid, big, and the two composed - and the party they meet in. */
+/** The demo's widgets, a set of their own: the books - in the relation grid, big, and the two composed - and the party they meet in; runnable, a workspace of them on the shell's page. */
 public final class WorkspaceDemoWidgetsCrate implements Crate {
 
     public static final WorkspaceDemoWidgetsCrate INSTANCE = new WorkspaceDemoWidgetsCrate();
@@ -42,7 +43,9 @@ public final class WorkspaceDemoWidgetsCrate implements Crate {
                 // the messaging parties' runtime: a composed widget's own scope
                 WorkspacePartiesCrate.INSTANCE,
                 // what a widget is: the sheet it fills its container by
-                WorkspaceWidgetsCrate.INSTANCE);
+                WorkspaceWidgetsCrate.INSTANCE,
+                // the page a workspace of them is: the shell's, handed their manifest
+                WorkspaceShellCrate.INSTANCE);
     }
 
     @Override
@@ -59,6 +62,9 @@ public final class WorkspaceDemoWidgetsCrate implements Crate {
                 CrateEntry.of(BookJumbotronModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 // the two composed: they meet in a scope of the browser's own, its secretary keeping the edge
                 CrateEntry.of(BookBrowserSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
-                CrateEntry.of(BookBrowserModule.INSTANCE, StandardJsModuleType.CONSUMER));
+                CrateEntry.of(BookBrowserModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                // runnable: the books workspace, its manifest from its declaration, and its page
+                CrateEntry.of(BooksWorkspaceModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(BooksWorkspaceApp.INSTANCE, StandardJsModuleType.CONSUMER));
     }
 }
