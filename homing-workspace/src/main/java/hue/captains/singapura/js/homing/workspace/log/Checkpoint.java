@@ -26,9 +26,10 @@ public record Checkpoint(FoldedState folded, long events, int fold) {
      * fold would fold some log to another state; a checkpoint of other rules is
      * dropped, and the log folded whole. 2: the state one per layer - the
      * roster, the one pane, the split grid. 3: each layer's fold its own
-     * events alone - the pane no longer follows a close.
+     * events alone - the pane no longer follows a close. 4: the roster keeps
+     * the name a user gave a widget.
      */
-    public static final int FOLD = 3;
+    public static final int FOLD = 4;
 
     public Checkpoint {
         Objects.requireNonNull(folded, "Checkpoint.folded");

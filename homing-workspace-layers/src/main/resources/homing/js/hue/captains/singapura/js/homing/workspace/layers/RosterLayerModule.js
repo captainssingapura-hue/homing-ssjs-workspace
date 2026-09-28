@@ -26,6 +26,7 @@ class RosterLayer {
             var params = Object.keys(p).sort().map(function (k) { return new WidgetParam(k, String(p[k])); });
             return new WidgetOpened(new WidgetId(n.entry.id), new WidgetKind(n.entry.kind), params);
         }
+        if (n.kind === "WidgetRenamed") return new WidgetRenamed(new WidgetId(n.entry.id), n.entry.name == null ? null : new WidgetName(n.entry.name));
         if (n.kind === "WidgetClosed") return new WidgetClosed(new WidgetId(n.id));
         return null;
     }
@@ -45,7 +46,7 @@ class RosterLayer {
             var params = {};
             w.params.forEach(function (p) { params[p.key] = p.value; });
             try {
-                core.create(w.kind.value, params, w.id.value);
+                core.create(w.kind.value, params, w.id.value, w.name === null ? null : w.name.value);
                 opened.push(w.id.value);
             } catch (e) {
                 console.error("[RosterLayer] '" + w.id.value + "' does not come back: " + e.message);

@@ -3,11 +3,13 @@ package hue.captains.singapura.js.homing.workspace.core;
 import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
 import hue.captains.singapura.js.homing.workspace.core.WorkspaceCore.Request;
 import hue.captains.singapura.js.homing.workspace.core.models.WidgetId;
+import hue.captains.singapura.js.homing.workspace.core.models.WidgetName;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -39,6 +41,7 @@ class WorkspaceCoreParityTest extends JsModuleTestBase {
         };
         var core = new WorkspaceCore<String, Fake, String>(Map.of("books-grid", kind, "book-jumbotron", kind), new WorkspaceCore.Panes<>() {
             @Override public String lend(WorkspaceCore.Entry<?> e) { said.add("lend " + e.id()); return "pane-" + e.id(); }
+            @Override public void rename(WorkspaceCore.Entry<?> e) { said.add("title " + e.id() + " " + e.name().map(n -> n.value()).orElse("(its own)")); }
             @Override public void release(WorkspaceCore.Entry<?> e) { said.add("release " + e.id()); }
         }, new WorkspaceCore.Placement<>() {
             @Override public void mount(WorkspaceCore.Entry<?> e, String at) {
@@ -49,12 +52,16 @@ class WorkspaceCoreParityTest extends JsModuleTestBase {
         });
         core.on(n -> said.add(switch (n) {
             case WorkspaceCore.Notice.WidgetOpened o -> "opened " + o.entry().id();
+            case WorkspaceCore.Notice.WidgetRenamed r -> "renamed " + r.entry().id();
             case WorkspaceCore.Notice.WidgetClosing c -> "closing " + c.entry().id();
             case WorkspaceCore.Notice.WidgetClosed c -> "closed " + c.id() + " " + c.kind();
         }));
         core.execute(new Request.Open<>("books-grid", Map.of(), "left"));
         core.execute(new Request.Open<>("books-grid", Map.of("columns", "title,rating"), "right"));
         core.execute(new Request.Open<>("books-grid", Map.of(), "left"));
+        core.execute(new Request.Rename<>(WidgetId.of("books-grid-2"), Optional.of(WidgetName.of("Mine"))));
+        core.execute(new Request.Rename<>(WidgetId.of("books-grid-2"), Optional.empty()));
+        core.execute(new Request.Rename<>(WidgetId.of("books-grid-1"), Optional.of(WidgetName.of("Soon gone"))));
         core.execute(new Request.Close<>(WidgetId.of("books-grid-1")));
         core.execute(new Request.Open<>("books-grid", Map.of(), "left"));
         core.create("book-jumbotron", Map.of(), WidgetId.of("book-jumbotron-5"));
@@ -78,15 +85,21 @@ class WorkspaceCoreParityTest extends JsModuleTestBase {
             dispose() { said.push("dispose " + this.container); }
         }
         var core = new WorkspaceCore({ kinds: { "books-grid": { Widget: Fake }, "book-jumbotron": { Widget: Fake } },
-            panes: { lend: function (e) { said.push("lend " + e.id); return "pane-" + e.id; }, release: function (e) { said.push("release " + e.id); } },
+            panes: { lend: function (e) { said.push("lend " + e.id); return "pane-" + e.id; },
+                     rename: function (e) { said.push("title " + e.id + " " + (e.name === null ? "(its own)" : e.name)); },
+                     release: function (e) { said.push("release " + e.id); } },
             placement: { mount: function (e, at) { if (at === "nowhere") throw new Error("no such place"); said.push("mount " + e.id + " at " + at); },
                          unmount: function (e) { said.push("unmount " + e.id); } } });
         core.on(function (n) {
-            said.push(n.kind === "WidgetOpened" ? "opened " + n.entry.id : n.kind === "WidgetClosing" ? "closing " + n.entry.id : "closed " + n.id + " " + n.widgetKind);
+            said.push(n.kind === "WidgetOpened" ? "opened " + n.entry.id : n.kind === "WidgetRenamed" ? "renamed " + n.entry.id
+                    : n.kind === "WidgetClosing" ? "closing " + n.entry.id : "closed " + n.id + " " + n.widgetKind);
         });
         core.execute(WorkspaceRequest.open("books-grid", {}, "left"));
         core.execute(WorkspaceRequest.open("books-grid", { columns: "title,rating" }, "right"));
         core.execute(WorkspaceRequest.open("books-grid", {}, "left"));
+        core.execute(WorkspaceRequest.rename("books-grid-2", "Mine"));
+        core.execute(WorkspaceRequest.rename("books-grid-2", null));
+        core.execute(WorkspaceRequest.rename("books-grid-1", "Soon gone"));
         core.execute(WorkspaceRequest.close("books-grid-1"));
         core.execute(WorkspaceRequest.open("books-grid", {}, "left"));
         core.create("book-jumbotron", {}, "book-jumbotron-5");
@@ -116,6 +129,8 @@ class WorkspaceCoreParityTest extends JsModuleTestBase {
                 "an open: created - its pane lent, the widget made in it, said opened - then mounted: " + all);
         assertTrue(all.contains("unmount books-grid-1 | closing books-grid-1 | dispose pane-books-grid-1 | release books-grid-1 | closed books-grid-1 books-grid"),
                 "a close: unmounted, then closed - said closing, disposed, its pane released, said closed: " + all);
+        assertTrue(all.contains("renamed books-grid-2 | title books-grid-2 Mine | renamed books-grid-2 | title books-grid-2 (its own)"),
+                "a rename: recorded and said, then the pane titled again by the register - the placement asked nothing: " + all);
         assertTrue(java.contains("opened books-grid-3"), "a closed widget's id is never given again: " + java);
         assertTrue(all.contains("opened book-jumbotron-5 | lend book-jumbotron-6"), "created under the id given, and mounted by nothing: " + all);
         assertTrue(java.contains("release book-jumbotron_fail-1"), "a widget that could not be made gives its pane back, its id spent: " + java);
@@ -135,6 +150,7 @@ class WorkspaceCoreParityTest extends JsModuleTestBase {
             @Override public void dispose(Fake w) {}
         }), new WorkspaceCore.Panes<>() {
             @Override public String lend(WorkspaceCore.Entry<?> e) { return "pane"; }
+            @Override public void rename(WorkspaceCore.Entry<?> e) {}
             @Override public void release(WorkspaceCore.Entry<?> e) {}
         }, new WorkspaceCore.Placement<>() {
             @Override public void mount(WorkspaceCore.Entry<?> e, String at) {}

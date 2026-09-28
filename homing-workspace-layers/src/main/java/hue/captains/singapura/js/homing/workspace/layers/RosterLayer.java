@@ -32,11 +32,12 @@ public final class RosterLayer {
 
     private RosterLayer() {}
 
-    /** The event a notice of the core's is recorded as: an opening, a closing - or none, for a widget about to close. */
+    /** The event a notice of the core's is recorded as: an opening, a rename, a closing - or none, for a widget about to close. */
     public static Optional<RosterEvent> event(WorkspaceCore.Notice notice) {
         return switch (notice) {
             case WorkspaceCore.Notice.WidgetOpened o -> Optional.of(new RosterEvent.WidgetOpened(
                     o.entry().id(), WidgetKind.of(o.entry().kind()), WidgetParam.of(o.entry().params())));
+            case WorkspaceCore.Notice.WidgetRenamed r -> Optional.of(new RosterEvent.WidgetRenamed(r.entry().id(), r.entry().name()));
             case WorkspaceCore.Notice.WidgetClosing c -> Optional.empty();
             case WorkspaceCore.Notice.WidgetClosed c -> Optional.of(new RosterEvent.WidgetClosed(c.id()));
         };
@@ -59,7 +60,7 @@ public final class RosterLayer {
         var skipped = new ArrayList<WidgetId>();
         for (var w : roster.widgets()) {
             try {
-                core.create(w.kind().value(), WidgetParam.asMap(w.params()), w.id());
+                core.create(w.kind().value(), WidgetParam.asMap(w.params()), w.id(), w.name());
                 opened.add(w.id());
             } catch (RuntimeException e) {
                 skipped.add(w.id());

@@ -11,6 +11,7 @@ import hue.captains.singapura.js.homing.workspace.layers.RosterLayerModule;
 import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
 import hue.captains.singapura.js.homing.core.js.domOpsParties;
 import hue.captains.singapura.js.homing.ui.elements.Elements;
+import hue.captains.singapura.js.homing.workspace.core.KindAndParamsTitleModule;
 import hue.captains.singapura.js.homing.workspace.core.WorkspaceCoreModule;
 import hue.captains.singapura.js.homing.workspace.core.WorkspacePartiesModule;
 import hue.captains.singapura.js.homing.workspace.core.WorkspaceRequestModule;
@@ -41,6 +42,8 @@ public record SinglePaneWorkspaceModule() implements DomModule<SinglePaneWorkspa
                 // the headless core, and the parties beside it
                 .add(new ModuleImports<>(List.of(new WorkspaceCoreModule.WorkspaceCore()), WorkspaceCoreModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceRequestModule.WorkspaceRequest()), WorkspaceRequestModule.INSTANCE))
+                // the rule its widgets are titled by
+                .add(new ModuleImports<>(List.of(new KindAndParamsTitleModule.KindAndParamsTitle()), KindAndParamsTitleModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspacePartiesModule.WorkspaceParties()), WorkspacePartiesModule.INSTANCE))
                 // its layers of the log, live: recorded, and come back to
                 .add(new ModuleImports<>(List.of(new RosterLayerModule.RosterLayer()), RosterLayerModule.INSTANCE))
@@ -49,7 +52,7 @@ public record SinglePaneWorkspaceModule() implements DomModule<SinglePaneWorkspa
                 .add(new ModuleImports<>(List.of(new PaneSlotsModule.PaneSlots()), PaneSlotsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new SinglePaneModule.SinglePane()), SinglePaneModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new Elements.ButtonBuilder()), Elements.INSTANCE))
-                .add(new ModuleImports<>(List.of(new WidgetBenchStyles.wb_ws(), new WidgetBenchStyles.wb_ws_bar(), new WidgetBenchStyles.wb_ws_label(),
+                .add(new ModuleImports<>(List.of(new WidgetBenchStyles.wb_ws(), new WidgetBenchStyles.wb_ws_bar(), new WidgetBenchStyles.wb_ws_label(), new WidgetBenchStyles.wb_ws_name(),
                         new WidgetBenchStyles.wb_bench(), new WidgetBenchStyles.wb_sim_pick()), WidgetBenchStyles.INSTANCE))
                 .build();
     }

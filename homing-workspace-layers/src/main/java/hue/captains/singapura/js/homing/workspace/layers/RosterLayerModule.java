@@ -7,6 +7,7 @@ import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.workspace.log.js.LogIdsModule;
 import hue.captains.singapura.js.homing.workspace.log.js.WidgetIdModule;
+import hue.captains.singapura.js.homing.workspace.log.js.WidgetNameModule;
 import hue.captains.singapura.js.homing.workspace.log.js.RosterEventModule;
 import hue.captains.singapura.js.homing.workspace.log.js.WidgetParamModule;
 
@@ -23,9 +24,10 @@ public record RosterLayerModule() implements DomModule<RosterLayerModule> {
     public ImportsFor<RosterLayerModule> imports() {
         return ImportsFor.<RosterLayerModule>builder()
                 .add(new ModuleImports<>(List.of(new WidgetIdModule.WidgetId()), WidgetIdModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WidgetNameModule.WidgetName()), WidgetNameModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new LogIdsModule.WidgetKind()), LogIdsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WidgetParamModule.WidgetParam()), WidgetParamModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(new RosterEventModule.WidgetOpened(), new RosterEventModule.WidgetClosed()), RosterEventModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new RosterEventModule.WidgetOpened(), new RosterEventModule.WidgetRenamed(), new RosterEventModule.WidgetClosed()), RosterEventModule.INSTANCE))
                 .build();
     }
 

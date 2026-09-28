@@ -7,11 +7,13 @@ import hue.captains.singapura.js.homing.workspace.log.RosterState.RosterEntry;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.TreeMap;
 
 /**
  * The roster's layer of the fold - the core's: a widget opened is held, in
- * the order opened, and its prefix's last sequence is its own; a widget
+ * the order opened, under no name, and its prefix's last sequence is its own; a
+ * widget renamed keeps the name given, or none when it is taken back; a widget
  * closed is held no more. A widget opened must not be held already, and its
  * sequence must be past the last its prefix gave, closed or not - an id is
  * never given again; a widget closed must be held. The JavaScript is this, line
@@ -34,8 +36,12 @@ public final class RosterFold {
                 if (e.id().sequence() <= reached) {
                     throw new WorkspaceFold.Refused("the widget " + e.id() + " is not past " + prefix + "-" + reached + ", the last its prefix gave: an id is never given again");
                 }
-                widgets.add(new RosterEntry(e.id(), e.kind(), e.params()));
+                widgets.add(new RosterEntry(e.id(), e.kind(), e.params(), Optional.empty()));
                 last.put(prefix, e.id().sequence());
+            }
+            case RosterEvent.WidgetRenamed e -> {
+                if (!state.holds(e.id())) throw new WorkspaceFold.Refused("the widget " + e.id() + " is not open");
+                widgets.replaceAll(w -> w.id().equals(e.id()) ? new RosterEntry(w.id(), w.kind(), w.params(), e.name()) : w);
             }
             case RosterEvent.WidgetClosed e -> {
                 if (!state.holds(e.id())) throw new WorkspaceFold.Refused("the widget " + e.id() + " is not open");

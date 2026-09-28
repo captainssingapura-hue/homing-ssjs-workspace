@@ -4,6 +4,7 @@ import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
 import hue.captains.singapura.js.homing.workspace.core.WorkspaceCore;
 import hue.captains.singapura.js.homing.workspace.core.WorkspaceCore.Request;
 import hue.captains.singapura.js.homing.workspace.core.models.WidgetId;
+import hue.captains.singapura.js.homing.workspace.core.models.WidgetName;
 import hue.captains.singapura.js.homing.workspace.layers.PanePlacement.Location;
 import hue.captains.singapura.js.homing.workspace.log.FoldedState;
 import hue.captains.singapura.js.homing.workspace.log.LogHeader;
@@ -51,6 +52,7 @@ class LayersParityTest extends JsModuleTestBase {
             var pane = new PanePlacement();
             var core = new WorkspaceCore<String, String, Location>(Map.of("books-grid", KIND, "book-jumbotron", KIND), new WorkspaceCore.Panes<>() {
                 @Override public String lend(WorkspaceCore.Entry<?> e) { return "pane-" + e.id(); }
+                @Override public void rename(WorkspaceCore.Entry<?> e) {}
                 @Override public void release(WorkspaceCore.Entry<?> e) {}
             }, pane);
             return new Workspace(core, pane);
@@ -58,6 +60,7 @@ class LayersParityTest extends JsModuleTestBase {
         void record(List<WorkspaceEvent> log) { RosterLayer.record(core, log::add); PaneLayer.record(pane, log::add); }
         void open(String kind, Map<String, String> params, Location at) { core.execute(new Request.Open<>(kind, params, at)); }
         void close(String id) { core.execute(new Request.Close<>(WidgetId.of(id))); }
+        void rename(String id, String name) { core.execute(new Request.Rename<>(WidgetId.of(id), Optional.ofNullable(name).map(WidgetName::of))); }
         void show(String id) { pane.show(Optional.ofNullable(id).map(WidgetId::of)); }
     }
 
@@ -70,7 +73,7 @@ class LayersParityTest extends JsModuleTestBase {
             var pane = new PanePlacement();
             class W { constructor(container) { this.container = container; } dispose() {} }
             var core = new WorkspaceCore({ kinds: { "books-grid": { Widget: W }, "book-jumbotron": { Widget: W } },
-                panes: { lend: function (e) { return "pane-" + e.id; }, release: function () {} }, placement: pane });
+                panes: { lend: function (e) { return "pane-" + e.id; }, rename: function () {}, release: function () {} }, placement: pane });
             return { core: core, pane: pane };
         }
         function record(ws, log) {
@@ -83,6 +86,7 @@ class LayersParityTest extends JsModuleTestBase {
         ws.core.execute(WorkspaceRequest.open("books-grid", {}, "shown"));
         ws.core.execute(WorkspaceRequest.open("book-jumbotron", {}, "behind"));
         ws.core.execute(WorkspaceRequest.open("books-grid", { columns: "title,rating" }, "shown"));
+        ws.core.execute(WorkspaceRequest.rename("book-jumbotron-1", "The big one"));
         ws.core.execute(WorkspaceRequest.close("books-grid_title-rating-1"));
         ws.core.execute(WorkspaceRequest.close("books-grid-1"));
         ws.pane.show(null);
@@ -109,6 +113,7 @@ class LayersParityTest extends JsModuleTestBase {
         ws.open("books-grid", Map.of(), Location.SHOWN);
         ws.open("book-jumbotron", Map.of(), Location.BEHIND);
         ws.open("books-grid", Map.of("columns", "title,rating"), Location.SHOWN);
+        ws.rename("book-jumbotron-1", "The big one");
         ws.close("books-grid_title-rating-1");
         ws.close("books-grid-1");
         ws.show(null);
@@ -121,7 +126,8 @@ class LayersParityTest extends JsModuleTestBase {
         assertEquals(java, inJs);
         assertTrue(java.get(0).contains("\"WidgetOpened\"") && java.get(1).contains("\"PaneShown\""), "an open: created, then mounted - " + java);
         assertTrue(java.get(2).contains("book-jumbotron-1") && !java.get(3).contains("\"PaneShown\""), "mounted behind: the pane says nothing - " + java);
-        assertTrue(java.get(5).contains("\"PaneShown\"") && java.get(5).contains("book-jumbotron-1") && java.get(6).contains("\"WidgetClosed\""),
+        assertTrue(java.get(5).contains("\"WidgetRenamed\"") && java.get(5).contains("The big one"), "a rename: the roster's - " + java);
+        assertTrue(java.get(6).contains("\"PaneShown\"") && java.get(6).contains("book-jumbotron-1") && java.get(7).contains("\"WidgetClosed\""),
                 "a close: unmounted - the pane showing the next - then closed: " + java);
 
         // FOLDED, and come back to - roster first, then the pane - in both languages
@@ -136,7 +142,7 @@ class LayersParityTest extends JsModuleTestBase {
         var after = new ArrayList<WorkspaceEvent>();
         back.record(after);
         back.open("books-grid", Map.of(), Location.SHOWN);
-        String javaBack = back.core().entries().stream().map(e -> e.id().value()).toList() + " shown " + back.pane().shown().map(WidgetId::value).orElse("none")
+        String javaBack = back.core().entries().stream().map(e -> e.id().value() + e.name().map(n -> "=" + n.value()).orElse("")).toList() + " shown " + back.pane().shown().map(WidgetId::value).orElse("none")
                 + " then " + lines(after);
 
         String jsBack = js.eval("js", """
@@ -148,13 +154,13 @@ class LayersParityTest extends JsModuleTestBase {
                     var after = [];
                     record(back, after);
                     back.core.execute(WorkspaceRequest.open("books-grid", {}, "shown"));
-                    return "[" + back.core.entries().map(function (e) { return e.id; }).join(", ") + "] shown " + (back.pane.shown() || "none")
+                    return "[" + back.core.entries().map(function (e) { return e.id + (e.name === null ? "" : "=" + e.name); }).join(", ") + "] shown " + (back.pane.shown() || "none")
                          + " then [" + after.join(", ") + "]";
                 })
                 """).execute(state).asString();
         assertEquals(javaBack, jsBack);
         assertEquals(List.of(WidgetId.of("book-jumbotron-1")), restored.opened());
-        assertTrue(javaBack.startsWith("[book-jumbotron-1, books-grid-2] shown books-grid-2"),
+        assertTrue(javaBack.startsWith("[book-jumbotron-1=The big one, books-grid-2] shown books-grid-2"),
                 "books-grid-1 was closed, and its id spent all the same: the grid opened after is the second, mounted shown - " + javaBack);
     }
 
@@ -165,7 +171,7 @@ class LayersParityTest extends JsModuleTestBase {
         pane.on(n -> said.add(((PanePlacement.Notice.PaneShown) n).widget().map(WidgetId::value).orElse("none")));
         var entries = new ArrayList<WorkspaceCore.Entry<String>>();
         for (String id : List.of("a-1", "b-1", "c-1")) {
-            var e = new WorkspaceCore.Entry<String>(WidgetId.of(id), "a", Map.of(), "w");
+            var e = new WorkspaceCore.Entry<String>(WidgetId.of(id), "a", Map.of(), Optional.empty(), "w");
             entries.add(e);
             pane.mount(e, Location.BEHIND);
         }

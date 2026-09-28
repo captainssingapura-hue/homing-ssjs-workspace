@@ -25,8 +25,10 @@ import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
 import hue.captains.singapura.js.homing.workspace.log.GridState;
 import hue.captains.singapura.js.homing.workspace.log.WidgetParam;
 import hue.captains.singapura.js.homing.workspace.core.models.WidgetId;
+import hue.captains.singapura.js.homing.workspace.core.models.WidgetName;
 import hue.captains.singapura.js.homing.workspace.log.RosterEvent.WidgetOpened;
 import hue.captains.singapura.js.homing.workspace.log.RosterEvent.WidgetClosed;
+import hue.captains.singapura.js.homing.workspace.log.RosterEvent.WidgetRenamed;
 import hue.captains.singapura.js.homing.workspace.log.PaneEvent.PaneShown;
 import hue.captains.singapura.js.homing.workspace.log.Checkpoint;
 import hue.captains.singapura.js.homing.workspace.log.codec.CheckpointCodec;
@@ -131,7 +133,8 @@ class WorkspaceFoldParityTest extends JsModuleTestBase {
          * The roster's and the pane's steps: a widget opened - its prefix's next id,
          * now and then one past it, as an id spent unlogged leaves; a widget closed -
          * the pane, when it showed it, told what it shows next first, as a live pane
-         * always is, placing; the pane shown a widget, or none.
+         * always is, placing; the pane shown a widget, or none; a widget named, or its
+         * name taken back.
          */
         void widgets(int pick) {
             var held = s.roster().widgets();
@@ -148,13 +151,16 @@ class WorkspaceFoldParityTest extends JsModuleTestBase {
                     does(new PaneShown(rest.isEmpty() ? Optional.empty() : Optional.of(any(rest).id())));
                 }
                 does(new WidgetClosed(gone));
-            } else {
+            } else if (pick < 26) {
                 does(new PaneShown(rnd.nextInt(4) == 0 ? Optional.empty() : Optional.of(any(held).id())));
+            } else {
+                String name = title();
+                does(new WidgetRenamed(any(held).id(), name.isBlank() ? Optional.empty() : Optional.of(WidgetName.of(name))));
             }
         }
 
         void step() {
-            int pick = rnd.nextInt(26);
+            int pick = rnd.nextInt(27);
             if (pick >= 20) { widgets(pick); return; }
             List<TabState> open = g().tabs();
             List<RegionId> cells = Layout.regions(g().layout());
@@ -285,7 +291,8 @@ class WorkspaceFoldParityTest extends JsModuleTestBase {
                 List.of(o1, o1),
                 List.of(o1, new WidgetClosed(g1), o1),
                 List.of(o2, o1),
-                List.of(new WidgetClosed(g1)));
+                List.of(new WidgetClosed(g1)),
+                List.of(new WidgetRenamed(g1, Optional.empty())));
         for (var events : refused) {
             var logged = new ArrayList<LoggedEvent>();
             for (int i = 0; i < events.size(); i++) logged.add(new LoggedEvent(EventSeq.of(i + 1), Instant.ofEpochMilli(1_790_000_000_000L + i), events.get(i)));

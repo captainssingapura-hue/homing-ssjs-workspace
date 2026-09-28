@@ -38,7 +38,7 @@ class WorkspacePartiesTest extends JsModuleTestBase {
         class Plain { constructor() {} dispose() {} }
         class Deaf { constructor() {} dispose() {} }
         var kinds = { chooser: { Widget: Chooser, parties: [CHOICE] }, plain: { Widget: Plain, parties: [] }, deaf: { Widget: Deaf, parties: [CHOICE] } };
-        var core = new WorkspaceCore({ kinds: kinds, panes: { lend: function (e) { return e.id; }, release: function () {} },
+        var core = new WorkspaceCore({ kinds: kinds, panes: { lend: function (e) { return e.id; }, rename: function () {}, release: function () {} },
                                        placement: { mount: function () {}, unmount: function () {} } });
         function open(kind) { return core.execute(WorkspaceRequest.open(kind, {}, null)); }
         function close(id) { core.execute(WorkspaceRequest.close(id)); }

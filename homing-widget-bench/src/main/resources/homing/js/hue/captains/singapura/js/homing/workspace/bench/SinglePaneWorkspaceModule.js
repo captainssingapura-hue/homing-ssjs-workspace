@@ -25,7 +25,8 @@
 //   ws.core  ws.parties  ws.pane  ws.slots
 //   ws.request(request) → what the core gives, or null when it could not be done (said)
 //   ws.open(kind, params?, location?) → the entry — asked as a request; location "shown" unless said
-//   ws.close(id)   asked as a request      ws.show(id | null)   the pane's own
+//   ws.close(id)   ws.rename(id, name | null)   asked as requests; a blank name takes the name back
+//   ws.show(id | null)   the pane's own        ws.titleOf(entry) → its title now: its name, else its identity's
 //   ws.restore(state) → { opened, skipped, shown }   state: a WorkspaceState, as its log folds
 //   ws.record(log) → off   its roster and its pane recorded: log.append(event)
 // =============================================================================
@@ -57,7 +58,7 @@ class SinglePaneWorkspace {
         container.appendChild(root);
         this.root = root;
         // THE REGISTER OF PANES, THE PLACEMENT, THE CORE, THE PARTIES
-        this.slots = new PaneSlots(this._dom.createBranch("panes"));
+        this.slots = new PaneSlots(this._dom.createBranch("panes"), { title: function (entry) { return self.titleOf(entry); } });
         this.pane = new SinglePane(this._dom.createBranch("placement"), { host: paneBox, focus: this._focusParty.root, panes: this.slots,
                                                                          entry: function (id) { return self.core.entry(id); } });
         this.core = new WorkspaceCore({ kinds: this._kinds, panes: this.slots, placement: this.pane });
@@ -91,6 +92,14 @@ class SinglePaneWorkspace {
 
     show(id) { this.pane.show(id == null ? null : id); }
 
+    rename(id, name) { return this.request(WorkspaceRequest.rename(id, name && name.trim() ? name.trim() : null)); }
+
+    /** A widget's title now, by the rule: the name a user gave it, else as it opened, by its identity. */
+    titleOf(entry) {
+        var kind = this._kinds[entry.kind];
+        return KindAndParamsTitle.INSTANCE.titleOf(kind && kind.title ? kind.title : entry.kind, entry.id, entry.name);
+    }
+
     /** The core's word: a widget's DomOps root grafted when it opens, and the bar kept as the roster is. */
     _heard(n) {
         if (n.kind === "WidgetOpened") {
@@ -100,6 +109,8 @@ class SinglePaneWorkspace {
                 this._widgets.graft(g, dom);
                 this._grafts.set(n.entry.id, g);
             }
+            this._refill();
+        } else if (n.kind === "WidgetRenamed") {
             this._refill();
         } else if (n.kind === "WidgetClosed") {
             var name = this._grafts.get(n.id);
@@ -117,11 +128,12 @@ class SinglePaneWorkspace {
         b.activate(_spwOwner);
         this._options = b;
         sel.appendChild(SinglePaneWorkspace._option(b, "none", "", "(none shown)"));
-        this.core.entries().forEach(function (e, i) { sel.appendChild(SinglePaneWorkspace._option(b, "o" + i, e.id, e.id)); });
+        var self = this;
+        this.core.entries().forEach(function (e, i) { sel.appendChild(SinglePaneWorkspace._option(b, "o" + i, e.id, self.titleOf(e))); });
         sel.value = shown || "";
     }
 
-    /** The bar: Open…, the pane's picker; what is shown; and Close - each only asks. */
+    /** The bar: Open…, the pane's picker; what is shown; a name for it and Rename; and Close - each only asks. */
     _bar() {
         var self = this, d = this._dom, bar = d.createElement("bar", "div");
         css.addClass(bar, wb_ws_bar);
@@ -132,11 +144,18 @@ class SinglePaneWorkspace {
         this._showing.addEventListener("change", function () { self.show(self._showing.value || null); });
         this._options = null;
         this._refills = 0;
-        var b = new ButtonBuilder(), c = new ButtonBuilder();
+        var b = new ButtonBuilder(), c = new ButtonBuilder(), r = new ButtonBuilder();
+        this._name = d.createElement("name", "input");
+        this._name.type = "text";
+        this._name.placeholder = "A name";
+        this._name.setAttribute("aria-label", "A name for the widget shown - none takes its name back");
+        css.addClass(this._name, wb_ws_name);
+        var rename = r.label("Rename").plain().size(-1).onClick(function () { var id = self.pane.shown(); if (id) self.rename(id, self._name.value); self._name.value = ""; })
+                      .build(d.createElement("rename", r.tag));
         var open = b.label("Open…").plain().size(-1).onClick(function () { self.pane.pick(kinds, function (kind) { self.open(kind, {}, "shown"); }); })
                     .build(d.createElement("open", b.tag));
         var close = c.label("Close").plain().size(-1).onClick(function () { var id = self.pane.shown(); if (id) self.close(id); }).build(d.createElement("close", c.tag));
-        [open.el, this._label("showing-label", "Showing"), this._showing, close.el].forEach(function (el) { bar.appendChild(el); });
+        [open.el, this._label("showing-label", "Showing"), this._showing, this._name, rename.el, close.el].forEach(function (el) { bar.appendChild(el); });
         return bar;
     }
 

@@ -1,6 +1,7 @@
 package hue.captains.singapura.js.homing.workspace.codecs.log;
 
 import hue.captains.singapura.js.homing.workspace.core.models.WidgetId;
+import hue.captains.singapura.js.homing.workspace.core.models.WidgetName;
 import hue.captains.singapura.js.homing.workspace.log.Checkpoint;
 import hue.captains.singapura.js.homing.workspace.log.FloatEvent;
 import hue.captains.singapura.js.homing.workspace.log.FoldedState;
@@ -42,8 +43,9 @@ public final class WorkspaceLogManifest {
     private WorkspaceLogManifest() {}
 
     public static final List<LogCodecEntry<?>> ENTRIES = List.of(
-            // the core's models: a widget's id, which the core and the log share
+            // the core's models: a widget's id, and the name a user gave it - which the core and the log share
             LogCodecEntry.id(WidgetId.class),
+            LogCodecEntry.id(WidgetName.class),
             // LogIds: identifiers and names, one scalar each, bare on the wire
             LogCodecEntry.id(LogIds.TabId.class),
             LogCodecEntry.id(LogIds.RegionId.class),
@@ -73,6 +75,7 @@ public final class WorkspaceLogManifest {
             // it shows; the split grid's - what happens to a tab, a region, a float
             LogCodecEntry.sealed(RosterEvent.class),
             LogCodecEntry.record(RosterEvent.WidgetOpened.class),
+            LogCodecEntry.record(RosterEvent.WidgetRenamed.class),
             LogCodecEntry.record(RosterEvent.WidgetClosed.class),
             LogCodecEntry.sealed(PaneEvent.class),
             LogCodecEntry.record(PaneEvent.PaneShown.class),

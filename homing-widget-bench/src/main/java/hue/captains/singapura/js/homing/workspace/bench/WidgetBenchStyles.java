@@ -277,6 +277,20 @@ public record WidgetBenchStyles() implements CssGroup<WidgetBenchStyles> {
         @Override public String body() { return "flex: 0 0 auto;"; }
     }
 
+    /** A name for the widget shown, typed on the bar and asked for by Rename. */
+    public record wb_ws_name() implements CssClass<WidgetBenchStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Raised.class, Color.Surface.class), of(Body.class, Color.Ink.class), of(Control.class, Color.Edge.class)); }
+        @Override public String body() { return """
+            flex: 0 0 auto;
+            width: 12em;
+            padding: 2px 4px;
+            border-width: 1px;
+            border-style: solid;
+            font: inherit;
+            """;
+        }
+    }
+
     /** A picker, the transient pane its host owns: what can be opened, one button a row, and Cancel. */
     public record wb_picker() implements CssClass<WidgetBenchStyles> {
         @Override public String body() { return """
@@ -296,6 +310,6 @@ public record WidgetBenchStyles() implements CssGroup<WidgetBenchStyles> {
     public List<CssClass<WidgetBenchStyles>> cssClasses() {
         return List.of(new wb_page(), new wb_bench(), new wb_misbehaves(), new wb_bar(), new wb_toggle(), new wb_toggle_on(), new wb_bar_gap(),
                        new wb_sim(), new wb_sim_note(), new wb_sim_log(), new wb_sim_input(), new wb_sim_bar(), new wb_sim_pick(), new wb_sim_said(), new wb_sim_error(),
-                       new wb_ws(), new wb_ws_bar(), new wb_ws_label(), new wb_picker());
+                       new wb_ws(), new wb_ws_bar(), new wb_ws_label(), new wb_ws_name(), new wb_picker());
     }
 }

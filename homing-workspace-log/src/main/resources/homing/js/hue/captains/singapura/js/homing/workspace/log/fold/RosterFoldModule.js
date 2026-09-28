@@ -1,6 +1,7 @@
 // =============================================================================
 // RosterFold — the roster's layer of the fold, the core's: a widget opened is
-// held, in the order opened, and its prefix's last sequence is its own; a
+// held, in the order opened, under no name, and its prefix's last sequence is
+// its own; a widget renamed keeps the name given, or none when it is taken back; a
 // widget closed is held no more. A widget opened must not be held already, and
 // its sequence must be past the last its prefix gave, closed or not — an id is
 // never given again; a widget closed must be held. Java's RosterFold,
@@ -36,8 +37,11 @@ class RosterFold {
             if (s.sequence <= reached) {
                 _rosterNo("the widget " + e.id.value + " is not past " + s.prefix + "-" + reached + ", the last its prefix gave: an id is never given again");
             }
-            widgets.push(new RosterEntry(e.id, e.kind, e.params));
+            widgets.push(new RosterEntry(e.id, e.kind, e.params, null));
             last.set(s.prefix, s.sequence);
+        } else if (e instanceof WidgetRenamed) {
+            if (!RosterFold.holds(state, e.id)) _rosterNo("the widget " + e.id.value + " is not open");
+            widgets = widgets.map(function (w) { return w.id.value === e.id.value ? new RosterEntry(w.id, w.kind, w.params, e.name) : w; });
         } else if (e instanceof WidgetClosed) {
             if (!RosterFold.holds(state, e.id)) _rosterNo("the widget " + e.id.value + " is not open");
             widgets = widgets.filter(function (w) { return w.id.value !== e.id.value; });

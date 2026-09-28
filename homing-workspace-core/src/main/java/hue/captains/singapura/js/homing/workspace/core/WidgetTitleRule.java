@@ -1,7 +1,10 @@
 package hue.captains.singapura.js.homing.workspace.core;
 
 import hue.captains.singapura.js.homing.workspace.core.models.WidgetId;
+import hue.captains.singapura.js.homing.workspace.core.models.WidgetName;
 import hue.captains.singapura.tao.ontology.StatelessFunctionalObject;
+
+import java.util.Optional;
 
 /**
  * How a widget is named for the eye - a tab's label, a row in a list of the
@@ -13,6 +16,14 @@ import hue.captains.singapura.tao.ontology.StatelessFunctionalObject;
  */
 public interface WidgetTitleRule extends StatelessFunctionalObject {
 
-    /** The widget's title: its kind's title, as the rule words it for this id. */
+    /** The widget's title as it opens: its kind's title, as the rule words it for this id. */
     String title(String kindTitle, WidgetId id);
+
+    /**
+     * The widget's title now: the name a user gave it, when one is - else as it
+     * opened, by its identity. The derived title is only ever the first name.
+     */
+    default String titleOf(String kindTitle, WidgetId id, Optional<WidgetName> name) {
+        return name.map(WidgetName::value).orElseGet(() -> title(kindTitle, id));
+    }
 }

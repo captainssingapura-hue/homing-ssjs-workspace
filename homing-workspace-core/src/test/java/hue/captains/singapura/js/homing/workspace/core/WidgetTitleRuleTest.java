@@ -2,11 +2,13 @@ package hue.captains.singapura.js.homing.workspace.core;
 
 import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
 import hue.captains.singapura.js.homing.workspace.core.models.WidgetId;
+import hue.captains.singapura.js.homing.workspace.core.models.WidgetName;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -31,6 +33,9 @@ class WidgetTitleRuleTest extends JsModuleTestBase {
         assertEquals("Books grid · title-rating_on 12", RULE.title("Books grid", WidgetId.of("books-grid_title-rating_on-12")));
         assertEquals("", WidgetIds.conciseOf(WidgetId.of("book-jumbotron-3")), "a kind with hyphens and no params");
         assertThrows(IllegalArgumentException.class, () -> RULE.title("", WidgetId.of("books-grid-1")));
+        assertEquals("Books grid 2", RULE.titleOf("Books grid", WidgetId.of("books-grid-2"), Optional.empty()), "no name given: as it opened");
+        assertEquals("My books", RULE.titleOf("Books grid", WidgetId.of("books-grid-2"), Optional.of(WidgetName.of("My books"))), "a name given wins");
+        assertThrows(IllegalArgumentException.class, () -> WidgetName.of("  "), "a name is never blank: taking it back is none");
     }
 
     /** Made by the core's own rules, the ids the rule reads: params hashed, too long, or plain - titled alike in both languages. */
@@ -50,6 +55,8 @@ class WidgetTitleRuleTest extends JsModuleTestBase {
                 String java = RULE.title("A kind", id);
                 String inJs = js.eval("js", "KindAndParamsTitle.INSTANCE.title('A kind', '" + id.value() + "')").asString();
                 assertEquals(java, inJs, id.value());
+                assertEquals(RULE.titleOf("A kind", id, Optional.of(WidgetName.of("Named"))), js.eval("js", "KindAndParamsTitle.INSTANCE.titleOf('A kind', '" + id.value() + "', 'Named')").asString());
+                assertEquals(java, js.eval("js", "KindAndParamsTitle.INSTANCE.titleOf('A kind', '" + id.value() + "', null)").asString());
                 checked++;
             }
         }

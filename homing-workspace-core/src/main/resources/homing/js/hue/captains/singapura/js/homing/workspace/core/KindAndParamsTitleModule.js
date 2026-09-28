@@ -11,7 +11,9 @@
 // The dual of KindAndParamsTitle.java, word for word; the two agree
 // (WidgetTitleRuleTest).
 //
-//   KindAndParamsTitle.INSTANCE.title(kindTitle, id) → the widget's title
+//   KindAndParamsTitle.INSTANCE.title(kindTitle, id) → the widget's title as it opens
+//   KindAndParamsTitle.INSTANCE.titleOf(kindTitle, id, name) → its title now: the name a user
+//                gave it (a string), when one is — else as it opened; the derived title is only the first name
 //     kindTitle  its kind's title, as its declaration says it (the manifest's kinds[kind].title)
 //     id         its id, as the core gave it
 // =============================================================================
@@ -23,6 +25,10 @@ class KindAndParamsTitle {
         if (!s) throw new Error("[KindAndParamsTitle] '" + id + "' is not a widget's id");
         var concise = WidgetIds.conciseOf(id);
         return kindTitle + (concise ? " · " + concise : "") + (s.n > 1 ? " " + s.n : "");
+    }
+
+    titleOf(kindTitle, id, name) {
+        return name != null ? String(name) : this.title(kindTitle, id);
     }
 }
 

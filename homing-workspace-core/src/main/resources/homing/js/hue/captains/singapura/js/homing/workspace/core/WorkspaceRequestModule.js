@@ -8,6 +8,8 @@
 //                  a widget of a kind, with its params, opened and mounted at the location named —
 //                  the placement's own word for where
 //   WorkspaceRequest.close(id) → { kind: "Close", id }   a widget unmounted, then closed
+//   WorkspaceRequest.rename(id, name) → { kind: "Rename", id, name }   a widget named — name a string,
+//                  not blank — or its name taken back: null
 // =============================================================================
 
 class WorkspaceRequest {
@@ -19,5 +21,11 @@ class WorkspaceRequest {
     static close(id) {
         if (typeof id !== "string" || !id) throw new Error("[WorkspaceRequest] a close names a widget");
         return Object.freeze({ kind: "Close", id: id });
+    }
+
+    static rename(id, name) {
+        if (typeof id !== "string" || !id) throw new Error("[WorkspaceRequest] a rename names a widget");
+        if (name != null && (typeof name !== "string" || !name.trim())) throw new Error("[WorkspaceRequest] a name is a string, not blank; null takes it back");
+        return Object.freeze({ kind: "Rename", id: id, name: name == null ? null : name });
     }
 }

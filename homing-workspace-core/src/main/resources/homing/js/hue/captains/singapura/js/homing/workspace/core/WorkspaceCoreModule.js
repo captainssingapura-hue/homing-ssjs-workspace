@@ -23,10 +23,13 @@
 //
 //   new WorkspaceCore({ kinds, panes, placement })
 //     kinds      { [kind]: { Widget } } — made new Widget(container, params), disposed widget.dispose()
-//     panes      the register of panes: { lend(entry) → container, release(entry) }
+//     panes      the register of panes: { lend(entry) → container, rename(entry), release(entry) } —
+//                it titles a pane after its widget: the name a user gave it, else its identity
 //     placement  { mount(entry, location), unmount(entry) }
-//   core.execute(request) → the entry, for an open; null, for a close
-//   core.create(kind, params, id?) → the entry { id, kind, params, widget }, placed nowhere: under
+//   core.execute(request) → the entry, for an open and a rename; null, for a close. A rename is
+//                the roster's and the pane's alone: the name kept, said, then the pane titled again
+//                by the register — the placement asked nothing
+//   core.create(kind, params, id?, name?) → the entry { id, kind, params, name, widget }, placed nowhere: under
 //                the id given (a widget coming back) — one its kind and params would make, not
 //                held — else the next of its prefix; the sequence goes on past it. A restore's step
 //   core.spend(prefix, last)  the ids of a prefix spent up to last, held or not — a workspace
@@ -35,6 +38,7 @@
 //   core.entry(id) → the entry, or null     core.entries() → in the order opened
 //   core.on(fn) → off   notices, in the order they happen:
 //                { kind: "WidgetOpened", entry }   made, and in the roster
+//                { kind: "WidgetRenamed", entry }  named, or its name taken back: the entry as it is now
 //                { kind: "WidgetClosing", entry }  about to be disposed, still whole
 //                { kind: "WidgetClosed", id, widgetKind }  disposed, its pane closed, out of the roster
 // =============================================================================
@@ -43,8 +47,8 @@ class WorkspaceCore {
     constructor(opts) {
         var o = opts || {};
         if (!o.kinds) throw new Error("[WorkspaceCore] opts.kinds is required: { [kind]: { Widget } }");
-        if (!o.panes || typeof o.panes.lend !== "function" || typeof o.panes.release !== "function") {
-            throw new Error("[WorkspaceCore] opts.panes is required: the register of panes, { lend(entry), release(entry) }");
+        if (!o.panes || typeof o.panes.lend !== "function" || typeof o.panes.rename !== "function" || typeof o.panes.release !== "function") {
+            throw new Error("[WorkspaceCore] opts.panes is required: the register of panes, { lend(entry), rename(entry), release(entry) }");
         }
         if (!o.placement || typeof o.placement.mount !== "function" || typeof o.placement.unmount !== "function") {
             throw new Error("[WorkspaceCore] opts.placement is required: { mount(entry, location), unmount(entry) }");
@@ -58,12 +62,20 @@ class WorkspaceCore {
     }
 
     execute(request) {
-        if (!request || (request.kind !== "Open" && request.kind !== "Close")) throw new Error("[WorkspaceCore] not a request: " + JSON.stringify(request));
+        if (!request || ["Open", "Close", "Rename"].indexOf(request.kind) < 0) throw new Error("[WorkspaceCore] not a request: " + JSON.stringify(request));
         if (request.kind === "Open") {
             var entry = this.create(request.widgetKind, request.params, null);
             try { this._placement.mount(entry, request.location); }
             catch (e) { this._close(entry); throw e; }
             return entry;
+        }
+        if (request.kind === "Rename") {
+            var was = this._held(request.id);
+            var named = Object.freeze({ id: was.id, kind: was.kind, params: was.params, name: request.name, widget: was.widget });
+            this._roster.set(named.id, named);
+            this._say({ kind: "WidgetRenamed", entry: named });
+            this._panes.rename(named);
+            return named;
         }
         var held = this._held(request.id);
         this._placement.unmount(held);
@@ -71,19 +83,20 @@ class WorkspaceCore {
         return null;
     }
 
-    create(kind, params, id) {
+    create(kind, params, id, name) {
         var k = Object.prototype.hasOwnProperty.call(this._kinds, kind) ? this._kinds[kind] : null;
         if (!k) throw new Error("[WorkspaceCore] no kind '" + kind + "': " + Object.keys(this._kinds).sort().join(", "));
         var p = Object.freeze(Object.assign({}, params || {}));
         var prefix = WidgetIds.prefix(kind, p);
         var wid = id == null ? WidgetIds.of(prefix, (this._sequences.get(prefix) || 0) + 1) : this._given(id, prefix);
         this._sequences.set(prefix, Math.max(this._sequences.get(prefix) || 0, WidgetIds.split(wid).n));
-        var lent = Object.freeze({ id: wid, kind: kind, params: p, widget: null });
+        var given = name == null ? null : name;
+        var lent = Object.freeze({ id: wid, kind: kind, params: p, name: given, widget: null });
         var container = this._panes.lend(lent);
         var widget;
         try { widget = new k.Widget(container, p); }
         catch (e) { this._panes.release(lent); throw e; }   // the id is spent: never reused
-        var entry = Object.freeze({ id: wid, kind: kind, params: p, widget: widget });
+        var entry = Object.freeze({ id: wid, kind: kind, params: p, name: given, widget: widget });
         this._roster.set(wid, entry);
         this._say({ kind: "WidgetOpened", entry: entry });
         return entry;

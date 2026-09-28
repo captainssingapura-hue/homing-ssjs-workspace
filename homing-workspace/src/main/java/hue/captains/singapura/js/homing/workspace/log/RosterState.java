@@ -1,18 +1,21 @@
 package hue.captains.singapura.js.homing.workspace.log;
 
 import hue.captains.singapura.js.homing.workspace.core.models.WidgetId;
+import hue.captains.singapura.js.homing.workspace.core.models.WidgetName;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetKind;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
  * The roster's layer of what a workspace log folds to: the widgets the core
  * holds, in the order they were opened, each as it is made again - its id, its
- * kind, its params; and, for each prefix an id was ever given under, the last
+ * kind, its params, and the name a user gave it, if any - a widget titled by its
+ * identity until then; and, for each prefix an id was ever given under, the last
  * sequence given, so the ids of a workspace that comes back go on past every
  * id it gave, closed or not. A widget held under an id its prefix has not
  * reached, or twice, is refused, whatever built the state.
@@ -22,12 +25,13 @@ import java.util.regex.Pattern;
  */
 public record RosterState(List<RosterEntry> widgets, List<PrefixSequence> sequences) {
 
-    /** A widget the roster holds: what it is made again from. */
-    public record RosterEntry(WidgetId id, WidgetKind kind, List<WidgetParam> params) {
+    /** A widget the roster holds: what it is made again from, and the name a user gave it, if any. */
+    public record RosterEntry(WidgetId id, WidgetKind kind, List<WidgetParam> params, Optional<WidgetName> name) {
         public RosterEntry {
             Objects.requireNonNull(id, "RosterEntry.id");
             Objects.requireNonNull(kind, "RosterEntry.kind");
             params = WidgetParam.checked(params, "RosterEntry.params");
+            Objects.requireNonNull(name, "RosterEntry.name");
         }
     }
 

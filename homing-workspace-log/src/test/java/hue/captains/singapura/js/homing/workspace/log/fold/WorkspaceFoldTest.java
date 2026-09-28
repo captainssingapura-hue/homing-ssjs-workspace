@@ -5,11 +5,13 @@ import hue.captains.singapura.js.homing.workspace.log.Host;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.RegionId;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.TabId;
 import hue.captains.singapura.js.homing.workspace.core.models.WidgetId;
+import hue.captains.singapura.js.homing.workspace.core.models.WidgetName;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetKind;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetTitle;
 import hue.captains.singapura.js.homing.workspace.log.PaneEvent.PaneShown;
 import hue.captains.singapura.js.homing.workspace.log.PaneState;
 import hue.captains.singapura.js.homing.workspace.log.RosterEvent.WidgetClosed;
+import hue.captains.singapura.js.homing.workspace.log.RosterEvent.WidgetRenamed;
 import hue.captains.singapura.js.homing.workspace.log.RosterEvent.WidgetOpened;
 import hue.captains.singapura.js.homing.workspace.log.RosterState;
 import hue.captains.singapura.js.homing.workspace.log.RosterState.PrefixSequence;
@@ -71,6 +73,18 @@ class WorkspaceFoldTest {
                 "a key twice");
     }
 
+    /** The derived title is only a widget's first name: a name given is kept by the roster, and taken back is none. */
+    @Test
+    void theRosterKeepsTheNameAUserGave_andTakesItBack() {
+        var s = fold(opened(G1), new WidgetRenamed(G1, Optional.of(WidgetName.of("My books"))));
+        assertEquals(Optional.of(WidgetName.of("My books")), s.roster().widgets().get(0).name());
+        assertEquals(Optional.empty(), fold(opened(G1)).roster().widgets().get(0).name(), "a widget opens under no name");
+        s = fold(opened(G1), new WidgetRenamed(G1, Optional.of(WidgetName.of("My books"))), new WidgetRenamed(G1, Optional.empty()));
+        assertEquals(Optional.empty(), s.roster().widgets().get(0).name(), "taken back: titled as it opened again");
+        assertThrows(WorkspaceFold.Refused.class, () -> fold(new WidgetRenamed(G1, Optional.of(WidgetName.of("x")))), "not held");
+        assertThrows(WorkspaceFold.Refused.class, () -> fold(opened(G1), new WidgetClosed(G1), new WidgetRenamed(G1, Optional.empty())), "closed");
+    }
+
     @Test
     void theRosterRefusesAnIdTwice_orOnceMore() {
         assertThrows(WorkspaceFold.Refused.class, () -> fold(opened(G1), opened(G1)), "held already");
@@ -116,7 +130,7 @@ class WorkspaceFoldTest {
     @Test
     void aRosterHoldingAWidgetPastItsPrefixsLast_isRefused() {
         assertThrows(IllegalArgumentException.class,
-                () -> new RosterState(List.of(new RosterState.RosterEntry(G2, WidgetKind.of("books-grid"), List.of())),
+                () -> new RosterState(List.of(new RosterState.RosterEntry(G2, WidgetKind.of("books-grid"), List.of(), Optional.empty())),
                                       List.of(new PrefixSequence("books-grid", 1))), "held past its prefix's last");
     }
 }
