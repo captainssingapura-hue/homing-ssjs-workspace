@@ -1,22 +1,14 @@
 // =============================================================================
 // WorkspaceProjection — the split grid's layer of a WorkspaceState — a GridState —
-// and a live workspace, both ways: the
-// state laid out, and the workspace read back into a state. The round trip is
-// the proof: restored from a state, a workspace reads back as that state, byte
-// for byte.
+// and a live workspace: the state's layout for the grid, and the workspace read
+// back into a state. The round trip is the proof: placed as a state has it
+// (GridPlacement.restore), a workspace reads back as that state, byte for byte.
 //
 //   WorkspaceProjection.gridLayout(layout)   → the grid's own tree for the log's Layout:
 //                                              each share, whole millionths, as a ratio
 //   WorkspaceProjection.logLayout(tree)      → the log's Layout for the grid's tree: each
 //                                              split's ratios as whole millionths, as the
 //                                              recorder writes them
-//   WorkspaceProjection.restore(ws, state)   the tabs back where the state has them: every
-//                                            region's in its order, under their ids, kinds
-//                                            and titles, and the tab each region shows; then
-//                                            every float, bottom first, under its name, where
-//                                            it lay and as big, its tabs likewise.
-//                                            The grid is the workspace's to lay out, from
-//                                            gridLayout, when it is made
 //   WorkspaceProjection.read(ws)             → the GridState the workspace shows now
 //   WorkspaceProjection.same(a, b)           → whether two states are the same, byte for byte
 //   WorkspaceProjection.untitled(state)      → the state with every tab titled by its kind: the
@@ -41,25 +33,6 @@ class WorkspaceProjection {
         var shares = WorkspaceRecorder.shares(tree.children.map(function (c) { return c.ratio; }));
         return new Split(tree.orientation === "horizontal" ? Axis.HORIZONTAL : Axis.VERTICAL,
                          tree.children.map(function (c, i) { return new Track(WorkspaceProjection.logLayout(c.node), shares[i]); }));
-    }
-
-    static restore(ws, state) {
-        var kinds = new Map();
-        state.tabs.forEach(function (t) { kinds.set(t.id.value, t); });
-        function fill(host, h) {
-            h.tabs.forEach(function (id) {
-                var t = kinds.get(id.value);
-                if (!ws.source.has(t.kind.value)) { console.error("[WorkspaceProjection] tab '" + id.value + "' holds a kind this page does not know: " + t.kind.value); return; }
-                ws.source.add(host, t.kind.value, "quiet", { id: t.id.value, title: t.title.value });
-            });
-            if (h.shown && host.has(h.shown.value)) host.switchTab(h.shown.value);
-        }
-        state.regions.forEach(function (r) {
-            var region = ws.docks.region(r.id.value);
-            if (!region) { console.error("[WorkspaceProjection] no region '" + r.id.value + "' to restore into"); return; }
-            fill(region.dock, r);
-        });
-        state.floats.forEach(function (f) { fill(ws.desk.float({ id: f.id.value, x: f.x, y: f.y, w: f.w, h: f.h }).host, f); });
     }
 
     static read(ws) {

@@ -41,7 +41,7 @@ class WorkspaceRecorderTest extends JsModuleTestBase {
         js.eval("js", """
                 var store = new WorkspaceLogStore({ header: WorkspaceLogIdentity.header("demo", null), backend: new MemoryLog(),
                                                     now: (() => { let t = 1790000000000; return () => t++; })() });
-                var regions = { main: true, "cell-2": true }, kinds = { "tab-1": "opener", "tab-2": "note" }, counted = [];
+                var regions = { main: true, "cell-2": true }, kinds = { "tab-1": "note", "tab-2": "note" }, counted = [];
                 var floats = { "float-1": true };
                 var rec = new WorkspaceRecorder({ store: store, isRegion: (s) => !!regions[s], isFloat: (s) => !!floats[s], kindOf: (id) => kinds[id] || null,
                                                   onCount: (n) => counted.push(n) });
@@ -58,10 +58,8 @@ class WorkspaceRecorderTest extends JsModuleTestBase {
     @Test
     void whatTheComponentsReportIsWhatTheLogHolds() {
         js.eval("js", """
-                rec.hear({ kind: "TabAdded", slotId: "main", tab: tab("tab-1", "Open"), index: 0 });
+                rec.hear({ kind: "TabAdded", slotId: "main", tab: tab("tab-1", "Note"), index: 0 });
                 rec.hear({ kind: "TabActivated", slotId: "main", tabId: "tab-1" });
-                kinds["tab-1"] = "note";
-                rec.became(tab("tab-1", "Note"), "note");
                 rec.hear({ kind: "AddRequested", slotId: "main" });
                 rec.hear({ kind: "Subdivided", cellId: "main", newCellId: "cell-2", side: "right" });
                 rec.hear({ kind: "TracksChanged", path: "", ratios: [1 / 3, 2 / 3] });
@@ -81,15 +79,29 @@ class WorkspaceRecorderTest extends JsModuleTestBase {
         String text = exported();
         assertEquals(ValidateWorkspaceLog.VALID, ValidateWorkspaceLog.validate("recorded", text, System.out, System.err));
         List<WorkspaceEvent> events = WorkspaceLogFile.read(text).events().stream().map(LoggedEvent::event).toList();
-        assertEquals(List.of("TabOpened", "TabShown", "TabBecame", "RegionParted", "TracksChanged", "TabRenamed",
+        assertEquals(List.of("TabOpened", "TabShown", "RegionParted", "TracksChanged", "TabRenamed",
                              "FloatOpened", "TabMoved", "TabShown", "FloatMoved", "FloatResized", "FloatRaised", "TabMoved", "FloatClosed",
                              "TabMoved", "RegionRemoved", "TabClosed"),
                 events.stream().map(e -> e.getClass().getSimpleName()).toList(), "a float is recorded like a region; a request is nowhere");
-        assertEquals(new TabEvent.TabMoved(TabId.of("tab-1"), Host.floating("float-1"), 0), events.get(7), "the tab afloat is in its float");
-        assertEquals(new TabEvent.TabShown(Host.floating("float-1"), TabId.of("tab-1")), events.get(8));
-        assertEquals(new FloatEvent.FloatOpened(FloatId.of("float-1"), 40, 60, 320, 220), events.get(6));
-        assertEquals("[333333, 666667]", ((RegionEvent.TracksChanged) events.get(4)).shares().stream().map(s -> s.units()).toList().toString());
-        assertEquals(17, js.eval("js", "counted[counted.length - 1]").asInt());
+        assertEquals(new TabEvent.TabMoved(TabId.of("tab-1"), Host.floating("float-1"), 0), events.get(6), "the tab afloat is in its float");
+        assertEquals(new TabEvent.TabShown(Host.floating("float-1"), TabId.of("tab-1")), events.get(7));
+        assertEquals(new FloatEvent.FloatOpened(FloatId.of("float-1"), 40, 60, 320, 220), events.get(5));
+        assertEquals("[333333, 666667]", ((RegionEvent.TracksChanged) events.get(3)).shares().stream().map(s -> s.units()).toList().toString());
+        assertEquals(16, js.eval("js", "counted[counted.length - 1]").asInt());
+    }
+
+    /** Another layer's event - the roster's - appended as it is, counted with the rest; stopped, nothing more. */
+    @Test
+    void anotherLayersEventIsRecordedAndCountedWithTheRest() {
+        js.eval("js", """
+                rec.hear({ kind: "TabAdded", slotId: "main", tab: tab("tab-1", "Note"), index: 0 });
+                rec.record(new TabClosed(new TabId("tab-1")));
+                rec.stop();
+                rec.record(new TabClosed(new TabId("tab-2")));
+                """);
+        List<WorkspaceEvent> events = WorkspaceLogFile.read(exported()).events().stream().map(LoggedEvent::event).toList();
+        assertEquals(List.of("TabOpened", "TabClosed"), events.stream().map(e -> e.getClass().getSimpleName()).toList());
+        assertEquals(2, js.eval("js", "counted[counted.length - 1]").asInt());
     }
 
     @Test

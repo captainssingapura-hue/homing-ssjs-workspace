@@ -4,12 +4,14 @@
 // app hands its manifest in (WorkspaceManifest, from its WorkspaceDeclaration)
 // with the slot and the params the MPA gave it, and the page is built here.
 //
-//   WorkspacePage.main(el, params, manifest)
+//   WorkspacePage.main(el, params, manifest, opts?)
 //     el        the MPA's slot, which the workspace fills
 //     params    the page's: ws_id, which workspace of the kind - its own unless
 //               said; ws_server "on" when the server keeps its states; and the
 //               keyboard and menus the chrome made for the document
 //     manifest  the workspace's: its name is its log's kind
+//     opts.fresh  ({ ws_id, ws_server }) → the app's own link to a workspace of the kind -
+//               nav.<its app>(p) - offered on the log bar while another page writes this one
 //
 // The log is the workspace's: kept in IndexedDB under its kind and its id,
 // typed, the workspace listed beside it under a name of its own the first time
@@ -27,7 +29,7 @@
 var _PAGE_BUDGET = 16;
 
 class WorkspacePage {
-    static main(el, params, manifest) {
+    static main(el, params, manifest, opts) {
         var p = params || {};
         if (!manifest || !manifest.name || !manifest.kinds) throw new Error("[WorkspacePage] a workspace's manifest is required");
         css.addClass(el, mpa_main_full);
@@ -73,7 +75,7 @@ class WorkspacePage {
             ws = new GridWorkspace(domOpsParty.createBranch("workspace"), { host: el, manifest: manifest, keyboard: p.keyboard, menus: p.menus,
                                                                             budget: _PAGE_BUDGET, log: log, state: state, logged: logged,
                                                                             readOnly: !writes(), checkpointer: writes() ? checkpointer() : null,
-                                                                            server: p.ws_server === "on" });
+                                                                            server: p.ws_server === "on", fresh: opts && opts.fresh });
             if (ws.logBar) ws.logBar.lock(lock.state, takeOver);
             named();
         }

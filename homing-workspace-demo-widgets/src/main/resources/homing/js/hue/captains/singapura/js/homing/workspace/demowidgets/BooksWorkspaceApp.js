@@ -5,4 +5,6 @@
 // where the books meet it.
 // =============================================================================
 
-function appMain(el, params) { WorkspacePage.main(el, params, BOOKS_WORKSPACE); }
+function appMain(el, params) {
+    WorkspacePage.main(el, params, BOOKS_WORKSPACE, { fresh: function (p) { return nav.BooksWorkspaceApp(p); } });
+}

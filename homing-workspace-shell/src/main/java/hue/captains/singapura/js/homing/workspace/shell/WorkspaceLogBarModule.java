@@ -29,8 +29,6 @@ public record WorkspaceLogBarModule() implements DomModule<WorkspaceLogBarModule
                 .add(new ModuleImports<>(List.of(new WorkspaceLogExportModule.WorkspaceLogExport()), WorkspaceLogExportModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WriteLockModule.Held()), WriteLockModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceLogIdentityModule.WorkspaceLogIdentity()), WorkspaceLogIdentityModule.INSTANCE))
-                // a new workspace of the kind, while another page writes this one
-                .add(new ModuleImports<>(List.of(new WorkspaceApp.link()), WorkspaceApp.INSTANCE))
                 .add(new ModuleImports<>(List.of(new HrefManager.HrefManagerInstance()), HrefManager.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceStyles.ws_logbar(), new WorkspaceStyles.ws_logbar_count(),
                                                  new WorkspaceStyles.ws_logbar_link()), WorkspaceStyles.INSTANCE))

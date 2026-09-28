@@ -11,11 +11,14 @@
 // workspace of the same kind. The gallery keeps no log, so this is the
 // workspace's alone.
 //
-//   new WorkspaceLogBar(branch, { host, store, server? })
+//   new WorkspaceLogBar(branch, { host, store, server?, fresh? })
 //     host    where the bar goes: the workspace's floor, under its grid
 //     store   the WorkspaceLogStore it exports
 //     server  whether the server keeps this workspace's states: a new workspace
 //             opened from the bar is kept there too
+//     fresh   ({ ws_id, ws_server }) → the page's own link to a workspace of its kind -
+//             the nav of the app that made it, which the bar cannot know; none, and
+//             no new workspace is offered
 //   bar.named(entry) says what the workspace is called: its WorkspaceEntry
 //   bar.count(n)     says how many the log holds
 //   bar.restored(same)  says whether the page came back as its log has it
@@ -41,6 +44,7 @@ class WorkspaceLogBar {
         this.branch = branch;
         this._store = o.store;
         this._server = !!o.server;
+        this._freshTo = typeof o.fresh === "function" ? o.fresh : null;
         this._url = null;
         var self = this;
         var bar = branch.createElement("bar", "div");
@@ -122,10 +126,9 @@ class WorkspaceLogBar {
         this._locked.hidden = !this._locked.textContent;
         this._onTakeOver = onTakeOver || null;
         this._takeOver.hidden = !(this._onTakeOver && readOnly);
-        this._fresh.hidden = !readOnly;
-        if (readOnly) {
-            HrefManagerInstance.set(this._fresh, nav.WorkspaceApp({ ws_kind: this._store.header.kind.value, ws_id: WorkspaceLogIdentity.fresh().id,
-                                                                    ws_server: this._server ? "on" : null }));
+        this._fresh.hidden = !(readOnly && this._freshTo);
+        if (readOnly && this._freshTo) {
+            HrefManagerInstance.set(this._fresh, this._freshTo({ ws_id: WorkspaceLogIdentity.fresh().id, ws_server: this._server ? "on" : null }));
         }
     }
 

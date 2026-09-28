@@ -31,7 +31,7 @@ public record WorkspaceRecorderModule() implements DomModule<WorkspaceRecorderMo
                 .add(new ModuleImports<>(List.of(new LogIdsModule.TabId(), new LogIdsModule.RegionId(), new LogIdsModule.FloatId(), new LogIdsModule.WidgetKind(), new LogIdsModule.WidgetTitle(), new LogIdsModule.SplitPath()), LogIdsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new ScaledModule.Scaled()), ScaledModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new HostModule.InRegion(), new HostModule.InFloat()), HostModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(new TabEventModule.TabOpened(), new TabEventModule.TabBecame(), new TabEventModule.TabRenamed(), new TabEventModule.TabMoved(), new TabEventModule.TabShown(), new TabEventModule.TabClosed()), TabEventModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new TabEventModule.TabOpened(), new TabEventModule.TabRenamed(), new TabEventModule.TabMoved(), new TabEventModule.TabShown(), new TabEventModule.TabClosed()), TabEventModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new RegionEventModule.Side(), new RegionEventModule.RegionParted(), new RegionEventModule.RegionRemoved(), new RegionEventModule.TracksChanged()), RegionEventModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new FloatEventModule.FloatOpened(), new FloatEventModule.FloatMoved(), new FloatEventModule.FloatResized(), new FloatEventModule.FloatRaised(), new FloatEventModule.FloatClosed()), FloatEventModule.INSTANCE))
                 .build();

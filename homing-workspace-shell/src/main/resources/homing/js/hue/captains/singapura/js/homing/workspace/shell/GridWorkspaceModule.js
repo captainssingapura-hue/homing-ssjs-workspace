@@ -26,10 +26,13 @@
 // is let go, said in the grid's events; a widget no host holds is put in the
 // first region.
 //
-//   new GridWorkspace(branch, { host, manifest, keyboard?, menus?, budget?, log?, state?, logged?, checkpointer?, readOnly?, server? })
+//   new GridWorkspace(branch, { host, manifest, keyboard?, menus?, budget?, log?, state?, logged?, checkpointer?, readOnly?, server?, fresh? })
 //     manifest  { name, kinds: { [kind]: { Widget, title, parties } }, parties: [{ type, secretary }] }
 //     state     a WorkspaceState to come back to: every layer, as its log folds
-//     the rest as the workspace of the tab source's (Workspace)
+//     fresh     ({ ws_id, ws_server }) → the page's own link to a new workspace of its kind, for the log bar
+//     keyboard, menus  the page's KeyboardSteward and ContextMenuSteward - its own menus unless handed
+//     budget    the most tabs the desk holds at once; log, logged: the store and how many it holds;
+//     checkpointer, readOnly, server: as the page decides, from who writes the log
 //   ws.core .tabs .placement .parties .desk .docks .recorder .logBar .checkpointer
 //   ws.restored { same, state, read, strays, skipped }, or null
 //   ws.request(request) → what the core gives, or null when it could not be done (said)
@@ -75,7 +78,7 @@ class GridWorkspace {
         this.restored = o.state ? this._restore(o.state) : null;
         if (o.log) {
             var logged = o.logged || 0;
-            this.logBar = new WorkspaceLogBar(branch.createBranch("log"), { host: floor, store: o.log, server: !!o.server });
+            this.logBar = new WorkspaceLogBar(branch.createBranch("log"), { host: floor, store: o.log, server: !!o.server, fresh: o.fresh });
             this.logBar.count(logged);
             if (this.restored) this.logBar.restored(this.restored.same);
             if (!o.readOnly) this._record(o.log, logged);

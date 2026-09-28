@@ -9,10 +9,9 @@
 //     store     a WorkspaceLogStore
 //     isRegion  (slotId) → whether a host is one of the grid's regions
 //     isFloat   (slotId) → whether a host is one of the desk's floats
-//     kindOf    (tabId) → the kind a tab holds: the tab source's
+//     kindOf    (tabId) → the kind a tab holds: its widget's, or null for a tab that holds none
 //     onCount   (n) → told how many it has recorded, after each
 //   recorder.hear(report)       a desk's, a dock's, a float's or the grid's report
-//   recorder.became(tp, kindId) a tab became another kind (the source's onBecame)
 //   recorder.record(event)      a WorkspaceEvent another layer made - the roster's - appended
 //                               and counted with the rest
 //   recorder.stop()             nothing more is recorded: before the workspace
@@ -20,7 +19,7 @@
 //
 // A tab is always somewhere: a Host, in a region or in a float — a float is a
 // state the workspace comes back to. The reports, and what each is in the log:
-//   TabAdded                    TabOpened in its host, with the kind the source made it
+//   TabAdded                    TabOpened in its host, with the kind its widget is
 //   TabMoved                    TabMoved to its host: a region, a float, its own
 //   TabRenamed                  TabRenamed
 //   TabRemoved                  TabClosed
@@ -57,12 +56,6 @@ class WorkspaceRecorder {
         if (event) this._append(event);
     }
 
-    became(tp, kindId) {
-        if (!this._on) return;
-        try { this._append(new TabBecame(new TabId(tp.id), new WidgetKind(kindId), new WidgetTitle(_title(tp)))); }
-        catch (e) { console.error("[WorkspaceRecorder] TabBecame is not recorded:", e.message); }
-    }
-
     record(event) { if (this._on) this._append(event); }
 
     stop() { this._on = false; }
@@ -80,7 +73,7 @@ class WorkspaceRecorder {
         switch (r.kind) {
             case "TabAdded": {
                 var kind = this._kindOf(r.tab.id);
-                if (!kind) throw new Error("tab '" + r.tab.id + "' was not made by the tab source: its kind is not known");
+                if (!kind) throw new Error("tab '" + r.tab.id + "' holds no widget: its kind is not known");
                 return new TabOpened(new TabId(r.tab.id), new WidgetKind(kind), new WidgetTitle(_title(r.tab)), this._host(r.slotId), r.index);
             }
             case "TabMoved":     return new TabMoved(new TabId(r.tab.id), this._host(r.destSlotId), r.destIndex);

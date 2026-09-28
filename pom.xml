@@ -53,9 +53,6 @@
         <module>homing-workspace-monitors</module>
         <!-- One widget on a page of its own, from its kind and its params on the address: the bench. -->
         <module>homing-widget-bench</module>
-        <!-- The repo's own demos, nested: a workspace is a thing you run, and
-             a module that runs one is the only honest test of that. -->
-        <module>homing-workspace-demos</module>
         <!-- The conformance of this repo's crates, graded on every build; and the studio that shows the
              report, on 8099 - apart, on core's studio stack. Local, for development and review. -->
         <module>homing-workspace-conformance</module>

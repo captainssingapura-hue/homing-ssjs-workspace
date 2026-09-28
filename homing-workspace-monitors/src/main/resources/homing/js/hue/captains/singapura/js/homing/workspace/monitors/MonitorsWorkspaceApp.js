@@ -6,4 +6,6 @@
 // meet it.
 // =============================================================================
 
-function appMain(el, params) { WorkspacePage.main(el, params, MONITORS_WORKSPACE); }
+function appMain(el, params) {
+    WorkspacePage.main(el, params, MONITORS_WORKSPACE, { fresh: function (p) { return nav.MonitorsWorkspaceApp(p); } });
+}

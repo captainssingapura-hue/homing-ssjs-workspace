@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.monitors;
 
+import hue.captains.singapura.js.homing.core.AppLink;
 import hue.captains.singapura.js.homing.core.AppModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -17,6 +18,9 @@ public record MonitorsWorkspaceApp() implements AppModule<WorkspacePageModule.Pa
 
     public static final MonitorsWorkspaceApp INSTANCE = new MonitorsWorkspaceApp();
 
+    /** A page's way to a monitors workspace: {@code nav.MonitorsWorkspaceApp({ ws_id, ws_server })} - its own log bar's, for a new one. */
+    public record link() implements AppLink<MonitorsWorkspaceApp> {}
+
     record appMain() implements AppModule._AppMain<WorkspacePageModule.Params, MonitorsWorkspaceApp> {}
 
     @Override public String title()      { return "Monitors"; }
@@ -28,6 +32,8 @@ public record MonitorsWorkspaceApp() implements AppModule<WorkspacePageModule.Pa
     public ImportsFor<MonitorsWorkspaceApp> imports() {
         return ImportsFor.<MonitorsWorkspaceApp>builder()
                 .add(new ModuleImports<>(List.of(new WorkspacePageModule.WorkspacePage()), WorkspacePageModule.INSTANCE))
+                // its own address, for the log bar's new workspace of the kind
+                .add(new ModuleImports<>(List.of(new link()), INSTANCE))
                 .add(new ModuleImports<>(List.of(new MonitorsWorkspaceModule.MONITORS_WORKSPACE()), MonitorsWorkspaceModule.INSTANCE))
                 .build();
     }

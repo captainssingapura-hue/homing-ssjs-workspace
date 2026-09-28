@@ -81,8 +81,8 @@ public final class LogIds {
     }
 
     /**
-     * Which kind of widget a tab holds — the key the page's tab source looks up
-     * "how to construct one of these" by. Identifier-shaped: {@code "note"},
+     * Which kind of widget a tab holds — the key a workspace's manifest looks up
+     * "how to construct one of these" by. Identifier-shaped: {@code "books-grid"},
      * {@code "spinning-animals"}, {@code "doc_view"}.
      *
      * @param value letters, digits, hyphen, underscore

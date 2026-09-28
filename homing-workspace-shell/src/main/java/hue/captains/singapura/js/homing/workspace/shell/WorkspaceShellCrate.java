@@ -18,12 +18,13 @@ import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceWidgetsCrate;
 import java.util.List;
 
 /**
- * RFC 0044 — the {@link Crate} for {@code homing-workspace-shell}: the workspace
- * as a page of any standard MPA ({@link WorkspaceApp}), built as the gallery's
- * docking page is — a desk and its dock grid on a floor — with its log recorded,
- * restored and exported. Requires the log below it, the core-js and server
- * substrate, the MPA and the ui-components it is built of — and nothing of the
- * studio.
+ * RFC 0044 — the {@link Crate} for {@code homing-workspace-shell}: the split-grid
+ * workspace on its headless core, as a page of any standard MPA that a widget
+ * set's app hands its manifest to ({@code WorkspacePage}), built as the
+ * gallery's docking page is — a desk and its dock grid on a floor — with its log
+ * recorded, restored and exported. It knows no widget. Requires the log below it,
+ * the core and its layers, the core-js and server substrate, the MPA and the
+ * ui-components it is built of — and nothing of the studio.
  */
 public final class WorkspaceShellCrate implements Crate {
 
@@ -37,7 +38,7 @@ public final class WorkspaceShellCrate implements Crate {
         return List.of(
                 CoreJsCrate.INSTANCE,
                 ServerCrate.INSTANCE,
-                // The framework page model WorkspaceApp is a page of, for the one
+                // The framework page model the workspace is a page of, for the one
                 // word it wears on the slot it is handed.
                 MpaCrate.INSTANCE,
                 // The ones the workspace's panes are made of, and its menus.
@@ -61,12 +62,8 @@ public final class WorkspaceShellCrate implements Crate {
     @Override
     public List<CrateEntry> entries() {
         return List.of(
-                // The workspace as a page of any standard MPA, and the addresses it reaches, stamped.
-                CrateEntry.of(WorkspaceApp.INSTANCE, StandardJsModuleType.CONSUMER),
+                // The addresses a workspace page reaches, stamped.
                 CrateEntry.of(WorkspaceAddressesModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                // The workspace, built as the gallery's docking page is (RFC 0066 E3, the workspace
-                // detour): a desk and its dock grid on a floor.
-                CrateEntry.of(WorkspaceModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 // Its log: the recorder (headless), the restore and read-back, and the bar that exports it.
                 CrateEntry.of(WorkspaceRecorderModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WorkspaceProjectionModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
@@ -80,8 +77,6 @@ public final class WorkspaceShellCrate implements Crate {
                 CrateEntry.of(WorkspacePageModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(GridWorkspaceModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(WidgetTabsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(GridPlacementModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                // Stand-ins for the widgets while the tabs are built.
-                CrateEntry.of(FakeWidgetsModule.INSTANCE, StandardJsModuleType.CONSUMER));
+                CrateEntry.of(GridPlacementModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
     }
 }

@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.demowidgets;
 
+import hue.captains.singapura.js.homing.core.AppLink;
 import hue.captains.singapura.js.homing.core.AppModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -18,6 +19,9 @@ public record BooksWorkspaceApp() implements AppModule<WorkspacePageModule.Param
 
     public static final BooksWorkspaceApp INSTANCE = new BooksWorkspaceApp();
 
+    /** A page's way to a books workspace: {@code nav.BooksWorkspaceApp({ ws_id, ws_server })} - its own log bar's, for a new one. */
+    public record link() implements AppLink<BooksWorkspaceApp> {}
+
     record appMain() implements AppModule._AppMain<WorkspacePageModule.Params, BooksWorkspaceApp> {}
 
     @Override public String title()      { return "Books"; }
@@ -29,6 +33,8 @@ public record BooksWorkspaceApp() implements AppModule<WorkspacePageModule.Param
     public ImportsFor<BooksWorkspaceApp> imports() {
         return ImportsFor.<BooksWorkspaceApp>builder()
                 .add(new ModuleImports<>(List.of(new WorkspacePageModule.WorkspacePage()), WorkspacePageModule.INSTANCE))
+                // its own address, for the log bar's new workspace of the kind
+                .add(new ModuleImports<>(List.of(new link()), INSTANCE))
                 .add(new ModuleImports<>(List.of(new BooksWorkspaceModule.BOOKS_WORKSPACE()), BooksWorkspaceModule.INSTANCE))
                 .build();
     }

@@ -12,11 +12,13 @@
     <artifactId>homing-workspace-shell</artifactId>
 
     <description>
-        The workspace as a page of any standard MPA (WorkspaceApp), built
-        as the gallery's docking page is (RFC 0066 E3, the workspace
-        detour): a desk and its dock grid on a floor, the tabs stand-ins
-        for now. Its log is recorded as the workspace changes, restored
-        on every load and read back to prove it (WorkspaceRecorder,
+        The split-grid workspace on its headless core (GridWorkspace), as a
+        page of any standard MPA that a widget set's app hands its manifest
+        to (WorkspacePage), built as the gallery's docking page is (RFC 0066
+        E3, the workspace detour): a desk and its dock grid on a floor. It
+        knows no widget: the widget sets are modules of their own, each
+        runnable. Its log is recorded as the workspace changes, restored on
+        every load and read back to prove it (WorkspaceRecorder,
         WorkspaceProjection), and exported from the bar along its foot.
 
         The old shell this repo was copied with - chrome, switcher,
@@ -32,8 +34,8 @@
 
     <dependencies>
         <!-- RFC 0066 E3 - the framework page model the workspace is a page OF.
-             WorkspaceApp is an AppModule under a StandardMpa, and the slot it
-             fills says it lays itself out by wearing the MPA main-full word. The
+             A widget set's app is an AppModule under a StandardMpa, and the slot
+             WorkspacePage fills says it lays itself out by wearing the MPA main-full word. The
              studio mounting needs none of this; a standalone workspace is
              nothing but this. -->
         <dependency>

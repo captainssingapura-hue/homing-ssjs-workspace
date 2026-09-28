@@ -11,9 +11,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * The projection's round trip, headless: a layout to the grid's own tree and
  * back — through the grid's own validation — to the same millionths; and a
- * state restored into a workspace and read back to the same state, byte for
- * byte, with a stand-in workspace that behaves as the desk, the docks and the
- * tab source do where the projection touches them.
+ * state placed in a workspace and read back to the same state, byte for byte,
+ * with a stand-in workspace that behaves as the desk and the docks do where the
+ * projection touches them, and places a state as a placement comes back.
  */
 class WorkspaceProjectionTest extends JsModuleTestBase {
 
@@ -41,15 +41,21 @@ class WorkspaceProjectionTest extends JsModuleTestBase {
                 function fakeWorkspace(tree) {
                     var docks = {}, titles = {}, kinds = {}, floats = [];
                     SplitGridTree.cells(tree).forEach(function (id) { docks[id] = { id: id, dock: fakeHost() }; });
-                    return {
+                    var ws = {
                         kindOf: function (id) { return kinds[id]; },
                         docks: { grid: { layout: function () { return SplitGridTree.validate(tree); } }, region: function (id) { return docks[id] || null; } },
                         desk: { register: { get: function (id) { return { title: function () { return titles[id]; } }; } },
                                 floats: function () { return floats.slice(); },
                                 float: function (o) { var f = { id: o.id, host: fakeHost(), frame: { bounds: function () { return { x: o.x, y: o.y, w: o.w, h: o.h }; } } }; floats.push(f); return f; } },
-                        source: { has: function (k) { return k !== "gone"; }, kindOf: function (id) { return kinds[id]; },
-                                  add: function (dock, kind, how, back) { titles[back.id] = back.title; kinds[back.id] = kind; dock._add(back.id); } }
+                        /** its tabs where a state has them, as a placement comes back: each host's in order, and the one it shows */
+                        place: function (state) {
+                            state.tabs.forEach(function (t) { titles[t.id.value] = t.title.value; kinds[t.id.value] = t.kind.value; });
+                            function fill(host, h) { h.tabs.forEach(function (id) { host._add(id.value); }); if (h.shown) host.switchTab(h.shown.value); }
+                            state.regions.forEach(function (r) { fill(docks[r.id.value].dock, r); });
+                            state.floats.forEach(function (f) { fill(ws.desk.float({ id: f.id.value, x: f.x, y: f.y, w: f.w, h: f.h }).host, f); });
+                        }
                     };
+                    return ws;
                 }
                 """);
     }
@@ -87,7 +93,7 @@ class WorkspaceProjectionTest extends JsModuleTestBase {
     }
 
     @Test
-    void aStateRestoredReadsBackAsThatState() {
+    void aStatePlacedReadsBackAsThatState() {
         String same = js.eval("js", """
                 const state = GridStateCodec.transformFrom({ layout: LayoutCodec.transformTo(layout),
                     regions: [ { id: "main", tabs: ["tab-4", "tab-1"], shown: "tab-1" },
@@ -98,22 +104,24 @@ class WorkspaceProjectionTest extends JsModuleTestBase {
                             { id: "tab-2", kind: "counter", title: "Counter" },
                             { id: "tab-6", kind: "note", title: "Mine" }, { id: "tab-5", kind: "opener", title: "Open 5" } ] });
                 const ws = fakeWorkspace(WorkspaceProjection.gridLayout(layout));
-                WorkspaceProjection.restore(ws, state);
+                ws.place(state);
                 const read = WorkspaceProjection.read(ws);
                 WorkspaceProjection.same(state, read) + " " + JSON.stringify(GridStateCodec.transformTo(read.regions.length ? read : state)).length
                 """).asString();
         assertTrue(same.startsWith("true "), same);
     }
 
+    /** A tab that did not come back reads back as missing: the two are not the same, and without it they are. */
     @Test
-    void aTabOfAKindThePageDoesNotKnowIsNotRestored_andTheReadSaysSo() {
-        assertEquals(false, js.eval("js", """
+    void aTabThatDidNotComeBackIsMissedByTheRead() {
+        assertEquals("false true", js.eval("js", """
                 const state = GridStateCodec.transformFrom({ layout: { type: "Cell", region: "main" },
-                    regions: [ { id: "main", tabs: ["tab-1"], shown: "tab-1" } ], floats: [],
-                    tabs: [ { id: "tab-1", kind: "gone", title: "Gone" } ] });
+                    regions: [ { id: "main", tabs: ["tab-1", "tab-2"], shown: "tab-1" } ], floats: [],
+                    tabs: [ { id: "tab-1", kind: "gone", title: "Gone" }, { id: "tab-2", kind: "note", title: "Note" } ] });
                 const ws = fakeWorkspace({ kind: "cell", id: "main" });
-                WorkspaceProjection.restore(ws, state);
-                WorkspaceProjection.same(state, WorkspaceProjection.read(ws))
-                """).asBoolean());
+                ws.place(WorkspaceProjection.without(state, ["tab-1"]));
+                const read = WorkspaceProjection.read(ws);
+                WorkspaceProjection.same(state, read) + " " + WorkspaceProjection.same(WorkspaceProjection.without(state, ["tab-1"]), read)
+                """).asString());
     }
 }
