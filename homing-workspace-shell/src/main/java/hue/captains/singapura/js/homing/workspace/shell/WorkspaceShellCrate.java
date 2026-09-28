@@ -10,7 +10,10 @@ import hue.captains.singapura.js.homing.ui.docking.UiDockingCrate;
 import hue.captains.singapura.js.homing.ui.menu.UiMenuCrate;
 import hue.captains.singapura.js.homing.ui.panes.UiPanesCrate;
 import hue.captains.singapura.js.homing.ui.splitgrid.UiSplitGridCrate;
+import hue.captains.singapura.js.homing.workspace.core.WorkspaceCoreCrate;
+import hue.captains.singapura.js.homing.workspace.layers.WorkspaceLayersCrate;
 import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
+import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceWidgetsCrate;
 
 import java.util.List;
 
@@ -45,6 +48,11 @@ public final class WorkspaceShellCrate implements Crate {
                 WorkspaceLogCodecCrate.INSTANCE,
                 // The workspace log: its store, where it keeps its rows, its export, its fold.
                 hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogCrate.INSTANCE,
+                // The headless core a workspace's widgets live in, and the parties beside it; the roster's
+                // layer of the log; what a widget is to a workspace, and the holder its tab lends it.
+                WorkspaceCoreCrate.INSTANCE,
+                WorkspaceLayersCrate.INSTANCE,
+                WorkspaceWidgetsCrate.INSTANCE,
                 // The design substrate its sheets wear words of. No legacy palette:
                 // nothing here reads a --color-* or a legacy font token.
                 hue.captains.singapura.js.homing.design.DesignCrate.INSTANCE);
@@ -67,6 +75,12 @@ public final class WorkspaceShellCrate implements Crate {
                 // What a right-click offers: the tab's, which is the pane's own,
                 // and the room's, which only the workspace can know.
                 CrateEntry.of(WorkspaceMenus.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                // THE WORKSPACE ON ITS CORE, for any workspace declared in Java: a page a widget set's app
+                // hands its manifest to; the split grid on the core; its register of panes; its placement.
+                CrateEntry.of(WorkspacePageModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                CrateEntry.of(GridWorkspaceModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                CrateEntry.of(WidgetTabsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(GridPlacementModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // Stand-ins for the widgets while the tabs are built.
                 CrateEntry.of(FakeWidgetsModule.INSTANCE, StandardJsModuleType.CONSUMER));
     }

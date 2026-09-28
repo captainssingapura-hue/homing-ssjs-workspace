@@ -36,8 +36,6 @@
         <module>homing-workspace-log-codec</module>
         <!-- The workspace log: the store, the exporter, the fold and the validator, in both languages. -->
         <module>homing-workspace-log</module>
-        <!-- The workspace as a page: the desk and its docks, the recorder, the restore. -->
-        <module>homing-workspace-shell</module>
         <!-- The messaging parties: a party's type declared in Java, and the flat instance a widget joins. -->
         <module>homing-workspace-parties</module>
         <!-- The workspace's headless core: the roster, its ids, the widgets' life; the parties beside it. Its dual in Java. -->
@@ -46,6 +44,9 @@
         <module>homing-workspace-layers</module>
         <!-- What a widget is to a workspace: its declaration, its query, the manifest; no widget of its own. -->
         <module>homing-workspace-widgets</module>
+        <!-- The workspace as a page, knowing no widget: the desk and its dock grid on the core, the recorder,
+             the restore; a page any widget set hands its manifest to. -->
+        <module>homing-workspace-shell</module>
         <!-- The demo's widgets, a set of their own: the books. The shell never knows them. -->
         <module>homing-workspace-demo-widgets</module>
         <!-- The monitors, as widgets: the page's parties on view, each monitor self-contained. -->

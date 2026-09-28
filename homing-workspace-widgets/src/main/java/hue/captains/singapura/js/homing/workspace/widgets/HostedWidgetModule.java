@@ -15,7 +15,10 @@ import java.util.List;
  * {@code new HostedWidget(branch, tab, Kind, params)}. The host's side of the
  * graft: the widget lent a container minted on the branch, its DomOps party
  * grafted there, its focus party grafted under a holder that joins the tab's
- * focus branch, so a tab that travels takes the graft with it.
+ * focus branch, so a tab that travels takes the graft with it. Made with no
+ * class, {@code new HostedWidget(branch, tab)}, it is a holder lent empty: the
+ * widget is made in its container by whoever owns its life - a workspace's core -
+ * and handed in after, {@code hosted.hold(widget)}, and left to its maker.
  */
 public record HostedWidgetModule() implements DomModule<HostedWidgetModule> {
 

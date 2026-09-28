@@ -42,6 +42,7 @@ class WorkspaceProjectionTest extends JsModuleTestBase {
                     var docks = {}, titles = {}, kinds = {}, floats = [];
                     SplitGridTree.cells(tree).forEach(function (id) { docks[id] = { id: id, dock: fakeHost() }; });
                     return {
+                        kindOf: function (id) { return kinds[id]; },
                         docks: { grid: { layout: function () { return SplitGridTree.validate(tree); } }, region: function (id) { return docks[id] || null; } },
                         desk: { register: { get: function (id) { return { title: function () { return titles[id]; } }; } },
                                 floats: function () { return floats.slice(); },
@@ -59,6 +60,30 @@ class WorkspaceProjectionTest extends JsModuleTestBase {
                 const tree = SplitGridTree.validate(WorkspaceProjection.gridLayout(layout));
                 JSON.stringify(LayoutCodec.transformTo(WorkspaceProjection.logLayout(tree))) === JSON.stringify(LayoutCodec.transformTo(layout))
                 """).asBoolean());
+    }
+
+    /**
+     * A workspace whose titles are its widgets' compares placements alone - every tab titled by its kind -
+     * and one whose log holds tabs it cannot bring back compares what it could: those tabs gone, each host
+     * showing its first when the one it showed went, a float kept though they leave it empty.
+     */
+    @Test
+    void untitledComparesPlacementAlone_andWithoutTakesTabsOut() {
+        String got = js.eval("js", """
+                const s = GridStateCodec.transformFrom({ layout: LayoutCodec.transformTo(layout),
+                    regions: [ { id: "main", tabs: ["a-1", "x-1", "b-1"], shown: "x-1" }, { id: "cell-2", tabs: [], shown: null },
+                               { id: "cell-3", tabs: ["b-2"], shown: "b-2" } ],
+                    floats: [ { id: "float-1", x: 0, y: 0, w: 320, h: 220, tabs: ["x-2"], shown: "x-2" } ],
+                    tabs: [ { id: "a-1", kind: "a", title: "A" }, { id: "x-1", kind: "x", title: "X" }, { id: "b-1", kind: "b", title: "B one" },
+                            { id: "b-2", kind: "b", title: "B two" }, { id: "x-2", kind: "x", title: "X two" } ] });
+                const renamed = GridStateCodec.transformFrom(Object.assign(GridStateCodec.transformTo(s), {
+                    tabs: GridStateCodec.transformTo(s).tabs.map(function (t) { return Object.assign({}, t, { title: "Renamed " + t.id }); }) }));
+                const w = GridStateCodec.transformTo(WorkspaceProjection.without(s, ["x-1", "x-2"]));
+                [WorkspaceProjection.same(s, renamed), WorkspaceProjection.same(WorkspaceProjection.untitled(s), WorkspaceProjection.untitled(renamed)),
+                 w.regions[0].tabs.join(","), w.regions[0].shown, w.regions[2].shown, w.floats.length, w.floats[0].tabs.length, String(w.floats[0].shown),
+                 w.tabs.map(function (t) { return t.id; }).join(",")].join(" ")
+                """).asString();
+        assertEquals("false true a-1,b-1 a-1 b-2 1 0 null a-1,b-1,b-2", got);
     }
 
     @Test

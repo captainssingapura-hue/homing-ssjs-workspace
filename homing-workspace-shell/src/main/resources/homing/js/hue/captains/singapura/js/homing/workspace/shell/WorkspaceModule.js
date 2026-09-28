@@ -117,6 +117,9 @@ class Workspace {
         }
     }
 
+    /** The kind a tab holds: the tab source's. */
+    kindOf(tabId) { return this.source.kindOf(tabId); }
+
     /** Nothing more recorded, and no more checkpoints: another page writes the log now. The workspace goes on, its changes kept by no one. */
     stopRecording() {
         if (this.recorder) this.recorder.stop();

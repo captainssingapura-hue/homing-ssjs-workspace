@@ -19,6 +19,14 @@
 //                                            gridLayout, when it is made
 //   WorkspaceProjection.read(ws)             → the GridState the workspace shows now
 //   WorkspaceProjection.same(a, b)           → whether two states are the same, byte for byte
+//   WorkspaceProjection.untitled(state)      → the state with every tab titled by its kind: the
+//                                            placement alone, for a workspace whose titles are
+//                                            its widgets', which the grid does not keep
+//   WorkspaceProjection.without(state, ids)  → the state with those tabs gone from it: each host
+//                                            showing its first when the one it showed went, as a
+//                                            host settles; a float kept, though they leave it empty
+//
+// A workspace read back answers ws.kindOf(tabId): the kind its tab holds.
 // =============================================================================
 
 class WorkspaceProjection {
@@ -72,10 +80,27 @@ class WorkspaceProjection {
     static same(a, b) {
         return JSON.stringify(GridStateCodec.transformTo(a)) === JSON.stringify(GridStateCodec.transformTo(b));
     }
+
+    static untitled(s) {
+        return new GridState(s.layout, s.regions, s.floats, s.tabs.map(function (t) { return new TabState(t.id, t.kind, new WidgetTitle(t.kind.value)); }));
+    }
+
+    static without(s, ids) {
+        if (!ids || ids.length === 0) return s;
+        var gone = new Set(ids);
+        function kept(h) {
+            var tabs = h.tabs.filter(function (t) { return !gone.has(t.value); });
+            return { tabs: tabs, shown: h.shown && !gone.has(h.shown.value) ? h.shown : (tabs[0] || null) };
+        }
+        return new GridState(s.layout,
+            s.regions.map(function (r) { var k = kept(r); return new RegionState(r.id, k.tabs, k.shown); }),
+            s.floats.map(function (f) { var k = kept(f); return new FloatState(f.id, f.x, f.y, f.w, f.h, k.tabs, k.shown); }),
+            s.tabs.filter(function (t) { return !gone.has(t.id.value); }));
+    }
 }
 
 function _tabState(ws, tabId) {
-    return new TabState(new TabId(tabId), new WidgetKind(ws.source.kindOf(tabId)), new WidgetTitle(ws.desk.register.get(tabId).title()));
+    return new TabState(new TabId(tabId), new WidgetKind(ws.kindOf(tabId)), new WidgetTitle(ws.desk.register.get(tabId).title()));
 }
 
 function _cellsOf(l) {

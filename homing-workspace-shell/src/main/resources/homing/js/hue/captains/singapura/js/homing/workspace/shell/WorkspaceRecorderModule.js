@@ -13,6 +13,8 @@
 //     onCount   (n) → told how many it has recorded, after each
 //   recorder.hear(report)       a desk's, a dock's, a float's or the grid's report
 //   recorder.became(tp, kindId) a tab became another kind (the source's onBecame)
+//   recorder.record(event)      a WorkspaceEvent another layer made - the roster's - appended
+//                               and counted with the rest
 //   recorder.stop()             nothing more is recorded: before the workspace
 //                               is taken down, whose closing is not the user's
 //
@@ -60,6 +62,8 @@ class WorkspaceRecorder {
         try { this._append(new TabBecame(new TabId(tp.id), new WidgetKind(kindId), new WidgetTitle(_title(tp)))); }
         catch (e) { console.error("[WorkspaceRecorder] TabBecame is not recorded:", e.message); }
     }
+
+    record(event) { if (this._on) this._append(event); }
 
     stop() { this._on = false; }
 
