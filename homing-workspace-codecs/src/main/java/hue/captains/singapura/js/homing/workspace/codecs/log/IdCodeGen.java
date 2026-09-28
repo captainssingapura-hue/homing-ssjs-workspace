@@ -43,6 +43,8 @@ final class IdCodeGen {
             var sb = new StringBuilder();
             sb.append("/** Generated from ").append(t.getCanonicalName()).append(" — do not edit. */\n");
             sb.append("class ").append(n).append(" {\n");
+            String constants = LogShapes.jsConstants(t);
+            if (!constants.isEmpty()) sb.append(constants).append("\n");
             if (grammar != null) {
                 sb.append("    static GRAMMAR = new RegExp(").append(javaString("^(?:" + grammar + ")$")).append(");\n\n");
             }

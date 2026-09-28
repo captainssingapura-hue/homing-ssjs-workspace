@@ -3,16 +3,22 @@ package hue.captains.singapura.js.homing.workspace.codecs.log;
 import hue.captains.singapura.js.homing.workspace.log.Checkpoint;
 import hue.captains.singapura.js.homing.workspace.log.FloatEvent;
 import hue.captains.singapura.js.homing.workspace.log.FoldedState;
+import hue.captains.singapura.js.homing.workspace.log.GridState;
 import hue.captains.singapura.js.homing.workspace.log.Host;
 import hue.captains.singapura.js.homing.workspace.log.Layout;
 import hue.captains.singapura.js.homing.workspace.log.LogHeader;
 import hue.captains.singapura.js.homing.workspace.log.LogIds;
 import hue.captains.singapura.js.homing.workspace.log.LogKey;
 import hue.captains.singapura.js.homing.workspace.log.LoggedEvent;
+import hue.captains.singapura.js.homing.workspace.log.PaneEvent;
+import hue.captains.singapura.js.homing.workspace.log.PaneState;
 import hue.captains.singapura.js.homing.workspace.log.RegionEvent;
+import hue.captains.singapura.js.homing.workspace.log.RosterEvent;
+import hue.captains.singapura.js.homing.workspace.log.RosterState;
 import hue.captains.singapura.js.homing.workspace.log.Scaled;
 import hue.captains.singapura.js.homing.workspace.log.SetAsideLog;
 import hue.captains.singapura.js.homing.workspace.log.TabEvent;
+import hue.captains.singapura.js.homing.workspace.log.WidgetParam;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEntry;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
@@ -40,6 +46,7 @@ public final class WorkspaceLogManifest {
             LogCodecEntry.id(LogIds.RegionId.class),
             LogCodecEntry.id(LogIds.FloatId.class),
             LogCodecEntry.id(LogIds.WidgetKind.class),
+            LogCodecEntry.id(LogIds.WidgetId.class),
             LogCodecEntry.id(LogIds.WidgetTitle.class),
             LogCodecEntry.id(LogIds.SplitPath.class),
             LogCodecEntry.id(LogIds.EventSeq.class),
@@ -58,7 +65,15 @@ public final class WorkspaceLogManifest {
             LogCodecEntry.record(Layout.Cell.class),
             LogCodecEntry.record(Layout.Split.class),
             LogCodecEntry.record(Layout.Track.class),
-            // the events, a family of three families: what happens to a tab, a region, a float
+            // a widget's params, in the order of their keys
+            LogCodecEntry.record(WidgetParam.class),
+            // the events, a family of families: the roster's - a widget opened, closed; the one pane's - what
+            // it shows; the split grid's - what happens to a tab, a region, a float
+            LogCodecEntry.sealed(RosterEvent.class),
+            LogCodecEntry.record(RosterEvent.WidgetOpened.class),
+            LogCodecEntry.record(RosterEvent.WidgetClosed.class),
+            LogCodecEntry.sealed(PaneEvent.class),
+            LogCodecEntry.record(PaneEvent.PaneShown.class),
             LogCodecEntry.sealed(TabEvent.class),
             LogCodecEntry.record(TabEvent.TabOpened.class),
             LogCodecEntry.record(TabEvent.TabBecame.class),
@@ -83,10 +98,15 @@ public final class WorkspaceLogManifest {
             LogCodecEntry.record(LogHeader.class),
             // a stored log the page could not read, kept as it was
             LogCodecEntry.record(SetAsideLog.class),
-            // the state a log folds to, and the file that carries it
-            LogCodecEntry.record(WorkspaceState.TabState.class),
-            LogCodecEntry.record(WorkspaceState.RegionState.class),
-            LogCodecEntry.record(WorkspaceState.FloatState.class),
+            // the state a log folds to, one per layer, and the file that carries it
+            LogCodecEntry.record(RosterState.RosterEntry.class),
+            LogCodecEntry.record(RosterState.PrefixSequence.class),
+            LogCodecEntry.record(RosterState.class),
+            LogCodecEntry.record(PaneState.class),
+            LogCodecEntry.record(GridState.TabState.class),
+            LogCodecEntry.record(GridState.RegionState.class),
+            LogCodecEntry.record(GridState.FloatState.class),
+            LogCodecEntry.record(GridState.class),
             LogCodecEntry.record(WorkspaceState.class),
             LogCodecEntry.record(FoldedState.class),
             // that state written down as the log goes, and by which rules of the fold

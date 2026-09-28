@@ -4,17 +4,17 @@ import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
 import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.EventSeq;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.FloatId;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceState.FloatState;
+import hue.captains.singapura.js.homing.workspace.log.GridState.FloatState;
 import hue.captains.singapura.js.homing.workspace.log.Host;
 import hue.captains.singapura.js.homing.workspace.log.Layout;
 import hue.captains.singapura.js.homing.workspace.log.LogHeader;
 import hue.captains.singapura.js.homing.workspace.log.LoggedEvent;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.RegionId;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceState.RegionState;
+import hue.captains.singapura.js.homing.workspace.log.GridState.RegionState;
 import hue.captains.singapura.js.homing.workspace.log.Scaled;
 import hue.captains.singapura.js.homing.workspace.log.RegionEvent.Side;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.TabId;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceState.TabState;
+import hue.captains.singapura.js.homing.workspace.log.GridState.TabState;
 import hue.captains.singapura.js.homing.workspace.log.Layout.Track;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
 import hue.captains.singapura.js.homing.workspace.log.TabEvent.*;
@@ -22,6 +22,12 @@ import hue.captains.singapura.js.homing.workspace.log.RegionEvent.*;
 import hue.captains.singapura.js.homing.workspace.log.FloatEvent.*;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceKind;
 import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
+import hue.captains.singapura.js.homing.workspace.log.GridState;
+import hue.captains.singapura.js.homing.workspace.log.WidgetParam;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetId;
+import hue.captains.singapura.js.homing.workspace.log.RosterEvent.WidgetOpened;
+import hue.captains.singapura.js.homing.workspace.log.RosterEvent.WidgetClosed;
+import hue.captains.singapura.js.homing.workspace.log.PaneEvent.PaneShown;
 import hue.captains.singapura.js.homing.workspace.log.Checkpoint;
 import hue.captains.singapura.js.homing.workspace.log.codec.CheckpointCodec;
 import hue.captains.singapura.js.homing.workspace.log.codec.FoldedStateCodec;
@@ -62,7 +68,7 @@ class WorkspaceFoldParityTest extends JsModuleTestBase {
     void load() {
         js = buildContext();
         for (String script : WorkspaceLogCodecCrate.scripts()) loadModule(script);
-        for (String m : new String[]{"ExactShare", "LayoutAlgebra", "WorkspaceFold", "CheckpointFold"}) loadModule(DIR + "log/fold/" + m + "Module.js");
+        for (String m : new String[]{"ExactShare", "LayoutAlgebra", "RosterFold", "PaneFold", "GridFold", "WorkspaceFold", "CheckpointFold"}) loadModule(DIR + "log/fold/" + m + "Module.js");
         loadModule(DIR + "log/store/WorkspaceLogExportModule.js");
         checkpointOf = js.eval("js", """
                 (text, cutsJson) => {
@@ -100,15 +106,15 @@ class WorkspaceFoldParityTest extends JsModuleTestBase {
 
         List<Host> hosts() {
             var out = new ArrayList<Host>();
-            for (RegionState r : s.regions()) out.add(new Host.InRegion(r.id()));
-            for (FloatState f : s.floats()) out.add(new Host.InFloat(f.id()));
+            for (RegionState r : g().regions()) out.add(new Host.InRegion(r.id()));
+            for (FloatState f : g().floats()) out.add(new Host.InFloat(f.id()));
             return out;
         }
 
         List<TabId> in(Host h) {
             return switch (h) {
-                case Host.InRegion r -> s.regions().stream().filter(x -> x.id().equals(r.id())).findFirst().orElseThrow().tabs();
-                case Host.InFloat f -> s.floats().stream().filter(x -> x.id().equals(f.id())).findFirst().orElseThrow().tabs();
+                case Host.InRegion r -> g().regions().stream().filter(x -> x.id().equals(r.id())).findFirst().orElseThrow().tabs();
+                case Host.InFloat f -> g().floats().stream().filter(x -> x.id().equals(f.id())).findFirst().orElseThrow().tabs();
             };
         }
 
@@ -119,10 +125,39 @@ class WorkspaceFoldParityTest extends JsModuleTestBase {
 
         String title() { return any(List.of("Note", "Note 2", "Groceries", "q\" \\ \u0001 é 😀", "")); }
 
+        GridState g() { return s.grid(); }
+
+        /**
+         * The roster's and the pane's steps: a widget opened - its prefix's next id,
+         * now and then one past it, as an id spent unlogged leaves; a widget closed -
+         * the pane, when it showed it, told what it shows next first, as a live pane
+         * is, or not, as a pane not showing then is; the pane shown a widget, or none.
+         */
+        void widgets(int pick) {
+            var held = s.roster().widgets();
+            if (pick < 23 || held.isEmpty()) {
+                String prefix = any(List.of("books-grid", "book-jumbotron", "note_title-x", "note_q-e"));
+                int n = s.roster().sequences().stream().filter(q -> q.prefix().equals(prefix)).mapToInt(q -> q.last()).findFirst().orElse(0)
+                        + 1 + (rnd.nextInt(5) == 0 ? 1 : 0);
+                List<WidgetParam> params = prefix.startsWith("note_") ? List.of(new WidgetParam("title", title()), new WidgetParam("z", "1")) : List.of();
+                does(new WidgetOpened(WidgetId.of(prefix, n), WidgetKind.of(prefix.replaceAll("_.*", "")), params));
+            } else if (pick < 24) {
+                WidgetId gone = any(held).id();
+                if (s.pane().shown().equals(Optional.of(gone)) && rnd.nextBoolean()) {
+                    var rest = held.stream().filter(w -> !w.id().equals(gone)).toList();
+                    does(new PaneShown(rest.isEmpty() ? Optional.empty() : Optional.of(any(rest).id())));
+                }
+                does(new WidgetClosed(gone));
+            } else {
+                does(new PaneShown(rnd.nextInt(4) == 0 ? Optional.empty() : Optional.of(any(held).id())));
+            }
+        }
+
         void step() {
-            int pick = rnd.nextInt(20);
-            List<TabState> open = s.tabs();
-            List<RegionId> cells = Layout.regions(s.layout());
+            int pick = rnd.nextInt(26);
+            if (pick >= 20) { widgets(pick); return; }
+            List<TabState> open = g().tabs();
+            List<RegionId> cells = Layout.regions(g().layout());
             if (pick < 4 || open.isEmpty()) {
                 Host h = any(hosts());
                 does(new TabOpened(TabId.of("tab-" + (++tabs)), WidgetKind.of(any(List.of("note", "counter", "opener"))), WidgetTitle.of(title()), h, rnd.nextInt(in(h).size() + 1)));
@@ -150,10 +185,10 @@ class WorkspaceFoldParityTest extends JsModuleTestBase {
                 does(new RegionRemoved(gone, rnd.nextBoolean() ? Optional.of(any(cells)) : Optional.empty()));
             } else if (pick < 16) {
                 var at = new ArrayList<String>();
-                splits(s.layout(), "", at);
+                splits(g().layout(), "", at);
                 if (at.isEmpty()) return;
                 String path = any(at);
-                int n = sizeAt(s.layout(), path);
+                int n = sizeAt(g().layout(), path);
                 long[] units = new long[n];
                 long left = Layout.WHOLE;
                 for (int i = 0; i < n - 1; i++) { units[i] = 1 + rnd.nextInt((int) (left / (n - i))); left -= units[i]; }
@@ -163,8 +198,8 @@ class WorkspaceFoldParityTest extends JsModuleTestBase {
                 does(new TracksChanged(SplitPath.of(path), shares));
             } else if (pick < 17) {
                 does(new FloatOpened(FloatId.of("float-" + (++floats)), rnd.nextInt(800) - 100, rnd.nextInt(600), 1 + rnd.nextInt(600), 1 + rnd.nextInt(400)));
-            } else if (!s.floats().isEmpty()) {
-                FloatId f = any(s.floats()).id();
+            } else if (!g().floats().isEmpty()) {
+                FloatId f = any(g().floats()).id();
                 switch (pick) {
                     case 17 -> does(new FloatMoved(f, rnd.nextInt(1000) - 200, rnd.nextInt(700) - 50));
                     case 18 -> does(rnd.nextBoolean() ? new FloatResized(f, 1 + rnd.nextInt(900), 1 + rnd.nextInt(700)) : new FloatRaised(f));
@@ -239,6 +274,27 @@ class WorkspaceFoldParityTest extends JsModuleTestBase {
             }
         }
         System.out.println("[WorkspaceFoldParityTest] " + compared + " checkpoint chains folded to the whole, alike");
+    }
+
+    /** What the roster and the pane refuse, both languages refuse. */
+    @Test
+    void theLayersRefuseAlike_inBothLanguages() {
+        WidgetId g1 = WidgetId.of("books-grid-1"), g2 = WidgetId.of("books-grid-2");
+        WidgetOpened o1 = new WidgetOpened(g1, WidgetKind.of("books-grid"), List.of()), o2 = new WidgetOpened(g2, WidgetKind.of("books-grid"), List.of());
+        List<List<WorkspaceEvent>> refused = List.of(
+                List.of(o1, o1),
+                List.of(o1, new WidgetClosed(g1), o1),
+                List.of(o2, o1),
+                List.of(new WidgetClosed(g1)),
+                List.of(o1, new PaneShown(Optional.of(g2))),
+                List.of(o1, new WidgetClosed(g1), new PaneShown(Optional.of(g1))));
+        for (var events : refused) {
+            var logged = new ArrayList<LoggedEvent>();
+            for (int i = 0; i < events.size(); i++) logged.add(new LoggedEvent(EventSeq.of(i + 1), Instant.ofEpochMilli(1_790_000_000_000L + i), events.get(i)));
+            var file = new WorkspaceLogFile(HEADER, logged);
+            assertThrows(RuntimeException.class, () -> WorkspaceFold.fold(file), () -> "Java folds " + events);
+            assertThrows(RuntimeException.class, () -> stateOf.execute(file.write()), () -> "JavaScript folds " + events);
+        }
     }
 
     @Test

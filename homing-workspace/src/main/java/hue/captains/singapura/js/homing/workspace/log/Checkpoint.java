@@ -24,9 +24,10 @@ public record Checkpoint(FoldedState folded, long events, int fold) {
     /**
      * The rules of the fold this build folds by. Raised whenever a change to the
      * fold would fold some log to another state; a checkpoint of other rules is
-     * dropped, and the log folded whole.
+     * dropped, and the log folded whole. 2: the state one per layer - the
+     * roster, the one pane, the split grid.
      */
-    public static final int FOLD = 1;
+    public static final int FOLD = 2;
 
     public Checkpoint {
         Objects.requireNonNull(folded, "Checkpoint.folded");

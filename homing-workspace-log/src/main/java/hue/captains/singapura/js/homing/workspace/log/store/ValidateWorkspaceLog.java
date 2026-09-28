@@ -118,9 +118,11 @@ public final class ValidateWorkspaceLog {
         out.println(name + ": valid - " + events.size() + " event" + (events.size() == 1 ? "" : "s")
                 + " of " + log.header().kind() + " " + log.header().workspaceId()
                 + (events.isEmpty() ? "" : ", seq " + events.get(0).seq().value() + " to " + events.get(events.size() - 1).seq().value())
-                + "; it folds to " + s.regions().size() + " region" + (s.regions().size() == 1 ? "" : "s")
-                + ", " + s.floats().size() + " float" + (s.floats().size() == 1 ? "" : "s")
-                + ", " + s.tabs().size() + " tab" + (s.tabs().size() == 1 ? "" : "s") + said);
+                + "; it folds to " + s.roster().widgets().size() + " widget" + (s.roster().widgets().size() == 1 ? "" : "s")
+                + ", the pane showing " + s.pane().shown().map(w -> w.value()).orElse("nothing")
+                + ", " + s.grid().regions().size() + " region" + (s.grid().regions().size() == 1 ? "" : "s")
+                + ", " + s.grid().floats().size() + " float" + (s.grid().floats().size() == 1 ? "" : "s")
+                + ", " + s.grid().tabs().size() + " tab" + (s.grid().tabs().size() == 1 ? "" : "s") + said);
         return VALID;
     }
 

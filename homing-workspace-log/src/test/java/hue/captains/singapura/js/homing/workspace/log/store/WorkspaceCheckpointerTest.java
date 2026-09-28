@@ -23,7 +23,7 @@ class WorkspaceCheckpointerTest extends JsModuleTestBase {
     void load() {
         js = buildContext();
         for (String script : WorkspaceLogCodecCrate.scripts()) loadModule(script);
-        for (String m : new String[]{"ExactShare", "LayoutAlgebra", "WorkspaceFold", "CheckpointFold"}) loadModule(DIR + "fold/" + m + "Module.js");
+        for (String m : new String[]{"ExactShare", "LayoutAlgebra", "RosterFold", "PaneFold", "GridFold", "WorkspaceFold", "CheckpointFold"}) loadModule(DIR + "fold/" + m + "Module.js");
         for (String m : new String[]{"WorkspaceLogStore", "MemoryLog", "WorkspaceLogIdentity", "WorkspaceCheckpointer"}) loadModule(DIR + "store/" + m + "Module.js");
         js.eval("js", """
                 var worker = { onmessage: null, posted: 0,

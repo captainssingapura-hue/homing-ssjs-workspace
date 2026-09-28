@@ -1,37 +1,39 @@
 package hue.captains.singapura.js.homing.workspace.log.fold;
 
-import hue.captains.singapura.js.homing.workspace.log.Layout.Axis;
-import hue.captains.singapura.js.homing.workspace.log.LogIds.FloatId;
+import hue.captains.singapura.js.homing.workspace.log.GridState;
 import hue.captains.singapura.js.homing.workspace.log.Host;
-import hue.captains.singapura.js.homing.workspace.log.Layout;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.RegionId;
-import hue.captains.singapura.js.homing.workspace.log.Scaled;
-import hue.captains.singapura.js.homing.workspace.log.RegionEvent.Side;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.TabId;
-import hue.captains.singapura.js.homing.workspace.log.Layout.Track;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
-import hue.captains.singapura.js.homing.workspace.log.TabEvent.*;
-import hue.captains.singapura.js.homing.workspace.log.RegionEvent.*;
-import hue.captains.singapura.js.homing.workspace.log.FloatEvent.*;
-import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
-import hue.captains.singapura.js.homing.workspace.log.LogIds.SplitPath;
+import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetId;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetKind;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WidgetTitle;
+import hue.captains.singapura.js.homing.workspace.log.PaneEvent.PaneShown;
+import hue.captains.singapura.js.homing.workspace.log.PaneState;
+import hue.captains.singapura.js.homing.workspace.log.RosterEvent.WidgetClosed;
+import hue.captains.singapura.js.homing.workspace.log.RosterEvent.WidgetOpened;
+import hue.captains.singapura.js.homing.workspace.log.RosterState;
+import hue.captains.singapura.js.homing.workspace.log.RosterState.PrefixSequence;
+import hue.captains.singapura.js.homing.workspace.log.TabEvent.TabOpened;
+import hue.captains.singapura.js.homing.workspace.log.WidgetParam;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceEvent;
+import hue.captains.singapura.js.homing.workspace.log.WorkspaceState;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The fold's rules, one at a time: what each event does to the state, and what it refuses. */
+/**
+ * The fold by layers: each event handed, by its family, to its layer's fold -
+ * the roster's, the one pane's over it, the grid's - and each layer's rules,
+ * what it does and what it refuses. The grid's own rules are GridFoldTest's.
+ */
 class WorkspaceFoldTest {
 
-    private static final RegionId MAIN = RegionId.of("main"), B = RegionId.of("b"), C = RegionId.of("c");
-    private static final TabId T1 = TabId.of("tab-1"), T2 = TabId.of("tab-2");
-    private static final FloatId F1 = FloatId.of("float-1");
+    private static final WidgetId G1 = WidgetId.of("books-grid-1"), G2 = WidgetId.of("books-grid-2"), J1 = WidgetId.of("book-jumbotron-1");
 
     private static WorkspaceState fold(WorkspaceEvent... events) {
         WorkspaceState s = WorkspaceState.opening();
@@ -39,84 +41,93 @@ class WorkspaceFoldTest {
         return s;
     }
 
-    private static TabOpened open(TabId id, Host host, int index) {
-        return new TabOpened(id, WidgetKind.of("note"), WidgetTitle.of("Note"), host, index);
+    private static WidgetOpened opened(WidgetId id) {
+        return new WidgetOpened(id, WidgetKind.of(id.prefix().replaceAll("_.*", "")), List.of());
     }
 
-    private static Host main() { return new Host.InRegion(MAIN); }
+    private static PaneShown shown(WidgetId id) { return new PaneShown(Optional.ofNullable(id)); }
 
     @Test
-    void tabsOpenMoveShowAndClose_whereTheLogSays() {
-        var s = fold(open(T1, main(), 0), open(T2, main(), 0), new TabShown(main(), T1),
-                     new TabMoved(T1, main(), 0), new TabRenamed(T2, WidgetTitle.of("Mine")));
-        assertEquals(List.of(T1, T2), s.regions().get(0).tabs(), "a reorder within the region");
-        assertEquals(Optional.of(T1), s.regions().get(0).shown(), "a reorder keeps the tab shown");
-        assertEquals("Mine", s.tabs().get(1).title().value());
-        assertEquals(List.of(T1, T2), s.tabs().stream().map(t -> t.id()).toList(), "tabs in the order the hosts hold them");
-        s = WorkspaceFold.apply(s, new TabClosed(T1));
-        assertEquals(Optional.empty(), s.regions().get(0).shown(), "the shown tab closed: the region shows what the log says next");
-    }
-
-    @Test
-    void aFloatIsAHost_withAPlaceAMeasureAndAStack() {
-        var s = fold(open(T1, main(), 0), new FloatOpened(F1, 10, 20, 320, 220), new FloatOpened(FloatId.of("float-2"), 0, 0, 100, 100),
-                     new TabMoved(T1, new Host.InFloat(F1), 0), new TabShown(new Host.InFloat(F1), T1),
-                     new FloatMoved(F1, 30, 40), new FloatResized(F1, 400, 300), new FloatRaised(F1));
-        assertEquals(List.of("float-2", "float-1"), s.floats().stream().map(f -> f.id().value()).toList(), "raised: on top");
-        var f = s.floats().get(1);
-        assertEquals(List.of(30, 40, 400, 300), List.of(f.x(), f.y(), f.w(), f.h()));
-        assertEquals(List.of(T1), f.tabs());
-        assertEquals(Optional.of(T1), f.shown());
-        assertEquals(List.of(), s.regions().get(0).tabs(), "the tab afloat is in its float, and nowhere else");
+    void theRosterHoldsWhatIsOpen_inTheOrderOpened_andEachPrefixsLastSequence() {
+        var s = fold(opened(G1), opened(J1), opened(G2), new WidgetClosed(G1));
+        assertEquals(List.of(J1, G2), s.roster().widgets().stream().map(w -> w.id()).toList());
+        assertEquals(List.of(new PrefixSequence("book-jumbotron", 1), new PrefixSequence("books-grid", 2)), s.roster().sequences(),
+                "each prefix's last, in the order of the prefixes");
+        s = fold(opened(G1), new WidgetClosed(G1));
+        assertEquals(List.of(), s.roster().widgets());
+        assertEquals(List.of(new PrefixSequence("books-grid", 1)), s.roster().sequences(), "closed, and its id spent all the same");
     }
 
     @Test
-    void theFoldRefusesWhatCannotBe() {
-        assertThrows(WorkspaceFold.Refused.class, () -> fold(open(T1, main(), 0), open(T1, main(), 0)), "open twice");
-        assertThrows(WorkspaceFold.Refused.class, () -> fold(open(T1, main(), 1)), "past the end");
-        assertThrows(WorkspaceFold.Refused.class, () -> fold(new TabMoved(T1, main(), 0)), "not open");
-        assertThrows(WorkspaceFold.Refused.class, () -> fold(open(T1, new Host.InFloat(F1), 0)), "no such float");
-        assertThrows(WorkspaceFold.Refused.class, () -> fold(open(T1, main(), 0), new TabShown(new Host.InRegion(B), T1)), "no such region");
-        assertThrows(IllegalArgumentException.class, () -> fold(open(T1, main(), 0), new RegionParted(MAIN, B, Side.RIGHT),
-                                                               new TabShown(new Host.InRegion(B), T1)), "not held there");
-        assertThrows(WorkspaceFold.Refused.class, () -> fold(open(T1, main(), 0), new RegionParted(MAIN, B, Side.RIGHT),
-                                                              new RegionRemoved(MAIN, Optional.of(B))), "a region still holding a tab");
-        assertThrows(WorkspaceFold.Refused.class, () -> fold(open(T1, main(), 0), new FloatOpened(F1, 0, 0, 1, 1),
-                                                              new TabMoved(T1, new Host.InFloat(F1), 0), new FloatClosed(F1)), "a float still holding a tab");
-        assertThrows(LayoutAlgebra.Refused.class, () -> fold(new RegionRemoved(MAIN, Optional.empty())), "the last region");
-        assertThrows(LayoutAlgebra.Refused.class, () -> fold(new RegionParted(MAIN, B, Side.RIGHT), new RegionParted(B, MAIN, Side.TOP)), "a name taken");
-        assertThrows(LayoutAlgebra.Refused.class, () -> fold(new TracksChanged(SplitPath.ROOT, List.of(Scaled.of(5, 1), Scaled.of(5, 1)))), "no split");
+    void aWidgetsParamsAreKept_inTheOrderOfTheirKeys() {
+        var params = WidgetParam.of(Map.of("columns", "title,rating", "author", "x"));
+        assertEquals(List.of("author", "columns"), params.stream().map(WidgetParam::key).toList());
+        var id = WidgetId.of("books-grid_x-title-rating-1");
+        var s = fold(new WidgetOpened(id, WidgetKind.of("books-grid"), params));
+        assertEquals(params, s.roster().widgets().get(0).params());
+        assertThrows(IllegalArgumentException.class, () -> new WidgetOpened(id, WidgetKind.of("books-grid"), List.of(params.get(1), params.get(0))),
+                "out of order");
+        assertThrows(IllegalArgumentException.class, () -> new WidgetOpened(id, WidgetKind.of("books-grid"), List.of(params.get(0), params.get(0))),
+                "a key twice");
     }
 
     @Test
-    void regionsPartAsTheGridParts_andTheirRoomGoesAsItGoes() {
-        var s = fold(new RegionParted(MAIN, B, Side.RIGHT), new RegionParted(B, C, Side.RIGHT));
-        var row = (Layout.Split) s.layout();
-        assertEquals(Axis.HORIZONTAL, row.axis());
-        assertEquals(List.of(500_000L, 250_000L, 250_000L), row.tracks().stream().map(t -> t.share().units()).toList(), "a sibling halves the room it came from");
-        assertEquals(List.of(MAIN, B, C), s.regions().stream().map(r -> r.id()).toList(), "regions in the layout's order");
-
-        s = WorkspaceFold.apply(s, new RegionParted(B, RegionId.of("d"), Side.BOTTOM));
-        var inner = (Layout.Split) ((Layout.Split) s.layout()).tracks().get(1).node();
-        assertEquals(Axis.VERTICAL, inner.axis(), "across the row: the cell becomes a split of two");
-
-        s = WorkspaceFold.apply(s, new TracksChanged(SplitPath.ROOT, List.of(Scaled.of(333_333, 6), Scaled.of(333_333, 6), Scaled.of(333_334, 6))));
-        s = WorkspaceFold.apply(s, new RegionRemoved(C, Optional.of(MAIN)));
-        var after = (Layout.Split) s.layout();
-        assertEquals(2, after.tracks().size());
-        assertEquals(List.of(333_333L, 666_667L), after.tracks().stream().map(t -> t.share().units()).toList(),
-                "toward main, which neither shares a splitter with c nor is beside it: to the neighbour before it");
-        s = WorkspaceFold.apply(s, new RegionRemoved(RegionId.of("d"), Optional.of(B)));
-        assertEquals(List.of(MAIN, B), s.regions().stream().map(r -> r.id()).toList(), "the split of one gave way to b");
-        assertTrue(s.layout() instanceof Layout.Split);
+    void theRosterRefusesAnIdTwice_orOnceMore() {
+        assertThrows(WorkspaceFold.Refused.class, () -> fold(opened(G1), opened(G1)), "held already");
+        assertThrows(WorkspaceFold.Refused.class, () -> fold(opened(G1), new WidgetClosed(G1), opened(G1)), "given again, after its close");
+        assertThrows(WorkspaceFold.Refused.class, () -> fold(opened(G2), opened(G1)), "not past the last its prefix gave");
+        assertThrows(WorkspaceFold.Refused.class, () -> fold(new WidgetClosed(G1)), "not held");
+        fold(opened(G1), opened(WidgetId.of("books-grid-3")));   // a gap: an id spent unlogged
     }
 
     @Test
-    void theRoomCrossesASplitterWhenTheRegionNamedSharesOne() {
-        // main | [ b over c ]: removing b toward c — c is across b's own splitter, and takes the whole of b's room
-        var s = fold(new RegionParted(MAIN, B, Side.RIGHT), new RegionParted(B, C, Side.BOTTOM),
-                     new RegionRemoved(B, Optional.of(C)));
-        var row = (Layout.Split) s.layout();
-        assertEquals(List.of(new Track(new Layout.Cell(MAIN), Scaled.of(500_000, 6)), new Track(new Layout.Cell(C), Scaled.of(500_000, 6))), row.tracks());
+    void theIdIsAPrefixAndASequence() {
+        assertEquals("books-grid_title-rating", WidgetId.of("books-grid_title-rating-12").prefix());
+        assertEquals(12, WidgetId.of("books-grid_title-rating-12").sequence());
+        assertThrows(IllegalArgumentException.class, () -> WidgetId.of("books-grid"), "no sequence");
+        assertThrows(IllegalArgumentException.class, () -> WidgetId.of("books-grid-0"), "a sequence from 1");
+        assertThrows(IllegalArgumentException.class, () -> WidgetId.of("books-grid-1234567890"), "more than nine digits");
+    }
+
+    @Test
+    void thePaneShowsWhatTheRosterHolds_orNothing() {
+        var s = fold(opened(G1), opened(J1), shown(J1));
+        assertEquals(Optional.of(J1), s.pane().shown());
+        assertEquals(Optional.empty(), fold(opened(G1), shown(G1), shown(null)).pane().shown());
+        assertThrows(WorkspaceFold.Refused.class, () -> fold(opened(G1), shown(J1)), "not in the roster");
+        assertThrows(WorkspaceFold.Refused.class, () -> fold(opened(G1), new WidgetClosed(G1), shown(G1)), "closed");
+    }
+
+    @Test
+    void thePaneFollowsTheRoster_aWidgetClosedIsShownNowhere() {
+        // a live pane says what it shows next, then the widget is closed
+        var live = fold(opened(G1), opened(J1), shown(G1), shown(J1), new WidgetClosed(G1));
+        assertEquals(Optional.of(J1), live.pane().shown());
+        // the pane was not showing when the widget closed: the workspace laid out by another placement
+        var other = fold(opened(G1), opened(J1), shown(G1), new WidgetClosed(G1));
+        assertEquals(Optional.empty(), other.pane().shown());
+        var kept = fold(opened(G1), opened(J1), shown(J1), new WidgetClosed(G1));
+        assertEquals(Optional.of(J1), kept.pane().shown(), "another widget closed: the pane keeps what it shows");
+    }
+
+    @Test
+    void eachFamilyGoesToItsLayer_andNoOther() {
+        var main = new Host.InRegion(RegionId.of("main"));
+        var s = fold(opened(G1), new TabOpened(TabId.of("tab-1"), WidgetKind.of("note"), WidgetTitle.of("Note"), main, 0), shown(G1));
+        assertEquals(1, s.roster().widgets().size());
+        assertEquals(Optional.of(G1), s.pane().shown());
+        assertEquals(1, s.grid().tabs().size(), "the grid's tab is the grid's; it names no widget yet");
+        assertEquals(GridState.opening(), fold(opened(G1), shown(G1)).grid(), "the roster and the pane leave the grid as it was");
+        assertEquals(RosterState.empty(), fold(new TabOpened(TabId.of("tab-1"), WidgetKind.of("note"), WidgetTitle.of("Note"), main, 0)).roster());
+        assertEquals(PaneState.empty(), WorkspaceState.opening().pane());
+    }
+
+    @Test
+    void aStateShowingWhatTheRosterDoesNotHold_isRefused() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new WorkspaceState(RosterState.empty(), new PaneState(Optional.of(G1)), GridState.opening()));
+        assertThrows(IllegalArgumentException.class,
+                () -> new RosterState(List.of(new RosterState.RosterEntry(G2, WidgetKind.of("books-grid"), List.of())),
+                                      List.of(new PrefixSequence("books-grid", 1))), "held past its prefix's last");
     }
 }

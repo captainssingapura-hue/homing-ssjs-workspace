@@ -51,9 +51,9 @@ class WorkspaceLogJsGenTest extends JsModuleTestBase {
             for (var e : m.entries()) assertEquals(m.top(), LogModules.top(e.type()), e.type().getName());
             for (String x : m.exports()) assertTrue(global(x).canInstantiate() || global(x).hasMembers(), x);
         }
-        assertEquals(List.of("LogIdsModule", "ScaledModule", "HostModule", "LayoutModule", "TabEventModule", "RegionEventModule",
+        assertEquals(List.of("LogIdsModule", "ScaledModule", "HostModule", "LayoutModule", "WidgetParamModule", "RosterEventModule", "PaneEventModule", "TabEventModule", "RegionEventModule",
                 "FloatEventModule", "WorkspaceEventModule", "LoggedEventModule", "LogHeaderModule", "SetAsideLogModule",
-                "WorkspaceStateModule", "FoldedStateModule", "CheckpointModule", "LogKeyModule", "WriteLockModule", "WorkspaceEntryModule"), names);
+                "RosterStateModule", "PaneStateModule", "GridStateModule", "WorkspaceStateModule", "FoldedStateModule", "CheckpointModule", "LogKeyModule", "WriteLockModule", "WorkspaceEntryModule"), names);
     }
 
     /** Imports run one way: a module imports only what comes before it, the family of families its families. */
@@ -65,7 +65,7 @@ class WorkspaceLogJsGenTest extends JsModuleTestBase {
             before.add(m.name());
         }
         var event = WorkspaceLogJsGen.modules().stream().filter(m -> m.name().equals("WorkspaceEventModule")).findFirst().orElseThrow();
-        assertEquals(List.of("TabEventModule", "RegionEventModule", "FloatEventModule"), List.copyOf(event.imports().keySet()));
+        assertEquals(List.of("RosterEventModule", "PaneEventModule", "TabEventModule", "RegionEventModule", "FloatEventModule"), List.copyOf(event.imports().keySet()));
         assertTrue(js.eval("js", "new TabClosed(new TabId('t')) instanceof WorkspaceEvent && !(new Cell(new RegionId('r')) instanceof WorkspaceEvent)").asBoolean());
     }
 

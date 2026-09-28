@@ -135,7 +135,7 @@ function appMain(el, params) {
                 var folded;
                 try { folded = WorkspaceFold.foldFrom(c ? c.folded : WorkspaceFold.start(log.header), events); }
                 catch (e) { afresh(e.message); return; }
-                build(folded.state, (c ? c.events : 0) + events.length);
+                build(folded.state.grid, (c ? c.events : 0) + events.length);
             });
         }).then(null, function (e) { afresh(e && e.message); });
     }

@@ -64,7 +64,7 @@ class WorkspaceProjectionTest extends JsModuleTestBase {
     @Test
     void aStateRestoredReadsBackAsThatState() {
         String same = js.eval("js", """
-                const state = WorkspaceStateCodec.transformFrom({ layout: LayoutCodec.transformTo(layout),
+                const state = GridStateCodec.transformFrom({ layout: LayoutCodec.transformTo(layout),
                     regions: [ { id: "main", tabs: ["tab-4", "tab-1"], shown: "tab-1" },
                                { id: "cell-2", tabs: [], shown: null },
                                { id: "cell-3", tabs: ["tab-2"], shown: "tab-2" } ],
@@ -75,7 +75,7 @@ class WorkspaceProjectionTest extends JsModuleTestBase {
                 const ws = fakeWorkspace(WorkspaceProjection.gridLayout(layout));
                 WorkspaceProjection.restore(ws, state);
                 const read = WorkspaceProjection.read(ws);
-                WorkspaceProjection.same(state, read) + " " + JSON.stringify(WorkspaceStateCodec.transformTo(read.regions.length ? read : state)).length
+                WorkspaceProjection.same(state, read) + " " + JSON.stringify(GridStateCodec.transformTo(read.regions.length ? read : state)).length
                 """).asString();
         assertTrue(same.startsWith("true "), same);
     }
@@ -83,7 +83,7 @@ class WorkspaceProjectionTest extends JsModuleTestBase {
     @Test
     void aTabOfAKindThePageDoesNotKnowIsNotRestored_andTheReadSaysSo() {
         assertEquals(false, js.eval("js", """
-                const state = WorkspaceStateCodec.transformFrom({ layout: { type: "Cell", region: "main" },
+                const state = GridStateCodec.transformFrom({ layout: { type: "Cell", region: "main" },
                     regions: [ { id: "main", tabs: ["tab-1"], shown: "tab-1" } ], floats: [],
                     tabs: [ { id: "tab-1", kind: "gone", title: "Gone" } ] });
                 const ws = fakeWorkspace({ kind: "cell", id: "main" });

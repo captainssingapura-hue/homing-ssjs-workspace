@@ -16,7 +16,7 @@
 //               in it, as the WorkspaceEvents declared in Java - regions, floats,
 //               every tab in one or the other - and a bar along
 //               the foot of the floor says how many and exports the file
-//     state     a WorkspaceState to come back to - what the log folds to: the grid
+//     state     a GridState to come back to - the grid's layer of what the log folds to: the grid
 //               laid out as it has it, every region's tabs back under their ids,
 //               kinds and titles, the tab each shows; then read back, and the two
 //               compared (ws.restored). Nothing of the restoring is recorded: the

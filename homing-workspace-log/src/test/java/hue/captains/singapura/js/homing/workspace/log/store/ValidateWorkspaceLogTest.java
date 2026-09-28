@@ -94,12 +94,12 @@ class ValidateWorkspaceLogTest {
         Files.writeString(s, java, StandardCharsets.UTF_8);
         var r = runArgs(l.toString(), s.toString());
         assertEquals(ValidateWorkspaceLog.VALID, r.code(), r.err());
-        assertTrue(r.out().contains("it folds to 1 region, 0 floats, 1 tab; " + s + " is the state Java folds it to, byte for byte"), r.out());
+        assertTrue(r.out().contains("it folds to 0 widgets, the pane showing nothing, 1 region, 0 floats, 1 tab; " + s + " is the state Java folds it to, byte for byte"), r.out());
 
         Files.writeString(s, java.replace("\"title\":\"Note\"", "\"title\":\"Nope\""), StandardCharsets.UTF_8);
         r = runArgs(l.toString(), s.toString());
         assertEquals(ValidateWorkspaceLog.INVALID, r.code());
-        assertTrue(r.err().contains("part at state.tabs[0].title: \"Nope\" / \"Note\""), r.err());
+        assertTrue(r.err().contains("part at state.grid.tabs[0].title: \"Nope\" / \"Note\""), r.err());
 
         Files.writeString(s, java.replace("\"through\":2", "\"through\":1"), StandardCharsets.UTF_8);
         r = runArgs(l.toString(), s.toString());

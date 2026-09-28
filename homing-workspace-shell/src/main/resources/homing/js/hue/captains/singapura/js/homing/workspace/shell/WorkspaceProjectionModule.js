@@ -1,5 +1,6 @@
 // =============================================================================
-// WorkspaceProjection — a WorkspaceState and a live workspace, both ways: the
+// WorkspaceProjection — the split grid's layer of a WorkspaceState — a GridState —
+// and a live workspace, both ways: the
 // state laid out, and the workspace read back into a state. The round trip is
 // the proof: restored from a state, a workspace reads back as that state, byte
 // for byte.
@@ -16,7 +17,7 @@
 //                                            it lay and as big, its tabs likewise.
 //                                            The grid is the workspace's to lay out, from
 //                                            gridLayout, when it is made
-//   WorkspaceProjection.read(ws)             → the WorkspaceState the workspace shows now
+//   WorkspaceProjection.read(ws)             → the GridState the workspace shows now
 //   WorkspaceProjection.same(a, b)           → whether two states are the same, byte for byte
 // =============================================================================
 
@@ -65,11 +66,11 @@ class WorkspaceProjection {
             ids.forEach(function (tabId) { tabs.push(_tabState(ws, tabId)); });
             return new FloatState(new FloatId(f.id), b.x, b.y, b.w, b.h, ids.map(function (x) { return new TabId(x); }), active ? new TabId(active) : null);
         });
-        return new WorkspaceState(layout, regions, floats, tabs);
+        return new GridState(layout, regions, floats, tabs);
     }
 
     static same(a, b) {
-        return JSON.stringify(WorkspaceStateCodec.transformTo(a)) === JSON.stringify(WorkspaceStateCodec.transformTo(b));
+        return JSON.stringify(GridStateCodec.transformTo(a)) === JSON.stringify(GridStateCodec.transformTo(b));
     }
 }
 
