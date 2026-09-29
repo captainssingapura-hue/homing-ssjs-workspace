@@ -21,8 +21,8 @@ class WorkspaceGroupsTest {
     void aSitesGroupsAreFoundByIdAndByTheWorkspacesTheyFile() {
         var site = WorkspaceGroups.of(APPS, DATA);
         assertEquals(Optional.of(DATA), site.group(GroupId.of("data")));
-        assertEquals(Optional.of(APPS), site.groupOf(ANIMALS.name()));
-        assertEquals(Optional.empty(), site.groupOf(WorkspaceName.of("elsewhere")));
+        assertEquals(Optional.of(APPS), site.groupOf(ANIMALS.kind()));
+        assertEquals(Optional.empty(), site.groupOf(WorkspaceKind.of("elsewhere")));
     }
 
     @Test
@@ -37,7 +37,7 @@ class WorkspaceGroupsTest {
     @Test
     void acrossSitesNothingIsShared() {
         var elsewhere = WorkspaceGroups.of(WorkspaceGroup.of("examples", "Examples").section("Examples", VIDEO).build());
-        assertEquals("examples/video-room", elsewhere.groupOf(VIDEO.name()).orElseThrow().path(VIDEO.name()).toString());
-        assertEquals("media/video-room", WorkspaceGroups.of(APPS).groupOf(VIDEO.name()).orElseThrow().path(VIDEO.name()).toString());
+        assertEquals("examples/video-room", elsewhere.groupOf(VIDEO.kind()).orElseThrow().path(VIDEO.kind()).toString());
+        assertEquals("media/video-room", WorkspaceGroups.of(APPS).groupOf(VIDEO.kind()).orElseThrow().path(VIDEO.kind()).toString());
     }
 }

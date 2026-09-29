@@ -12,13 +12,13 @@ import java.util.Optional;
  * address opens. The group owns its whole tree - the headings, their order,
  * which workspace is filed under which, and the default - and a workspace knows
  * none of it: the same workspace may be filed otherwise in a group of another
- * site, and re-filing it changes its path, never its name, so never its log.
+ * site, and re-filing it changes its path, never its kind, so never its log.
  *
  * <p>It holds together when it is made, or it is not made:</p>
  * <ol>
  *   <li>at least one section, and every section files at least one workspace;</li>
  *   <li>no two sections share a slug - it is their segment in the paths;</li>
- *   <li>no workspace is filed twice - a name is one log, and two paths to it
+ *   <li>no kind is filed twice - a kind is one log, and two paths to it
  *       would be one workspace in two places;</li>
  *   <li>the default is filed in the group - its first workspace unless said.</li>
  * </ol>
@@ -26,9 +26,9 @@ import java.util.Optional;
  * @param id               its identity on its site
  * @param title            how it is called: not blank
  * @param sections         its headings, in order, each with its workspaces in order
- * @param defaultWorkspace the one a bare address opens
+ * @param defaultKind      the kind a bare address opens
  */
-public record WorkspaceGroup(GroupId id, String title, List<Section> sections, WorkspaceName defaultWorkspace) {
+public record WorkspaceGroup(GroupId id, String title, List<Section> sections, WorkspaceKind defaultKind) {
 
     public WorkspaceGroup {
         Objects.requireNonNull(id, "WorkspaceGroup.id");
@@ -38,7 +38,7 @@ public record WorkspaceGroup(GroupId id, String title, List<Section> sections, W
         sections = List.copyOf(sections);
         if (sections.isEmpty()) throw new IllegalArgumentException("WorkspaceGroup '" + id + "' has no section");
         var slugs = new LinkedHashMap<SectionSlug, String>();
-        var filed = new LinkedHashMap<WorkspaceName, String>();
+        var filed = new LinkedHashMap<WorkspaceKind, String>();
         for (Section s : sections) {
             String before = slugs.putIfAbsent(s.slug(), s.title());
             if (before != null) {
@@ -46,17 +46,17 @@ public record WorkspaceGroup(GroupId id, String title, List<Section> sections, W
                         + "' share the slug '" + s.slug() + "' - give one another");
             }
             for (GroupedWorkspace w : s.workspaces()) {
-                String under = filed.putIfAbsent(w.name(), s.title());
+                String under = filed.putIfAbsent(w.kind(), s.title());
                 if (under != null) {
-                    throw new IllegalArgumentException("WorkspaceGroup '" + id + "': the workspace '" + w.name() + "' is filed twice - under '"
+                    throw new IllegalArgumentException("WorkspaceGroup '" + id + "': the workspace '" + w.kind() + "' is filed twice - under '"
                             + under + "' and under '" + s.title() + "'");
                 }
             }
         }
-        if (defaultWorkspace == null) defaultWorkspace = sections.get(0).workspaces().get(0).name();
-        if (!filed.containsKey(defaultWorkspace)) {
-            throw new IllegalArgumentException("WorkspaceGroup '" + id + "': the default '" + defaultWorkspace + "' is not filed in it - "
-                    + String.join(", ", filed.keySet().stream().map(WorkspaceName::value).toList()));
+        if (defaultKind == null) defaultKind = sections.get(0).workspaces().get(0).kind();
+        if (!filed.containsKey(defaultKind)) {
+            throw new IllegalArgumentException("WorkspaceGroup '" + id + "': the default '" + defaultKind + "' is not filed in it - "
+                    + String.join(", ", filed.keySet().stream().map(WorkspaceKind::value).toList()));
         }
     }
 
@@ -70,45 +70,45 @@ public record WorkspaceGroup(GroupId id, String title, List<Section> sections, W
         return List.copyOf(out);
     }
 
-    /** The workspace of that name, when it is filed here. */
-    public Optional<GroupedWorkspace> workspace(WorkspaceName name) {
-        for (Section s : sections) for (GroupedWorkspace w : s.workspaces()) if (w.name().equals(name)) return Optional.of(w);
+    /** The kind filed here, when it is. */
+    public Optional<GroupedWorkspace> workspace(WorkspaceKind kind) {
+        for (Section s : sections) for (GroupedWorkspace w : s.workspaces()) if (w.kind().equals(kind)) return Optional.of(w);
         return Optional.empty();
     }
 
     /** The section a workspace is filed under, when it is filed here. */
-    public Optional<Section> sectionOf(WorkspaceName name) {
-        for (Section s : sections) for (GroupedWorkspace w : s.workspaces()) if (w.name().equals(name)) return Optional.of(s);
+    public Optional<Section> sectionOf(WorkspaceKind kind) {
+        for (Section s : sections) for (GroupedWorkspace w : s.workspaces()) if (w.kind().equals(kind)) return Optional.of(s);
         return Optional.empty();
     }
 
-    public boolean files(WorkspaceName name) { return workspace(name).isPresent(); }
+    public boolean files(WorkspaceKind kind) { return workspace(kind).isPresent(); }
 
-    /** A filed workspace's path: its section's slug, then its name. Refused for one not filed here. */
-    public GroupPath path(WorkspaceName name) {
-        Section s = sectionOf(name).orElseThrow(() -> new IllegalArgumentException(
-                "WorkspaceGroup '" + id + "': the workspace '" + name + "' is not filed in it"));
-        return new GroupPath(s.slug(), name);
+    /** A filed kind's path: its section's slug, then its kind. Refused for one not filed here. */
+    public GroupPath path(WorkspaceKind kind) {
+        Section s = sectionOf(kind).orElseThrow(() -> new IllegalArgumentException(
+                "WorkspaceGroup '" + id + "': the kind '" + kind + "' is not filed in it"));
+        return new GroupPath(s.slug(), kind);
     }
 
     /** Every filed workspace's path, in order: what a router serves. */
     public Map<GroupPath, GroupedWorkspace> paths() {
         var out = new LinkedHashMap<GroupPath, GroupedWorkspace>();
-        for (Section s : sections) for (GroupedWorkspace w : s.workspaces()) out.put(new GroupPath(s.slug(), w.name()), w);
+        for (Section s : sections) for (GroupedWorkspace w : s.workspaces()) out.put(new GroupPath(s.slug(), w.kind()), w);
         return java.util.Collections.unmodifiableMap(out);
     }
 
-    /** The workspace at two segments of an address, when they are one of its paths - a section and the name filed under it. */
-    public Optional<GroupedWorkspace> at(String section, String workspace) {
+    /** The workspace at two segments of an address, when they are one of its paths - a section and the kind filed under it. */
+    public Optional<GroupedWorkspace> at(String section, String kind) {
         for (Section s : sections) {
             if (!s.slug().value().equals(section)) continue;
-            for (GroupedWorkspace w : s.workspaces()) if (w.name().value().equals(workspace)) return Optional.of(w);
+            for (GroupedWorkspace w : s.workspaces()) if (w.kind().value().equals(kind)) return Optional.of(w);
         }
         return Optional.empty();
     }
 
     /** The default's path: where a bare address goes. */
-    public GroupPath defaultPath() { return path(defaultWorkspace); }
+    public GroupPath defaultPath() { return path(defaultKind); }
 
     /** A group, section by section. Each call a new builder, so one in the making is never shared. */
     public static final class Builder {
@@ -116,15 +116,15 @@ public record WorkspaceGroup(GroupId id, String title, List<Section> sections, W
         private final GroupId id;
         private final String title;
         private final List<Section> sections;
-        private final WorkspaceName defaultWorkspace;
+        private final WorkspaceKind defaultKind;
 
         private Builder(GroupId id, String title) { this(id, title, List.of(), null); }
 
-        private Builder(GroupId id, String title, List<Section> sections, WorkspaceName defaultWorkspace) {
+        private Builder(GroupId id, String title, List<Section> sections, WorkspaceKind defaultKind) {
             this.id = id;
             this.title = title;
             this.sections = sections;
-            this.defaultWorkspace = defaultWorkspace;
+            this.defaultKind = defaultKind;
         }
 
         /** A heading and the workspaces filed under it, its slug derived from its title. */
@@ -134,14 +134,14 @@ public record WorkspaceGroup(GroupId id, String title, List<Section> sections, W
         public Builder section(String title, SectionSlug slug, GroupedWorkspace... workspaces) { return with(Section.of(title, slug, workspaces)); }
 
         /** The one a bare address opens; the first filed unless said. */
-        public Builder defaultTo(WorkspaceName name) { return new Builder(id, title, sections, name); }
+        public Builder defaultTo(WorkspaceKind kind) { return new Builder(id, title, sections, kind); }
 
-        public WorkspaceGroup build() { return new WorkspaceGroup(id, title, sections, defaultWorkspace); }
+        public WorkspaceGroup build() { return new WorkspaceGroup(id, title, sections, defaultKind); }
 
         private Builder with(Section s) {
             var next = new ArrayList<>(sections);
             next.add(s);
-            return new Builder(id, title, List.copyOf(next), defaultWorkspace);
+            return new Builder(id, title, List.copyOf(next), defaultKind);
         }
     }
 }

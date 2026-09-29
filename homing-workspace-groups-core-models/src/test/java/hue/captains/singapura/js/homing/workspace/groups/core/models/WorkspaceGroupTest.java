@@ -34,39 +34,39 @@ class WorkspaceGroupTest {
         var g = apps();
         assertEquals(List.of("Media", "Data", "Games"), g.sections().stream().map(Section::title).toList());
         assertEquals(List.of(VIDEO, TABLES, ANIMALS), g.workspaces());
-        assertEquals(Optional.of("Data"), g.sectionOf(TABLES.name()).map(Section::title));
-        assertTrue(g.files(ANIMALS.name()));
-        assertFalse(g.files(WorkspaceName.of("elsewhere")));
+        assertEquals(Optional.of("Data"), g.sectionOf(TABLES.kind()).map(Section::title));
+        assertTrue(g.files(ANIMALS.kind()));
+        assertFalse(g.files(WorkspaceKind.of("elsewhere")));
     }
 
     @Test
     void eachFiledWorkspaceHasOnePath_itsSectionThenItsName() {
         var g = apps();
-        assertEquals("media/video-room", g.path(VIDEO.name()).toString());
-        assertEquals(List.of("games", "animals"), g.path(ANIMALS.name()).segments());
+        assertEquals("media/video-room", g.path(VIDEO.kind()).toString());
+        assertEquals(List.of("games", "animals"), g.path(ANIMALS.kind()).segments());
         assertEquals(List.of("media/video-room", "data/tables", "games/animals"), g.paths().keySet().stream().map(GroupPath::toString).toList());
         assertEquals(Optional.of(TABLES), g.at("data", "tables"), "an address's two segments, read back");
         assertEquals(Optional.empty(), g.at("media", "tables"), "a workspace under a section it is not filed under is nowhere");
-        assertThrows(IllegalArgumentException.class, () -> g.path(WorkspaceName.of("elsewhere")));
+        assertThrows(IllegalArgumentException.class, () -> g.path(WorkspaceKind.of("elsewhere")));
     }
 
     @Test
     void theDefaultIsTheFirstFiledUnlessSaid_andAlwaysFiledInTheGroup() {
-        assertEquals(VIDEO.name(), apps().defaultWorkspace());
+        assertEquals(VIDEO.kind(), apps().defaultKind());
         assertEquals("media/video-room", apps().defaultPath().toString());
-        var g = WorkspaceGroup.of("apps", "Apps").section("Media", VIDEO).section("Games", ANIMALS).defaultTo(ANIMALS.name()).build();
+        var g = WorkspaceGroup.of("apps", "Apps").section("Media", VIDEO).section("Games", ANIMALS).defaultTo(ANIMALS.kind()).build();
         assertEquals("games/animals", g.defaultPath().toString());
         var e = assertThrows(IllegalArgumentException.class,
-                () -> WorkspaceGroup.of("apps", "Apps").section("Media", VIDEO).defaultTo(TABLES.name()).build());
+                () -> WorkspaceGroup.of("apps", "Apps").section("Media", VIDEO).defaultTo(TABLES.kind()).build());
         assertTrue(e.getMessage().contains("the default 'tables' is not filed in it"), e.getMessage());
     }
 
-    /** Re-filing changes the path, never the name: the name is the workspace's log. */
+    /** Re-filing changes the path, never the kind: the kind is its log's. */
     @Test
-    void reFilingAWorkspaceChangesItsPath_notItsName() {
+    void reFilingAKindChangesItsPath_notItsKind() {
         var elsewhere = WorkspaceGroup.of("examples", "Examples").section("Examples", VIDEO).build();
-        assertEquals("examples/video-room", elsewhere.path(VIDEO.name()).toString());
-        assertEquals(apps().path(VIDEO.name()).workspace(), elsewhere.path(VIDEO.name()).workspace());
+        assertEquals("examples/video-room", elsewhere.path(VIDEO.kind()).toString());
+        assertEquals(apps().path(VIDEO.kind()).kind(), elsewhere.path(VIDEO.kind()).kind());
     }
 
     @Test
@@ -92,15 +92,15 @@ class WorkspaceGroupTest {
         var none = assertThrows(IllegalArgumentException.class, () -> SectionSlug.from("游戏"));
         assertTrue(none.getMessage().contains("give it one"), none.getMessage());
         var given = WorkspaceGroup.of("apps", "Apps").section("游戏", SectionSlug.of("games"), ANIMALS).build();
-        assertEquals("games/animals", given.path(ANIMALS.name()).toString());
+        assertEquals("games/animals", given.path(ANIMALS.kind()).toString());
         assertThrows(IllegalArgumentException.class, () -> SectionSlug.of("Games"), "a given slug is lowercase");
         assertThrows(IllegalArgumentException.class, () -> SectionSlug.of("games--toys"), "and its words are joined by single hyphens");
     }
 
     @Test
-    void aWorkspaceIsANameAndATitle_theNameTheLogsGrammar() {
+    void aGroupedWorkspaceIsAKindAndATitle_theKindTheLogsGrammar() {
         assertThrows(IllegalArgumentException.class, () -> GroupedWorkspace.of("video room", "Video Room"));
         assertThrows(IllegalArgumentException.class, () -> GroupedWorkspace.of("video-room", " "));
-        assertEquals("Video_Room-2", WorkspaceName.of("Video_Room-2").value(), "letters, digits, hyphen, underscore - as the log's kind");
+        assertEquals("Video_Room-2", WorkspaceKind.of("Video_Room-2").value(), "letters, digits, hyphen, underscore - the log's kind's grammar");
     }
 }

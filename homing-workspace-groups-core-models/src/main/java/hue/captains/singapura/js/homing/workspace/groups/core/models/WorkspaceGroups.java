@@ -19,14 +19,14 @@ public record WorkspaceGroups(List<WorkspaceGroup> groups) {
         Objects.requireNonNull(groups, "WorkspaceGroups.groups");
         groups = List.copyOf(groups);
         var ids = new LinkedHashMap<GroupId, WorkspaceGroup>();
-        var filed = new LinkedHashMap<WorkspaceName, GroupId>();
+        var filed = new LinkedHashMap<WorkspaceKind, GroupId>();
         for (WorkspaceGroup g : groups) {
             if (ids.putIfAbsent(g.id(), g) != null) throw new IllegalArgumentException("two groups are '" + g.id() + "' on one site");
             for (GroupedWorkspace w : g.workspaces()) {
-                GroupId in = filed.putIfAbsent(w.name(), g.id());
+                GroupId in = filed.putIfAbsent(w.kind(), g.id());
                 if (in != null) {
-                    throw new IllegalArgumentException("the workspace '" + w.name() + "' is filed in the groups '" + in + "' and '" + g.id()
-                            + "' - on one site, a workspace is filed once");
+                    throw new IllegalArgumentException("the kind '" + w.kind() + "' is filed in the groups '" + in + "' and '" + g.id()
+                            + "' - on one site, a kind is filed once");
                 }
             }
         }
@@ -40,9 +40,9 @@ public record WorkspaceGroups(List<WorkspaceGroup> groups) {
         return Optional.empty();
     }
 
-    /** The group a workspace is filed in, when the site files it. */
-    public Optional<WorkspaceGroup> groupOf(WorkspaceName name) {
-        for (WorkspaceGroup g : groups) if (g.files(name)) return Optional.of(g);
+    /** The group a kind is filed in, when the site files it. */
+    public Optional<WorkspaceGroup> groupOf(WorkspaceKind kind) {
+        for (WorkspaceGroup g : groups) if (g.files(kind)) return Optional.of(g);
         return Optional.empty();
     }
 }
