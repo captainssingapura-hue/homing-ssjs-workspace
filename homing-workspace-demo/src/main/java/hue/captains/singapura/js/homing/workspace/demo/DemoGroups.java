@@ -4,12 +4,13 @@ import hue.captains.singapura.js.homing.workspace.groups.core.models.GroupedWork
 import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceGroup;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceGroups;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceKind;
+import hue.captains.singapura.js.homing.workspace.site.GroupedWorkspaces;
 
 /**
- * The demo's workspace groups, as its page's directory has them: the demo
- * workspace itself, the one whose workspaces this browser keeps here; and the
- * bench's, filed beside it so a switcher has more than one kind to show - kept
- * by the bench's origin, so none of it is kept here.
+ * The demo's workspaces, grouped: the three widget sets together, and each set on
+ * its own - filed here, where the site serves them, {@code /<section>/<kind>}; the
+ * site's root, the three together. A workspace does not know where it is filed:
+ * the group decides.
  */
 public final class DemoGroups {
 
@@ -17,8 +18,13 @@ public final class DemoGroups {
 
     public static final WorkspaceGroups GROUPS = WorkspaceGroups.of(
             WorkspaceGroup.of("demo", "Workspace demo")
-                    .section("This demo", GroupedWorkspace.of(DemoWorkspace.INSTANCE.name(), "Books, monitors and the switcher"))
-                    .section("Elsewhere", GroupedWorkspace.of("bench-one-pane", "Bench: one pane"))
+                    .section("Together", GroupedWorkspace.of(DemoWorkspace.INSTANCE.name(), "Books, monitors and the switcher"))
+                    .section("One set each", GroupedWorkspace.of(BooksWorkspace.INSTANCE.name(), "Books"),
+                                             GroupedWorkspace.of(MonitorsWorkspace.INSTANCE.name(), "Monitors"))
                     .defaultTo(WorkspaceKind.of(DemoWorkspace.INSTANCE.name()))
                     .build());
+
+    /** What the site serves: each workspace declared, each filed. */
+    public static final GroupedWorkspaces SITE = GroupedWorkspaces.of(GROUPS,
+            DemoWorkspace.INSTANCE, BooksWorkspace.INSTANCE, MonitorsWorkspace.INSTANCE);
 }

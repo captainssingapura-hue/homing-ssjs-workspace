@@ -4,17 +4,17 @@ import hue.captains.singapura.js.homing.core.Crate;
 import hue.captains.singapura.js.homing.core.CrateEntry;
 import hue.captains.singapura.js.homing.core.StandardJsModuleType;
 import hue.captains.singapura.js.homing.workspace.demowidgets.WorkspaceDemoWidgetsCrate;
-import hue.captains.singapura.js.homing.workspace.monitors.WorkspaceMonitorsCrate;
-import hue.captains.singapura.js.homing.workspace.switcher.WorkspaceSwitcherCrate;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceGroupsCrate;
-import hue.captains.singapura.js.homing.workspace.shell.WorkspaceShellCrate;
+import hue.captains.singapura.js.homing.workspace.monitors.WorkspaceMonitorsCrate;
+import hue.captains.singapura.js.homing.workspace.site.WorkspaceSiteCrate;
+import hue.captains.singapura.js.homing.workspace.switcher.WorkspaceSwitcherCrate;
 
 import java.util.List;
 
 /**
- * The demo workspace, runnable: its manifest, generated from its declaration,
- * and its page. The widgets are the widget sets' own crates; the page is the
- * shell's.
+ * The demo's workspaces, runnable: their manifests, generated from their
+ * declarations; their groups; and their page. The widgets are the widget sets'
+ * own crates; the page is the grouped site's, on the shell's.
  */
 public final class WorkspaceDemoCrate implements Crate {
 
@@ -26,20 +26,20 @@ public final class WorkspaceDemoCrate implements Crate {
 
     @Override public List<Crate> requires() {
         return List.of(
-                // the page a workspace is: the shell's, handed the manifest
-                WorkspaceShellCrate.INSTANCE,
+                // the page a grouped workspace is: the shell's, choosing the workspace by its route
+                WorkspaceSiteCrate.INSTANCE,
                 // the three widget sets it puts together
                 WorkspaceDemoWidgetsCrate.INSTANCE,
                 WorkspaceSwitcherCrate.INSTANCE,
                 WorkspaceMonitorsCrate.INSTANCE,
-                // the directory its page provides
+                // the workspace choice party its manifests make at their roots: its type and secretary
                 WorkspaceGroupsCrate.INSTANCE);
     }
 
     @Override
     public List<CrateEntry> entries() {
         return List.of(
-                CrateEntry.of(DemoWorkspaceModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(DemoWorkspacesModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(DemoGroupsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(DemoWorkspaceApp.INSTANCE, StandardJsModuleType.CONSUMER));
     }

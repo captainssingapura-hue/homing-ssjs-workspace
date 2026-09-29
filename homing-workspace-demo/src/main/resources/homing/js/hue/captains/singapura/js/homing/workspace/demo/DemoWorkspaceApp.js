@@ -1,14 +1,11 @@
 // =============================================================================
-// DemoWorkspaceApp — the demo workspace as a page: the shell's workspace page
-// (WorkspacePage), handed the demo's manifest, DEMO_WORKSPACE, generated from
-// its declaration in Java (DemoWorkspace) - the books, the switcher and the
-// monitors, three widget sets that know nothing of each other or of the
-// shell, put together - and its directory of workspace groups, DEMO_GROUPS,
-// provided first, for the switcher to read.
+// DemoWorkspaceApp — the demo's workspaces as a page: the grouped workspace page
+// (GroupedWorkspacePage), handed the demo's manifests, DEMO_WORKSPACES - the
+// three widget sets together, the books, the monitors, each generated from its
+// declaration in Java - and the groups they are filed in, DEMO_GROUPS. The
+// route names the kind; the page opens what its switcher asks to open.
 // =============================================================================
 
 function appMain(el, params) {
-    // the page's directory of workspace groups: the demo's, provided before anything reads it
-    WorkspaceDirectory.provide(DEMO_GROUPS);
-    WorkspacePage.main(el, params, DEMO_WORKSPACE, { fresh: function (p) { return nav.DemoWorkspaceApp(p); } });
+    GroupedWorkspacePage.main(el, params, DEMO_WORKSPACES, DEMO_GROUPS);
 }

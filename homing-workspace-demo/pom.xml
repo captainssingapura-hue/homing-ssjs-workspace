@@ -31,6 +31,12 @@
             <artifactId>homing-workspace-shell</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <!-- A site of grouped workspaces: the routes from the groups, and the page that opens what it is asked to. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-site</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
         <!-- The two widget sets it puts together, and what a workspace declares of its kinds. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
