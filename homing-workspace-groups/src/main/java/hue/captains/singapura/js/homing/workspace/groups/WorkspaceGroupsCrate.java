@@ -28,6 +28,8 @@ public final class WorkspaceGroupsCrate implements Crate {
         return List.of(
                 // the page's directory, provided once at boot
                 CrateEntry.of(WorkspaceDirectoryModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                // where a kind is in its group, as the page's anchor names it: #ws/<section>/<kind>
+                CrateEntry.of(WorkspaceAnchorModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // the workspace choice party: its type, generated from Java, and its secretaries
                 CrateEntry.of(WorkspaceChoiceModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WorkspaceChoiceSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
