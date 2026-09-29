@@ -33,6 +33,8 @@ public record DemoWorkspaceApp() implements AppModule<GroupedWorkspacePageModule
                 // what it serves: each workspace's manifest by its kind, and the groups they are filed in
                 .add(new ModuleImports<>(List.of(new DemoWorkspacesModule.DEMO_WORKSPACES()), DemoWorkspacesModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new DemoGroupsModule.DEMO_GROUPS()), DemoGroupsModule.INSTANCE))
+                // and how each is arranged the first time, in the split grid
+                .add(new ModuleImports<>(List.of(new DemoArrangementsModule.DEMO_ARRANGEMENTS()), DemoArrangementsModule.INSTANCE))
                 .build();
     }
 

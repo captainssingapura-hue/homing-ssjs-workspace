@@ -41,6 +41,7 @@ public final class WorkspaceDemoCrate implements Crate {
         return List.of(
                 CrateEntry.of(DemoWorkspacesModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(DemoGroupsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(DemoArrangementsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(DemoWorkspaceApp.INSTANCE, StandardJsModuleType.CONSUMER));
     }
 }

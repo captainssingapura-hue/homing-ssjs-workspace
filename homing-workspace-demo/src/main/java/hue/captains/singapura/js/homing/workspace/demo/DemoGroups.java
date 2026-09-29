@@ -24,7 +24,8 @@ public final class DemoGroups {
                     .defaultTo(WorkspaceKind.of(DemoWorkspace.INSTANCE.name()))
                     .build());
 
-    /** What the site serves: each workspace declared, each filed. */
+    /** What the site serves: each workspace declared, each filed, each arranged the first time. */
     public static final GroupedWorkspaces SITE = GroupedWorkspaces.of(GROUPS,
-            DemoWorkspace.INSTANCE, BooksWorkspace.INSTANCE, MonitorsWorkspace.INSTANCE);
+            DemoWorkspace.INSTANCE, BooksWorkspace.INSTANCE, MonitorsWorkspace.INSTANCE)
+            .arranged(DemoArrangements.TOGETHER, DemoArrangements.BOOKS, DemoArrangements.MONITORING);
 }

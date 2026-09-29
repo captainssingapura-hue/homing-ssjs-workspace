@@ -3,6 +3,8 @@ package hue.captains.singapura.js.homing.workspace.demo;
 import hue.captains.singapura.js.homing.core.ParamCodec.Decoded;
 import hue.captains.singapura.js.homing.site.Path;
 import hue.captains.singapura.js.homing.site.Query;
+import hue.captains.singapura.js.homing.workspace.groups.core.models.SplitGrid;
+import hue.captains.singapura.js.homing.workspace.groups.core.models.WidgetRef;
 import hue.captains.singapura.js.homing.workspace.site.GroupedWorkspacePageModule;
 import org.junit.jupiter.api.Test;
 
@@ -83,5 +85,20 @@ class WorkspaceDemoSiteTest {
         assertInstanceOf(Decoded.Missing.class, codec.from(Map.of("ws_id", List.of(id))));
         assertInstanceOf(Decoded.Malformed.class, codec.from(Map.of("ws_kind", List.of("books"), "ws_id", List.of(id.toUpperCase()))));
         assertInstanceOf(Decoded.Malformed.class, codec.from(Map.of("ws_kind", List.of("books"), "ws_server", List.of("https://elsewhere"))));
+    }
+
+    /** Each workspace's first state in the split grid: the switcher on the left, its own widgets beside it. */
+    @Test
+    void eachWorkspaceIsArranged_theSwitcherOnTheLeft() {
+        for (String kind : List.of("demo", "books", "monitors")) {
+            var grid = DemoGroups.SITE.arrangements(kind).orElseThrow().forEngine(SplitGrid.ENGINE, SplitGrid.class).orElseThrow().placement();
+            assertEquals(List.of("switcher"), grid.regions().get(0).tabs().stream().map(WidgetRef::value).toList(), kind);
+        }
+        var books = DemoArrangements.BOOKS.arrangements().get(0);
+        assertEquals(List.of("kinds", "books", "chosen"), ((SplitGrid) books.placement()).regions().stream().map(r -> r.name().value()).toList());
+        String js = String.join("\n", DemoArrangementsModule.INSTANCE.selfContent(null));
+        assertTrue(js.contains("const DEMO_ARRANGEMENTS = Object.freeze({ \"demo\": Object.freeze({ engine: \"split-grid\", workspace: \"demo\""), js);
+        assertTrue(js.contains("\"books\": Object.freeze({ engine: \"split-grid\", workspace: \"books\""), js);
+        assertTrue(js.contains("\"monitors\": Object.freeze({ engine: \"split-grid\", workspace: \"monitors\""), js);
     }
 }
