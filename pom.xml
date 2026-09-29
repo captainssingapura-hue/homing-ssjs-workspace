@@ -27,6 +27,9 @@
     <modules>
         <!-- The core's models: the vocabulary the core and the log share - a widget's id. Depends on nothing. -->
         <module>homing-workspace-core-models</module>
+        <!-- The workspace groups' core definitions: a group - workspaces filed under sections, a default -
+             each workspace's path in it, and a site's groups. Pure Java, no UI; depends on nothing. -->
+        <module>homing-workspace-groups-core-models</module>
         <!-- The workspace's value objects, declared in Java: the log's events and state. -->
         <module>homing-workspace</module>
         <!-- Their generators. -->
