@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+        <artifactId>homing.js.ws</artifactId>
+        <version>LOCAL-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>homing-workspace-site</artifactId>
+
+    <description>
+        A site of grouped workspaces: every workspace it serves filed in its groups,
+        and served where it is filed - a route of its section and its kind. Its page
+        is the shell's, choosing the workspace by the route, the page's directory
+        provided from the groups, and the page opening what its workspace choice
+        party says is asked to open. A launcher declares its workspaces and its
+        groups, and hands both here.
+    </description>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- The page a workspace is, and what a workspace declares of its kinds. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-shell</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-widgets</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <!-- The groups: their core definitions, which the routes are made from; the page's directory, and the opener. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-groups-core-models</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-groups</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <!-- The log's identity: a kind's own workspace. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-log</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <!-- The page model: a Site's router, its paths and trails; the standard MPA's pages. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-site-base</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-site-mpa</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-site-mpa-standard</artifactId>
+            <version>${homing.components.version}</version>
+        </dependency>
+        <!-- The href manager: the one way a page goes somewhere. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-component-base</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- The gate, headless and strict. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-conformance-rules</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-conformance-engine</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-designs</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>

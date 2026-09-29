@@ -10,7 +10,8 @@ import java.util.List;
  * The workspace groups as a page has them, and nothing that draws: the page's
  * directory of its site's groups, and the workspace choice party a switcher
  * speaks in - its type, and its secretaries, the root's and a switcher's
- * scope's. Whatever shows them is a widget set of its own.
+ * scope's - and the page's member of it, which opens what it is asked to.
+ * Whatever shows them is a widget set of its own.
  */
 public final class WorkspaceGroupsCrate implements Crate {
 
@@ -30,6 +31,8 @@ public final class WorkspaceGroupsCrate implements Crate {
                 // the workspace choice party: its type, generated from Java, and its secretaries
                 CrateEntry.of(WorkspaceChoiceModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WorkspaceChoiceSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
-                CrateEntry.of(WorkspaceSwitcherSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY));
+                CrateEntry.of(WorkspaceSwitcherSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
+                // the page's member of it: whoever opens what the party says is asked to open
+                CrateEntry.of(WorkspaceOpenerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
     }
 }

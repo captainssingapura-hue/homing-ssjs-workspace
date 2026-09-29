@@ -53,6 +53,9 @@
         <!-- The workspace as a page, knowing no widget: the desk and its dock grid on the core, the recorder,
              the restore; a page any widget set hands its manifest to. -->
         <module>homing-workspace-shell</module>
+        <!-- A site of grouped workspaces: each served where its groups file it, /<section>/<kind>; its page the
+             shell's, choosing the workspace by the route, and opening what its choice party is asked to open. -->
+        <module>homing-workspace-site</module>
         <!-- The demo's widgets, a set of their own and nothing else: the books. The shell never knows them. -->
         <module>homing-workspace-demo-widgets</module>
         <!-- The monitors, as widgets and nothing else: the page's parties on view, for any workspace to offer. -->

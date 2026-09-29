@@ -12,6 +12,10 @@
 //     manifest  the workspace's: its name is its log's kind
 //     opts.fresh  ({ ws_id, ws_server }) → the app's own link to a workspace of the kind -
 //               nav.<its app>(p) - offered on the log bar while another page writes this one
+//     opts.attach  (ws, here) → detach? - the app's own, each time the workspace is built:
+//               what it adds to it, a member of its root parties - here is { workspaceKind,
+//               workspaceId }, the workspace the page shows; detach, called before the
+//               workspace is disposed, undoes it (a take-over builds it again)
 //
 // The log is the workspace's: kept in IndexedDB under its kind and its id,
 // typed, the workspace listed beside it under a name of its own the first time
@@ -38,7 +42,7 @@ class WorkspacePage {
         var key = new LogKey(log.header.kind, log.header.workspaceId);
         var catalogue = new WorkspaceCatalogue({ backend: backend });
         var lock = new WorkspaceWriteLock({ log: key, onChange: lockSaid });
-        var ws = null;
+        var ws = null, detach = null;
         function writes() { return WorkspaceWriteLock.writes(lock.state); }
         // What the workspace is called: listed the first time a page writes it; a page that only reads it looks it up.
         function named() {
@@ -56,6 +60,7 @@ class WorkspacePage {
         // Taken over: the workspace built again from the log, as the page that wrote it left it, and this page writes on.
         function takeOver() {
             lock.takeOver().then(function () {
+                if (detach) { detach(); detach = null; }
                 if (ws) ws.dispose();
                 ws = null;
                 load();
@@ -77,7 +82,16 @@ class WorkspacePage {
                                                                             readOnly: !writes(), checkpointer: writes() ? checkpointer() : null,
                                                                             server: p.ws_server === "on", fresh: opts && opts.fresh });
             if (ws.logBar) ws.logBar.lock(lock.state, takeOver);
+            attached();
             named();
+        }
+        // The app's own, added to the workspace built: said, not thrown, when it fails - the workspace stands without it.
+        function attached() {
+            if (!opts || typeof opts.attach !== "function") return;
+            try {
+                var undo = opts.attach(ws, Object.freeze({ workspaceKind: key.kind.value, workspaceId: key.workspace.id }));
+                detach = typeof undo === "function" ? undo : null;
+            } catch (e) { console.error("[WorkspacePage] the app's attach threw:", e); }
         }
         function load() {
             WorkspaceLoad.load(log, { writes: writes() }).then(function (r) {
