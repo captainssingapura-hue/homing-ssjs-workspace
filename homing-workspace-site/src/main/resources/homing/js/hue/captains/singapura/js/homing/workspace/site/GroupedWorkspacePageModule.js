@@ -19,8 +19,10 @@
 // key, Ctrl+Shift+K (Cmd+Shift+K on a Mac), wherever the hand is, or by the
 // workspace's name on the log bar - at the kind and the workspace it shows.
 // The key again, or Escape, closes it; no log keeps it. A new workspace asked
-// for - the switcher's new row - the page makes: a fresh id, listed under the
-// name asked for, and goes to it, where its arrangement is laid out.
+// for - the switcher's new row - the page makes (WorkspaceKeeping): a fresh id, listed under the
+// name asked for, and goes to it, where its arrangement is laid out; a
+// workspace called otherwise, or deleted - softly - the page does too, and its
+// keeper on each of its parties says how it went to every view of the kind.
 //
 // A workspace of a kind the site has arranged starts as its arrangement has it,
 // the first time: handed to the shell, which lays it out on a log that holds
@@ -59,12 +61,26 @@ class GroupedWorkspacePage {
         var here = Object.freeze({ workspaceKind: kind, workspaceId: p.ws_id || WorkspaceLogIdentity.placeholder(kind), own: own });
         var go = function (address) { HrefManagerInstance.navigate(address); };
         var goNew = function (address) { HrefManagerInstance.openNew(address); };
-        var catalogue = new WorkspaceCatalogue({ backend: new IndexedDbLog() });
-        var create = function (k, name) { return GroupedWorkspacePage._create(catalogue, k, name); };
-        // THE PAGE'S OWN CHOICE: a workspace choice party of the page's, whatever its workspace holds; its opener,
-        // and the switcher summoned in the system dialog by the page's key, or by the workspace's name on the log bar
+        // THE KEEPING of the site's workspaces: made, renamed, deleted - by the page, as its parties ask
+        var current = null, keepers = [];
+        var keeping = new WorkspaceKeeping({ catalogue: new WorkspaceCatalogue({ backend: new IndexedDbLog() }), here: here, keyboard: p.keyboard,
+                                             addressOf: GroupedWorkspacePage.address,
+                                             named: function (entry) { if (current && current.logBar) current.logBar.named(entry); } });
+        var create = function (k, name) { return keeping.create(k, name); };
+        // a keeper on each of the page's parties; what one's asking changed, the others say too, for every view of the kind
+        var relay = function (k, changed, from) { if (changed) keepers.forEach(function (x) { if (x !== from) x.report(k, "", true); }); };
+        var keep = function (party) {
+            var keeper = new WorkspaceKeeper({ party: party, done: relay,
+                                               rename: function (k, id, name) { return keeping.rename(k, id, name); },
+                                               remove: function (k, id) { return keeping.remove(k, id); } });
+            keepers.push(keeper);
+            return keeper;
+        };
+        // THE PAGE'S OWN CHOICE: a workspace choice party of the page's, whatever its workspace holds; its opener and
+        // keeper, and the switcher summoned in the system dialog by the page's key, or by the workspace's name on the log bar
         var choice = new MessagingParty(WORKSPACE_CHOICE, WorkspaceChoiceSecretary);
         new WorkspaceOpener({ party: choice, here: here, addressOf: GroupedWorkspacePage.address, go: go, goNew: goNew, create: create });
+        keep(choice);
         var summon = GroupedWorkspacePage._summoner(choice, p.keyboard, here);
         if (p.keyboard && typeof p.keyboard.shortcut === "function") {
             p.keyboard.shortcut(function (ev) { if (!GroupedWorkspacePage.isSwitchKey(ev)) return false; summon(); return true; });
@@ -73,16 +89,23 @@ class GroupedWorkspacePage {
             fresh: function (q) { return GroupedWorkspacePage.address(kind, q && q.ws_id ? q.ws_id : ""); },
             arrangement: arrangements && Object.prototype.hasOwnProperty.call(arrangements, kind) ? arrangements[kind] : null,
             attach: function (ws, here) {
+                current = ws;
                 if (ws.logBar) ws.logBar.switching({ hint: "Switch workspace (" + GroupedWorkspacePage.switchKeyName() + ")", open: summon });
                 var party = ws.parties.party(WORKSPACE_CHOICE.name);
-                if (!party) return null;    // a workspace none of whose widgets choose one
+                if (!party) return function () { current = null; };    // a workspace none of whose widgets choose one
                 var opener = new WorkspaceOpener({
                     party: party,
                     here: { workspaceKind: here.workspaceKind, workspaceId: here.workspaceId, own: own },
                     addressOf: GroupedWorkspacePage.address,
                     go: go, goNew: goNew, create: create
                 });
-                return function () { opener.leave(); };
+                var keeper = keep(party);
+                return function () {
+                    opener.leave();
+                    keeper.leave();
+                    keepers.splice(keepers.indexOf(keeper), 1);
+                    current = null;
+                };
             }
         });
     }
@@ -114,19 +137,6 @@ class GroupedWorkspacePage {
     static _mac() {
         var n = typeof navigator !== "undefined" ? navigator : null;
         return /mac/i.test(n ? ((n.userAgentData && n.userAgentData.platform) || n.platform || "") : "");
-    }
-
-    /**
-     * A new workspace of the kind, made: a fresh id, listed in the catalogue - under the name asked for,
-     * or, none, the kind's next - and its address; null for a kind the site does not serve. Its log is
-     * empty until its page writes it, and so its page lays out its arrangement.
-     */
-    static _create(catalogue, kind, name) {
-        if (!WorkspaceDirectory.find(kind)) return Promise.resolve(null);
-        var id = WorkspaceLogIdentity.fresh(), key = new LogKey(new WorkspaceKind(kind), id);
-        return catalogue.opened(key)
-            .then(function () { return name ? catalogue.rename(key, name) : null; })
-            .then(function () { return GroupedWorkspacePage.address(kind, id.id); });
     }
 
     static address(kind, id) {

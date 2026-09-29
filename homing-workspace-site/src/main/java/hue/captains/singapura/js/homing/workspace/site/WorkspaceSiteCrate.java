@@ -48,6 +48,9 @@ public final class WorkspaceSiteCrate implements Crate {
 
     @Override
     public List<CrateEntry> entries() {
-        return List.of(CrateEntry.of(GroupedWorkspacePageModule.INSTANCE, StandardJsModuleType.CONSUMER));
+        return List.of(
+                CrateEntry.of(GroupedWorkspacePageModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                // what the page does to its workspaces: made, renamed, deleted - softly
+                CrateEntry.of(WorkspaceKeepingModule.INSTANCE, StandardJsModuleType.CONSUMER));
     }
 }

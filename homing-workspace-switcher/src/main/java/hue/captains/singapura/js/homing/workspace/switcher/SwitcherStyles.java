@@ -81,6 +81,16 @@ public record SwitcherStyles() implements CssGroup<SwitcherStyles> {
         }
     }
 
+    /** A question put to a person, in a dialog's body: a little air around it. */
+    public record sw_question() implements CssClass<SwitcherStyles> {
+        @Override public String body() { return """
+            margin: 0;
+            padding: 16px 20px;
+            line-height: 1.5;
+            """;
+        }
+    }
+
     /** A part not shown. */
     public record sw_hidden() implements CssClass<SwitcherStyles> {
         @Override public String body() { return "display: none;"; }
@@ -127,7 +137,7 @@ public record SwitcherStyles() implements CssGroup<SwitcherStyles> {
 
     @Override
     public List<CssClass<SwitcherStyles>> cssClasses() {
-        return List.of(new sw_column(), new sw_head(), new sw_title(), new sw_count(), new sw_note(), new sw_hidden(),
+        return List.of(new sw_column(), new sw_head(), new sw_title(), new sw_count(), new sw_note(), new sw_question(), new sw_hidden(),
                        new sw_split(), new sw_kinds(), new sw_instances());
     }
 }

@@ -14,9 +14,8 @@ import hue.captains.singapura.js.homing.server.HrefManager;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceChoiceModule;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceChoiceSecretaryModule;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceDirectoryModule;
+import hue.captains.singapura.js.homing.workspace.groups.WorkspaceKeeperModule;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceOpenerModule;
-import hue.captains.singapura.js.homing.workspace.log.js.LogIdsModule;
-import hue.captains.singapura.js.homing.workspace.log.js.LogKeyModule;
 import hue.captains.singapura.js.homing.workspace.log.store.IndexedDbLogModule;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceCatalogueModule;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogIdentityModule;
@@ -87,14 +86,15 @@ public record GroupedWorkspacePageModule() implements DomModule<GroupedWorkspace
                 // the page's directory, and its member of the workspace choice party: the opener
                 .add(new ModuleImports<>(List.of(new WorkspaceDirectoryModule.WorkspaceDirectory()), WorkspaceDirectoryModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceOpenerModule.WorkspaceOpener()), WorkspaceOpenerModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceKeeperModule.WorkspaceKeeper()), WorkspaceKeeperModule.INSTANCE))
+                // what the page does to its workspaces, as its opener and keepers ask
+                .add(new ModuleImports<>(List.of(new WorkspaceKeepingModule.WorkspaceKeeping()), WorkspaceKeepingModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceChoiceModule.WORKSPACE_CHOICE()), WorkspaceChoiceModule.INSTANCE))
                 // a kind's own workspace, as its log names it
                 .add(new ModuleImports<>(List.of(new WorkspaceLogIdentityModule.WorkspaceLogIdentity()), WorkspaceLogIdentityModule.INSTANCE))
-                // a new workspace made: listed in the catalogue this browser keeps, under a fresh id, by its log's key
+                // the catalogue this browser keeps, which the keeping makes, renames and deletes by
                 .add(new ModuleImports<>(List.of(new WorkspaceCatalogueModule.WorkspaceCatalogue()), WorkspaceCatalogueModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new IndexedDbLogModule.IndexedDbLog()), IndexedDbLogModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(new LogKeyModule.LogKey()), LogKeyModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(new LogIdsModule.WorkspaceKind()), LogIdsModule.INSTANCE))
                 // THE PAGE'S OWN CHOICE: its workspace choice party, with the root secretary, and the switcher it summons
                 .add(new ModuleImports<>(List.of(new MessagingPartyModule.MessagingParty()), MessagingPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceChoiceSecretaryModule.WorkspaceChoiceSecretary()), WorkspaceChoiceSecretaryModule.INSTANCE))

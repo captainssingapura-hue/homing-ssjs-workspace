@@ -1,7 +1,8 @@
 // =============================================================================
 // WorkspaceSwitcherDialog — the workspace switcher, summoned: the composed
 // switcher (WorkspaceSwitcher) in the system dialog (Dialog) — modal, titled,
-// its verbs underneath: Cancel, Open in new tab, Open. Browsing and opening are
+// its verbs underneath: Rename and Delete…, the table's F2 and Delete on the
+// workspace at its cursor; then Cancel, Open in new tab, Open. Browsing and opening are
 // different acts: moving through the kinds and their workspaces opens nothing;
 // the table's new row, named, asks for a new one; Open on it, unnamed, too;
 // Open, Enter on one, or a double press does.
@@ -42,7 +43,10 @@ class WorkspaceSwitcherDialog {
         this._addressOf = typeof o.addressOf === "function" ? o.addressOf : null;
         this._name = "workspaceSwitcherDialog-" + (++_switcherDialogs);
         this._member = o.party.join(this._name, { Opening: function () { self.close(); }, OpeningNew: function () { self.close(); } });
-        var actions = [{ id: "cancel", label: "Cancel", onClick: function (d) { d.close(); } }];
+        var actions = [
+            { id: "rename", label: "Rename", onClick: function () { if (self._switcher) self._switcher.rename(); } },
+            { id: "delete", label: "Delete…", onClick: function () { if (self._switcher) self._switcher.remove(); } },
+            { id: "cancel", label: "Cancel", onClick: function (d) { d.close(); } }];
         if (this._addressOf) actions.push({ id: "newtab", label: "Open in new tab", onClick: function () { self._go(true); } });
         actions.push({ id: "open", label: "Open", primary: true, onClick: function () { self._go(false); } });
         this._dialog = new Dialog(branch, {

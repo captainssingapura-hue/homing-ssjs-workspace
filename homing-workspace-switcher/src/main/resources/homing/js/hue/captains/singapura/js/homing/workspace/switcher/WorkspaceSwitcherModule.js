@@ -35,6 +35,7 @@
 //                         has, and the workspace at the table's cursor when it is of that kind,
 //                         else "", the kind's own - fresh on the new row; null while nothing is chosen
 //   switcher.prefer(workspaceId)   the workspace the table's cursor lands on whenever its kind is shown
+//   switcher.rename()  switcher.remove()   the table's F2 and Delete, as a host's verbs
 //   switcher.activate()   the tree is asked for the keys
 //   switcher.dispose()
 // =============================================================================
@@ -109,6 +110,12 @@ class WorkspaceSwitcher {
     }
 
     prefer(workspaceId) { this._instances.prefer(workspaceId); }
+
+    /** The workspace at the table's cursor, its name taken - a host's Rename; false when there is none. */
+    rename() { return this._instances.rename(); }
+
+    /** The workspace at the table's cursor, asked to be deleted - a host's Delete; false when there is none. */
+    remove() { return this._instances.remove(); }
 
     /** Asked for the keys: its tree is asked. A host never claims for what it holds. */
     activate() { this._kinds.activate(); }
