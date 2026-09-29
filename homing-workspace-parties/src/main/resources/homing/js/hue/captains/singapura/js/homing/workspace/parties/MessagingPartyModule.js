@@ -21,7 +21,9 @@
 //
 //   new MessagingParty(type, secretary)
 //     type       a party type, generated from its Java declaration (PartyType):
-//                { name, kinds: { Kind: { field: "string" | "number" | "boolean" } } }
+//                { name, kinds: { Kind: { field: shape } } } - a shape "string" | "number" |
+//                "boolean"; { field: shape }, a record; [shape], a list. Plain data all the
+//                way down, checked all the way down, and handed on frozen all the way down
 //     secretary  { initial, behavior(state, envelope) → { newState, actions } }, pure
 //   party.type
 //   party.join(name, reactors) → the membership
@@ -129,14 +131,53 @@ class MessagingParty {
                                refused: this._refused.slice(), stopped: this._stopped.slice(), bubbled: this._bubbled.slice(), threw: this._threw.slice() });
     }
 
-    /** Why a message does not read as one of the type's kinds, or null: every field declared, of its type, and no other. */
+    /**
+     * Why a message does not read as one of the type's kinds, or null: every field declared, of its shape,
+     * and no other - all the way down, a record's fields and a list's every item alike; the first that does
+     * not read is said by where it is, Snapshot.world.platforms[3].x.
+     */
     static check(type, message) {
         if (!message || typeof message !== "object" || Array.isArray(message)) return "a message is an object with a kind";
         var shape = Object.prototype.hasOwnProperty.call(type.kinds, message.kind) ? type.kinds[message.kind] : null;
         if (!shape) return "'" + message.kind + "' is not a kind of " + type.name + ": " + Object.keys(type.kinds).join(", ");
-        for (var f in shape) if (typeof message[f] !== shape[f]) return message.kind + "." + f + " is a " + shape[f] + ", not " + (message[f] === undefined ? "missing" : typeof message[f]);
-        for (var k in message) if (k !== "kind" && !Object.prototype.hasOwnProperty.call(shape, k)) return message.kind + " has no field '" + k + "'";
+        return MessagingParty._fields(shape, message, message.kind, true);
+    }
+
+    /** Why a value is not of its shape, or null: a typeof, for text, a number, a truth; [shape], a list of it; { field: shape }, a record. */
+    static _reads(shape, value, at) {
+        var what = value === undefined ? "missing" : value === null ? "null" : Array.isArray(value) ? "a list" : typeof value;
+        if (typeof shape === "string") return typeof value === shape ? null : at + " is a " + shape + ", not " + what;
+        if (Array.isArray(shape)) {
+            if (!Array.isArray(value)) return at + " is a list, not " + what;
+            for (var i = 0; i < value.length; i++) {
+                var why = MessagingParty._reads(shape[0], value[i], at + "[" + i + "]");
+                if (why) return why;
+            }
+            return null;
+        }
+        if (!value || typeof value !== "object" || Array.isArray(value)) return at + " is a record, not " + what;
+        return MessagingParty._fields(shape, value, at, false);
+    }
+
+    /** A record's fields, each of its shape, and no other - a message's kind aside. */
+    static _fields(shape, value, at, isMessage) {
+        for (var f in shape) {
+            var why = MessagingParty._reads(shape[f], value[f], at + "." + f);
+            if (why) return why;
+        }
+        for (var k in value) if (!(isMessage && k === "kind") && !Object.prototype.hasOwnProperty.call(shape, k)) return at + " has no field '" + k + "'";
         return null;
+    }
+
+    /** A copy, frozen all the way down: what one member is handed, none can change for another. Plain data, as checked. */
+    static _frozen(v) {
+        if (Array.isArray(v)) return Object.freeze(v.map(MessagingParty._frozen));
+        if (v && typeof v === "object") {
+            var o = {};
+            Object.keys(v).forEach(function (k) { o[k] = MessagingParty._frozen(v[k]); });
+            return Object.freeze(o);
+        }
+        return v;
     }
 
     // ── the passages ───────────────────────────────────────────────────────
@@ -216,7 +257,7 @@ class MessagingParty {
     _entered(message, from) {
         var why = MessagingParty.check(this.type, message);
         if (why) { this._refuse(message, from, why); return null; }
-        return Object.freeze(Object.assign({}, message));
+        return MessagingParty._frozen(message);
     }
 
     _refuse(message, from, why) {

@@ -85,11 +85,20 @@ class PartySimulator {
         return true;
     }
 
-    /** A kind's template: each field at a blank of its type. */
+    /** A kind's template: each field at a blank of its shape - a record's fields likewise, a list empty. */
     static template(type, kind) {
-        var shape = type.kinds[kind], m = { kind: kind };
-        Object.keys(shape).forEach(function (f) { m[f] = shape[f] === "number" ? 0 : shape[f] === "boolean" ? false : ""; });
-        return m;
+        var m = PartySimulator._blank(type.kinds[kind]);
+        return Object.assign({ kind: kind }, m);
+    }
+
+    static _blank(shape) {
+        if (shape === "number") return 0;
+        if (shape === "boolean") return false;
+        if (typeof shape === "string") return "";
+        if (Array.isArray(shape)) return [];
+        var r = {};
+        Object.keys(shape).forEach(function (f) { r[f] = PartySimulator._blank(shape[f]); });
+        return r;
     }
 
     static _option(branch, name, value, text) {

@@ -2,6 +2,11 @@ package hue.captains.singapura.js.homing.workspace.parties;
 
 import hue.captains.singapura.js.homing.core.ModuleImports;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -70,7 +75,7 @@ public record PartyType<M>(String name, Class<M> vocabulary, Optional<ModuleImpo
             if (!seen.add(kind.getSimpleName())) throw new IllegalArgumentException("PartyType '" + name + "': two kinds named " + kind.getSimpleName());
             for (var c : kind.getRecordComponents()) {
                 if (c.getName().equals("kind")) throw new IllegalArgumentException("PartyType '" + name + "': " + kind.getSimpleName() + " has a field named kind, which is the message's own");
-                jsType(c.getType());   // refused here, not when the page is served
+                shape(c.getGenericType());   // refused here, not when the page is served
             }
         }
         if (seen.isEmpty()) throw new IllegalArgumentException("PartyType '" + name + "': a vocabulary of no kinds");
@@ -88,25 +93,47 @@ public record PartyType<M>(String name, Class<M> vocabulary, Optional<ModuleImpo
     public String constName() { return name.replace('-', '_').toUpperCase(Locale.ROOT); }
 
     /**
-     * The type in JavaScript, one frozen constant:
-     * {@code const BOOK_SELECTION = Object.freeze({ name: "book-selection", kinds: { Select: { id: "string" }, … } })}.
+     * The type in JavaScript, one frozen constant - each kind its fields' shapes:
+     * {@code const BOOK_SELECTION = Object.freeze({ name: "book-selection", kinds: { Select: { id: "string" }, … } })};
+     * a record field, the object of its fields' shapes, {@code { x: "number", … }}; a list, the one shape all
+     * it holds has, in brackets, {@code [{ x: "number", … }]}.
      */
     public String js() {
-        String kinds = kinds().stream().map(k -> {
-            String fields = java.util.Arrays.stream(k.getRecordComponents())
-                    .map(c -> c.getName() + ": \"" + jsType(c.getType()) + "\"")
-                    .collect(Collectors.joining(", "));
-            return k.getSimpleName() + ": Object.freeze({" + (fields.isEmpty() ? "" : " " + fields + " ") + "})";
-        }).collect(Collectors.joining(", "));
+        String kinds = kinds().stream().map(k -> k.getSimpleName() + ": " + record(k, new ArrayDeque<>())).collect(Collectors.joining(", "));
         return "const " + constName() + " = Object.freeze({ name: \"" + name + "\", kinds: Object.freeze({ " + kinds + " }) });";
     }
 
-    /** A field's type as JavaScript's typeof says it: text, a number, or a truth. Anything else is refused. */
+    /**
+     * A field's shape, as the page checks it: text, a number or a truth as {@code typeof} says it; a
+     * RECORD of such fields, the object of their shapes; a LIST of any of these, the one shape all it holds
+     * has. Plain data all the way down - what JSON could carry - so a message is a plain object a page
+     * can check, copy and freeze. Anything else is refused: a map, an array, an optional, a raw or a
+     * wildcard list, a record that holds itself.
+     */
+    static String shape(Type t) { return shape(t, new ArrayDeque<>()); }
+
+    private static String shape(Type t, Deque<Class<?>> within) {
+        if (t instanceof ParameterizedType p && p.getRawType() == List.class) return "Object.freeze([" + shape(p.getActualTypeArguments()[0], within) + "])";
+        if (t instanceof Class<?> c && c.isRecord()) return record(c, within);
+        if (t instanceof Class<?> c) return "\"" + jsType(c) + "\"";
+        throw new IllegalArgumentException("a message's field is text, a number, a truth, a record of such, or a list of such - not " + t.getTypeName());
+    }
+
+    /** A record's fields' shapes, as one frozen object; a record already being read, refused - it would hold itself. */
+    private static String record(Class<?> r, Deque<Class<?>> within) {
+        if (within.contains(r)) throw new IllegalArgumentException("a message's record holds itself: " + r.getName());
+        within.push(r);
+        String fields = Arrays.stream(r.getRecordComponents()).map(c -> c.getName() + ": " + shape(c.getGenericType(), within)).collect(Collectors.joining(", "));
+        within.pop();
+        return "Object.freeze({" + (fields.isEmpty() ? "" : " " + fields + " ") + "})";
+    }
+
+    /** A scalar field's type as JavaScript's typeof says it: text, a number, or a truth. Anything else is refused. */
     static String jsType(Class<?> t) {
         if (t == String.class) return "string";
         if (t == boolean.class || t == Boolean.class) return "boolean";
         if (t == int.class || t == long.class || t == double.class || t == float.class || t == short.class || t == byte.class
                 || Number.class.isAssignableFrom(t)) return "number";
-        throw new IllegalArgumentException("a message's field is text, a number or a truth, not " + t.getName());
+        throw new IllegalArgumentException("a message's field is text, a number, a truth, a record of such, or a list of such - not " + t.getName());
     }
 }
