@@ -27,7 +27,7 @@
 // first region.
 //
 //   new GridWorkspace(branch, { host, manifest, keyboard?, menus?, budget?, log?, state?, logged?, checkpointer?, readOnly?, server?, fresh? })
-//     manifest  { name, kinds: { [kind]: { Widget, title, parties } }, parties: [{ type, secretary }] }
+//     manifest  { name, kinds: { [kind]: { Widget, title, parties, single? } }, parties: [{ type, secretary }] }
 //     state     a WorkspaceState to come back to: every layer, as its log folds
 //     fresh     ({ ws_id, ws_server }) → the page's own link to a new workspace of its kind, for the log bar
 //     keyboard, menus  the page's KeyboardSteward and ContextMenuSteward - its own menus unless handed
@@ -36,7 +36,10 @@
 //   ws.core .tabs .placement .parties .desk .docks .recorder .logBar .checkpointer
 //   ws.restored { same, state, read, strays, skipped }, or null
 //   ws.request(request) → what the core gives, or null when it could not be done (said)
-//   ws.open(kind, params?, location?)   ws.close(id)   ws.rename(id, name | null)   asked as requests
+//   ws.open(kind, params?, location?)   ws.close(id)   ws.rename(id, name | null)   asked as requests -
+//                but a SINGLE kind the workspace holds already is not opened again: the one there
+//                is shown, and handed the keys when the open was asked with them
+//   GridWorkspace.held(kinds, entries, kind) → the widget of a single kind the workspace holds, or null
 //   ws.titleOf(entry)   ws.kindOf(tabId)   ws.stopRecording()   ws.dispose()
 // =============================================================================
 
@@ -128,7 +131,28 @@ class GridWorkspace {
         catch (e) { console.error("[GridWorkspace] " + r.kind + " was not done: " + e.message); return null; }
     }
 
-    open(kind, params, location) { return this.request(WorkspaceRequest.open(kind, params || {}, location || null)); }
+    open(kind, params, location) {
+        var one = GridWorkspace.held(this._kinds, this.core.entries(), kind);
+        if (one) return this._shown(one, location);
+        return this.request(WorkspaceRequest.open(kind, params || {}, location || null));
+    }
+
+    /** A single kind's widget, if the workspace holds one: at most one is ever made. */
+    static held(kinds, entries, kind) {
+        var k = kinds[kind];
+        if (!k || k.single !== true) return null;
+        return entries.filter(function (e) { return e.kind === kind; })[0] || null;
+    }
+
+    /** Shown rather than made again: its tab to the front, and the keys, when the open asked for them. */
+    _shown(entry, location) {
+        var tp = this.desk.register.get(entry.id);
+        if (tp && tp.host()) {
+            this.desk.show(tp);
+            if (location && location.how === "focus") tp.widget.activate();
+        }
+        return entry;
+    }
 
     close(id) { return this.request(WorkspaceRequest.close(id)); }
 

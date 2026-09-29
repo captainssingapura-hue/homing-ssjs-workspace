@@ -13,7 +13,8 @@ import java.util.stream.Collectors;
  * A workspace's manifest, as its page has it: one frozen constant, generated
  * from its {@link WorkspaceDeclaration} by the module that serves it - the
  * kinds, each its class, its title and the types its declaration says it
- * joins; and the root parties, each its type and the secretary at its root.
+ * joins - and, a kind a workspace holds one of, {@code single: true}; and the
+ * root parties, each its type and the secretary at its root.
  *
  * <pre>
  * const BENCH_WORKSPACE = Object.freeze({ name: "bench-one-pane",
@@ -64,7 +65,8 @@ public final class WorkspaceManifest {
     static String expression(WorkspaceDeclaration d) {
         var roots = d.rootParties();
         String kinds = d.kinds().stream().map(k -> "\"" + k.kind() + "\": Object.freeze({ Widget: " + k.className()
-                        + ", title: \"" + k.title().replace("\"", "\\\"") + "\", parties: Object.freeze([" + names(k.parties()) + "]) })")
+                        + ", title: \"" + k.title().replace("\"", "\\\"") + "\", parties: Object.freeze([" + names(k.parties()) + "])"
+                        + (k.single() ? ", single: true" : "") + " })")
                 .collect(Collectors.joining(", "));
         String parties = roots.stream().map(r -> "Object.freeze({ type: " + r.type().constName() + ", secretary: " + PartyType.exportName(r.secretary()) + " })")
                 .collect(Collectors.joining(", "));

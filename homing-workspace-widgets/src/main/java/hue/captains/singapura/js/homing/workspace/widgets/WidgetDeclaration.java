@@ -73,4 +73,13 @@ public interface WidgetDeclaration<P extends WidgetParams> extends StatelessFunc
      * The widget is given these, and only these: it never says them itself.
      */
     default List<PartyType<?>> parties() { return List.of(); }
+
+    /**
+     * Whether a workspace holds at most one widget of this kind - one that is
+     * the authority for what it does, say: a game others watch, whose stream
+     * two of would tangle. Opened again, the one there is shown instead of a
+     * second made. A function of the kind alone, as its parties are. Many,
+     * unless said.
+     */
+    default boolean single() { return false; }
 }
