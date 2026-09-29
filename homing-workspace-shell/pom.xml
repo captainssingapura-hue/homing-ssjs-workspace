@@ -130,6 +130,12 @@
             <artifactId>homing-workspace-widgets</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <!-- The arrangements' core models: a split grid's arrangement, generated for the page. JDK only. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-groups-core-models</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

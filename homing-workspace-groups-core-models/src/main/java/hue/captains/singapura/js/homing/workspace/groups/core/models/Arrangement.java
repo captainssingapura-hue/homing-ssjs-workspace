@@ -19,7 +19,7 @@ import java.util.Optional;
  * each placed, once, and nothing placed that it does not open.</p>
  *
  * @param workspace what is arranged
- * @param widgets   the widgets it opens, in the order they are made
+ * @param widgets   the widgets it opens, as it lists them; the engine makes them in its placement's order
  * @param placement where they go, in the engine's vocabulary
  * @param <W> the workspace
  * @param <P> the engine's placement
@@ -61,7 +61,7 @@ public record Arrangement<W extends WorkspaceSpec, P extends Placement>(W worksp
         return Optional.empty();
     }
 
-    /** The widgets, by the names it gives them, in the order they are made. */
+    /** The widgets, by the names it gives them, as it lists them. */
     public Map<WidgetRef, ArrangedWidget> byRef() {
         var out = new LinkedHashMap<WidgetRef, ArrangedWidget>();
         for (ArrangedWidget w : widgets) out.put(w.ref(), w);

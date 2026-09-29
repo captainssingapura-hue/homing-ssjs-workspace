@@ -77,6 +77,8 @@ public final class WorkspaceShellCrate implements Crate {
                 CrateEntry.of(WorkspacePageModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(GridWorkspaceModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(WidgetTabsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(GridPlacementModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
+                CrateEntry.of(GridPlacementModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                // a split grid's arrangement, laid out on a workspace that has nothing yet
+                CrateEntry.of(GridArrangementModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
     }
 }

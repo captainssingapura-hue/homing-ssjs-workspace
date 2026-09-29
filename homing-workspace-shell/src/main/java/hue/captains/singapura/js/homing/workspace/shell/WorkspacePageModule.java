@@ -81,6 +81,8 @@ public record WorkspacePageModule() implements DomModule<WorkspacePageModule> {
                 // the slot is a reading column until an app says otherwise; a shell of panes says otherwise
                 .add(new ModuleImports<>(List.of(new MpaStyles.mpa_main_full()), MpaStyles.INSTANCE))
                 .add(new ModuleImports<>(List.of(new GridWorkspaceModule.GridWorkspace()), GridWorkspaceModule.INSTANCE))
+                // a split grid's arrangement, laid out on a log that holds nothing yet
+                .add(new ModuleImports<>(List.of(new GridArrangementModule.GridArrangement()), GridArrangementModule.INSTANCE))
                 // its log: the store, where it is kept, whose it is, one writer at a time, the load, the checkpoints, the list
                 .add(new ModuleImports<>(List.of(new WorkspaceLogStoreModule.WorkspaceLogStore()), WorkspaceLogStoreModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceLogIdentityModule.WorkspaceLogIdentity()), WorkspaceLogIdentityModule.INSTANCE))

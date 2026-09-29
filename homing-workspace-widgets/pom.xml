@@ -35,6 +35,12 @@
             <artifactId>homing-workspace-parties</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <!-- What an arrangement needs of a workspace (WorkspaceSpec): a declaration is one. JDK only. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-groups-core-models</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
         <!-- The party a widget mints its elements from, and the keys: its focus
              member, the steward's convention (Keys), what it declares it takes. -->
         <dependency>

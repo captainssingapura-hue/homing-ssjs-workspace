@@ -51,6 +51,8 @@ class PlacementsTest {
         assertEquals(List.of(1, 1), SplitGrid.row(SplitGrid.region("a"), SplitGrid.region("b")).parts().stream().map(Part::weight).toList(), "frames alone: equal parts");
         assertThrows(IllegalArgumentException.class, () -> SplitGrid.row(Part.of(SplitGrid.region("a"))));
         assertThrows(IllegalArgumentException.class, () -> Part.of(SplitGrid.region("a"), 0));
+        assertThrows(IllegalArgumentException.class, () -> SplitGrid.row(SplitGrid.region("a"), SplitGrid.row(SplitGrid.region("b"), SplitGrid.region("c"))),
+                "a row in a row is one row");
     }
 
     @Test

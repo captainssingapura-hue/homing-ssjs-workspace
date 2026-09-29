@@ -16,6 +16,9 @@
 //               what it adds to it, a member of its root parties - here is { workspaceKind,
 //               workspaceId }, the workspace the page shows; detach, called before the
 //               workspace is disposed, undoes it (a take-over builds it again)
+//     opts.arrangement  the workspace's first state in the split grid (GridArrangement, from
+//               its Arrangement in Java): laid out when this page writes a log that holds
+//               nothing yet, through the grid and the core, so the log keeps it
 //
 // The log is the workspace's: kept in IndexedDB under its kind and its id,
 // typed, the workspace listed beside it under a name of its own the first time
@@ -82,8 +85,17 @@ class WorkspacePage {
                                                                             readOnly: !writes(), checkpointer: writes() ? checkpointer() : null,
                                                                             server: p.ws_server === "on", fresh: opts && opts.fresh });
             if (ws.logBar) ws.logBar.lock(lock.state, takeOver);
+            if (!logged && writes()) arranged();   // a log that holds no event, whatever it folds to
             attached();
             named();
+        }
+        // A log that holds nothing yet, written here: the workspace's first state, as its arrangement has it - said, not thrown, when it fails.
+        function arranged() {
+            var a = opts && opts.arrangement;
+            if (!a) return;
+            if (a.workspace !== manifest.name) { console.error("[WorkspacePage] an arrangement of " + a.workspace + " is not " + manifest.name + "'s: left alone"); return; }
+            try { GridArrangement.apply(ws, a); }
+            catch (e) { console.error("[WorkspacePage] the arrangement was not laid out:", e); }
         }
         // The app's own, added to the workspace built: said, not thrown, when it fails - the workspace stands without it.
         function attached() {

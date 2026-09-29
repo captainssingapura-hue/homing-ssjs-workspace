@@ -1,6 +1,9 @@
 package hue.captains.singapura.js.homing.workspace.widgets;
 
 import hue.captains.singapura.js.homing.core.ModuleImports;
+import hue.captains.singapura.js.homing.workspace.groups.core.models.WidgetKind;
+import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceKind;
+import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceSpec;
 import hue.captains.singapura.js.homing.workspace.parties.PartyType;
 import hue.captains.singapura.tao.ontology.StatelessFunctionalObject;
 
@@ -10,13 +13,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
  * A workspace, declared: its name, the kinds that can be opened in it, and the
  * secretaries it puts at the root of a party in place of a type's default.
  * A stateless object: everything a page needs to stand the workspace up, known
- * before anything runs.
+ * before anything runs. And a WorkspaceSpec - its kind, the kinds of widget it
+ * offers - which is all an arrangement of it needs.
  *
  * <p>Its ROOT PARTIES are resolved here, at type level (Messaging Parties Are
  * Joined Top-Down): one of each type any of its kinds declares, in the order
@@ -27,7 +32,7 @@ import java.util.regex.Pattern;
  * build, never the page - as does a secretary put at the root of a type no
  * kind joins.</p>
  */
-public interface WorkspaceDeclaration extends StatelessFunctionalObject {
+public interface WorkspaceDeclaration extends StatelessFunctionalObject, WorkspaceSpec {
 
     /** A workspace's name: a kind of workspace, and of its log - letters, digits, hyphen, underscore. */
     Pattern NAME = Pattern.compile("[A-Za-z0-9_-]+");
@@ -37,6 +42,16 @@ public interface WorkspaceDeclaration extends StatelessFunctionalObject {
 
     /** What can be opened in it, in the order a page offers them. */
     List<WidgetDeclaration<?>> kinds();
+
+    /** As an arrangement sees it: its kind is its name. */
+    @Override default WorkspaceKind workspaceKind() { return WorkspaceKind.of(name()); }
+
+    /** As an arrangement sees it: the kinds that can be opened in it. */
+    @Override default Set<WidgetKind> widgetKinds() {
+        var out = new HashSet<WidgetKind>();
+        for (WidgetDeclaration<?> k : kinds()) out.add(WidgetKind.of(k.kind()));
+        return Set.copyOf(out);
+    }
 
     /** The secretaries it puts at the root of a party in place of the type's default: by the type's name. None, unless said. */
     default Map<String, ModuleImports<?>> secretaries() { return Map.of(); }

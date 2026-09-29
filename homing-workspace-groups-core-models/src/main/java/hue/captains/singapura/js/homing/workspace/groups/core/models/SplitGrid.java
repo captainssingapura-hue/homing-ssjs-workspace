@@ -72,12 +72,21 @@ public record SplitGrid(Frame frame) implements Placement {
     /** Which way a split lays its parts: HORIZONTAL in a row, VERTICAL in a stack - as the grid's layout says it. */
     public enum Axis { HORIZONTAL, VERTICAL }
 
-    /** Two or more parts along an axis. */
+    /**
+     * Two or more parts along an axis. A part is a region, or a split along the
+     * other axis: a row in a row is one row, and the grid lays it so - said once,
+     * with its parts' weights.
+     */
     public record Split(Axis axis, List<Part> parts) implements Frame {
         public Split {
             Objects.requireNonNull(axis, "Split.axis");
             parts = List.copyOf(Objects.requireNonNull(parts, "Split.parts"));
             if (parts.size() < 2) throw new IllegalArgumentException("a split of " + parts.size() + " - two parts or more");
+            for (Part p : parts) {
+                if (p.frame() instanceof Split s && s.axis() == axis) {
+                    throw new IllegalArgumentException("a " + axis + " split in a " + axis + " split - one split: give its parts to the outer one");
+                }
+            }
         }
 
         /** The weights, all together: what each part's weight is a share of. */
