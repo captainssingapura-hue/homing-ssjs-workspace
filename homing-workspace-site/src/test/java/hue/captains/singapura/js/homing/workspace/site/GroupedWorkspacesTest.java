@@ -91,19 +91,17 @@ class GroupedWorkspacesTest {
     }
 
     @Test
-    void thePagesParams_theRoutesGroup_thenWhichWorkspace_thenAWorkspacePages() {
+    void thePagesParams_theRoutesGroup_andTheServersWord_nothingOfWhatIsInsideTheGroup() {
         var codec = GroupedWorkspacePageModule.CODEC;
-        String id = "0f1b6c2e-5000-4000-8f1b-6c2e00000001";
-        var p = codec.from(Map.of("ws_group", List.of("demo"), "ws_id", List.of(id), "ws_server", List.of("on"))).orNull();
-        assertEquals(new GroupedWorkspacePageModule.Params("demo", id, null, true), p);
+        var p = codec.from(Map.of("ws_group", List.of("demo"), "ws_server", List.of("on"))).orNull();
+        assertEquals(new GroupedWorkspacePageModule.Params("demo", true), p);
         assertEquals(p, codec.from(codec.to(p)).orNull(), "what it writes it reads back");
-        var named = codec.from(Map.of("ws_group", List.of("demo"), "ws_name", List.of("  Reading list "))).orNull();
-        assertEquals(new GroupedWorkspacePageModule.Params("demo", null, "Reading list", false), named, "a name, trimmed");
-        assertEquals(named, codec.from(codec.to(named)).orNull());
-        assertEquals(new GroupedWorkspacePageModule.Params("demo", null, null, false), codec.from(Map.of("ws_group", List.of("demo"), "ws_name", List.of("  "))).orNull(), "a blank name: none");
+        assertEquals(new GroupedWorkspacePageModule.Params("demo", false),
+                codec.from(Map.of("ws_group", List.of("demo"), "ws_id", List.of("not read"), "ws_name", List.of("nor this"), "ws_kind", List.of("x"))).orNull(),
+                "which kind, and which workspace of it, are the anchor's: never read from the query");
         assertInstanceOf(Decoded.Missing.class, codec.from(Map.of()));
         assertInstanceOf(Decoded.Malformed.class, codec.from(Map.of("ws_group", List.of("no such/group"))));
-        assertInstanceOf(Decoded.Malformed.class, codec.from(Map.of("ws_group", List.of("demo"), "ws_id", List.of(id.toUpperCase()))));
+        assertInstanceOf(Decoded.Malformed.class, codec.from(Map.of("ws_group", List.of("demo"), "ws_server", List.of("https://elsewhere"))));
     }
 
     /** Two regions waiting, side by side: an arrangement of a workspace that opens nothing. */

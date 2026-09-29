@@ -20,7 +20,8 @@
 //
 //   new WorkspaceKeeping({ catalogue, here, keyboard, addressOf, named? })
 //     here       { workspaceKind, workspaceId } the page shows
-//     addressOf  (kind, id) → a workspace's address, or null for a kind the site does not serve
+//     addressOf  (kind, id, name?) → a workspace's address - by its name, when said - or null for a
+//                kind the site does not serve
 //     named      (WorkspaceEntry) → the page's own workspace called otherwise
 //   keeping.create(kind, name) → Promise<address | null>; a name taken, refused
 //   keeping.rename(kind, id, name) → Promise<{ changed, note }>
@@ -46,7 +47,7 @@ class WorkspaceKeeping {
     create(kind, name) {
         if (!this._addressOf(kind, "")) return Promise.resolve(null);
         var id = WorkspaceLogIdentity.fresh(), self = this;
-        return this._catalogue.opened(new LogKey(new WorkspaceKind(kind), id), name || "").then(function () { return self._addressOf(kind, id.id); });
+        return this._catalogue.opened(new LogKey(new WorkspaceKind(kind), id), name || "").then(function (entry) { return self._addressOf(kind, id.id, entry.name.value); });
     }
 
     rename(kind, id, name) {

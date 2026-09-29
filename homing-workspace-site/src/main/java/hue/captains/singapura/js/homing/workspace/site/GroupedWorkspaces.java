@@ -44,8 +44,9 @@ import java.util.stream.Collectors;
  * outside at {@code /<group id>}; everything inside it is the group's own - a kind
  * is where the group files it, its {@link GroupPath}, named by the page's anchor
  * {@code #ws/<section>/<kind>}, which never reaches the server; which workspace of
- * the kind is a parameter, {@code ?ws_id=} or {@code ?ws_name=}, never a position.
- * The site's root sends to the first group, so a group has one address.</p>
+ * the kind is a parameter, never a position - the anchor's query, at its end,
+ * {@code ?ws_name=} or {@code ?ws_id=}. The site's root sends to the first group, so
+ * a group has one address.</p>
  *
  * <p>And how each is arranged the first time, engine by engine - its
  * {@link WorkspaceArrangements}, the declarer's, as the workspace is: a workspace
@@ -123,7 +124,7 @@ public record GroupedWorkspaces(WorkspaceGroups groups, List<WorkspaceDeclaratio
      */
     public <M extends AppModule<GroupedWorkspacePageModule.Params, M>> Router router(StandardMpa mpa, M app, boolean server) {
         Map<String, AppPage<GroupedWorkspacePageModule.Params, M>> pages = new LinkedHashMap<>();
-        for (var g : groups.groups()) pages.put(g.id().value(), mpa.page(app, new GroupedWorkspacePageModule.Params(g.id().value(), null, null, server)));
+        for (var g : groups.groups()) pages.put(g.id().value(), mpa.page(app, new GroupedWorkspacePageModule.Params(g.id().value(), server)));
         String home = address(home());
         return path -> {
             if (path.isRoot()) return Optional.of(q -> sentTo(home, q));

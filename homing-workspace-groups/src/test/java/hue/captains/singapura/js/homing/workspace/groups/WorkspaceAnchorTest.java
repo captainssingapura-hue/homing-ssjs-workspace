@@ -69,6 +69,27 @@ class WorkspaceAnchorTest extends JsModuleTestBase {
     }
 
     @Test
+    void whichWorkspaceOfTheKind_isTheAnchorsQuery_atItsEnd_aNameAsAFormWritesIt() {
+        assertEquals("ws/everyday-work/books?ws_name=Reading+list", eval("WorkspaceAnchor.of(studio, 'books', { name: 'Reading list' })"));
+        assertEquals("ws/everyday-work/books?ws_name=C%2B%2B+%26+more", eval("WorkspaceAnchor.of(studio, 'books', { name: 'C++ & more' })"), "a + or an & in a name, escaped");
+        assertEquals("ws/everyday-work/books?ws_id=7f1b-2", eval("WorkspaceAnchor.of(studio, 'books', { id: '7f1b-2' })"));
+        assertEquals("ws/everyday-work/books?ws_name=Reading+list", eval("WorkspaceAnchor.of(studio, 'books', { name: 'Reading list', id: '7f1b-2' })"), "the name, when there is one");
+        assertEquals("ws/everyday-work/books", eval("WorkspaceAnchor.of(studio, 'books', {})"), "the kind's own: nothing more");
+    }
+
+    @Test
+    void theQueryIsReadBack_theKindFromThePathAlone() {
+        assertEquals("books exact Reading list|C++ & more|null",
+                eval("var a = WorkspaceAnchor.read(studio, 'ws/everyday-work/books?ws_name=Reading+list'), b = WorkspaceAnchor.read(studio, 'ws/everyday-work/books?ws_name=C%2B%2B+%26+more');"
+                        + "[a.kind + ' ' + a.said + ' ' + a.workspaceName, b.workspaceName, String(a.workspaceId)].join('|')"));
+        assertEquals("monitors moved ws/watching/monitors ?ws_id=7f1b-2 7f1b-2",
+                eval("var r = WorkspaceAnchor.read(studio, 'ws/monitors?ws_id=7f1b-2'); [r.kind, r.said, r.anchor, r.query, r.workspaceId].join(' ')"), "the path moved, the query kept");
+        assertEquals("null null", eval("var r = WorkspaceAnchor.read(studio, 'ws/watching/monitors?ws_name=+&other=1'); [String(r.workspaceId), String(r.workspaceName)].join(' ')"),
+                "a blank name is none, and what it does not know is nothing");
+        assertEquals("books unknown", eval("var r = WorkspaceAnchor.read(studio, 'ws?ws_name=x'); [r.kind, r.said].join(' ')"));
+    }
+
+    @Test
     void itReadsAGroup_andNothingElse() {
         assertThrows(PolyglotException.class, () -> eval("WorkspaceAnchor.read(null, 'ws/watching/monitors')"));
         assertEquals("bench-one-pane ws/on-this-bench/bench-one-pane none", eval("var r = WorkspaceAnchor.read(bench, ''); [r.kind, r.anchor, r.said].join(' ')"));

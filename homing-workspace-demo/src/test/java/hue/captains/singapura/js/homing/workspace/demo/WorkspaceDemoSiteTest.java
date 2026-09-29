@@ -49,13 +49,11 @@ class WorkspaceDemoSiteTest {
     }
 
     @Test
-    void theQueryNamesOneWorkspaceOfTheKind_byIdOrByName_theRouteItsGroup() {
-        String id = "0f1b6c2e-5000-4000-8f1b-6c2e00000001";
-        String html = page("/demo", Query.parse("ws_id=" + id + "&ws_group=elsewhere&ws_kind=monitors"));
-        assertTrue(html.contains("\"ws_id\":\"" + id + "\""), "which workspace of the kind: the address's");
+    void theRouteNamesTheGroup_andTheQueryNothingInsideIt() {
+        String html = page("/demo", Query.parse("ws_id=0f1b6c2e-5000-4000-8f1b-6c2e00000001&ws_name=Reading%20list&ws_group=elsewhere&ws_kind=monitors"));
         assertTrue(html.contains("\"ws_group\":\"demo\""), "which group: the route's, whatever the address says");
-        assertFalse(html.contains("ws_kind"), "a kind in the query is nothing");
-        assertTrue(page("/demo", Query.parse("ws_name=Reading%20list")).contains("\"ws_name\":\"Reading list\""), "or what it is called");
+        assertFalse(html.contains("ws_id") || html.contains("ws_name") || html.contains("ws_kind"),
+                "which kind, and which workspace of it, are the anchor's - #ws/<section>/<kind>?ws_name=…");
     }
 
     /** The two sets' kinds, together; each set on its own; no switcher in any - switching is the page's; the root parties as their kinds join. */
@@ -77,16 +75,12 @@ class WorkspaceDemoSiteTest {
         assertEquals(0, MonitorsWorkspace.INSTANCE.rootParties().size(), "the monitors join none");
     }
 
-    /** A grouped page's params: the group, then which workspace of the anchor's kind - by the id its log is kept under, or by name - and the server's word, only "on". */
+    /** A grouped page's params: the group, and the server's word - only "on". */
     @Test
-    void theParams_theGroupThenOneWorkspace_andTheServersWord() {
-        String id = "0f1b6c2e-5000-4000-8f1b-6c2e00000001";
+    void theParams_theGroup_andTheServersWord() {
         var codec = GroupedWorkspacePageModule.CODEC;
-        assertTrue(codec.from(Map.of("ws_group", List.of("demo"), "ws_id", List.of(id))).isOk());
-        assertTrue(codec.from(Map.of("ws_group", List.of("demo"), "ws_name", List.of("Reading list"))).isOk());
-        assertTrue(codec.from(Map.of("ws_group", List.of("demo"))).isOk(), "no id, no name: the kind's own");
-        assertInstanceOf(Decoded.Missing.class, codec.from(Map.of("ws_id", List.of(id))));
-        assertInstanceOf(Decoded.Malformed.class, codec.from(Map.of("ws_group", List.of("demo"), "ws_id", List.of(id.toUpperCase()))));
+        assertTrue(codec.from(Map.of("ws_group", List.of("demo"))).isOk());
+        assertInstanceOf(Decoded.Missing.class, codec.from(Map.of("ws_server", List.of("on"))));
         assertInstanceOf(Decoded.Malformed.class, codec.from(Map.of("ws_group", List.of("demo"), "ws_server", List.of("https://elsewhere"))));
     }
 

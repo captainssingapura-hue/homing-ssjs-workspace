@@ -6,23 +6,25 @@
 // switcher on it shows them.
 //
 // THE AUTHENTIC PATH (RFC 0058). The group is the page, reached from outside
-// by its address, "/<group>"; everything inside it is the group's own:
-//   /<group>#ws/<section>/<kind>              a kind, its own workspace
-//   /<group>?ws_id=<id>#ws/<section>/<kind>   one workspace of the kind, by its id
-//   /<group>?ws_name=<name>#ws/<section>/<kind>   ... by what it is called - its
-//                                             case aside; listed, else deleted and
-//                                             so brought back
-// The kind is a position, in the anchor (WorkspaceAnchor), which never reaches
-// the server; which workspace of it is a parameter, in the query. No anchor is
-// the group's default; a kind under another path is moved to its own, in
-// place; a workspace's anchor naming nothing of the group is the default, and
-// the log bar says so - as it does a name that calls none, the kind's own
-// shown. The id outranks the name. The trail the server wrote ends at the
-// group; the page carries it on - the section, the workspace.
+// by its address, "/<group>"; everything inside it is the group's own, in the
+// anchor (WorkspaceAnchor), which never reaches the server:
+//   /<group>#ws/<section>/<kind>                    a kind, its own workspace
+//   /<group>#ws/<section>/<kind>?ws_name=<name>     one of its others, by what it is
+//                                                   called - its case aside; listed, else
+//                                                   deleted and so brought back
+//   /<group>#ws/<section>/<kind>?ws_id=<id>         ... by its id - a new one, not named yet
+// The kind is a position; which workspace of it is a parameter - the anchor's
+// query, at its end. The id outranks the name, and the address says the name
+// once the catalogue has one: a workspace is called by what it is called, and
+// called again so when it is renamed. No anchor is the group's default; a
+// kind under another path is moved to its own, in place; a workspace's anchor
+// naming nothing of the group is the default, and the log bar says so - as it
+// does a name that calls none, the kind's own shown. The trail the server
+// wrote ends at the group; the page carries it on - the section, the workspace.
 //
-// Another anchor once the page stands: the same kind's, said as it is;
-// another kind's, that kind's page, its own workspace - the query named one of
-// this kind. A heading's anchor is not the workspace's, and left alone.
+// Another anchor once the page stands: the workspace it shows, said as it is;
+// any other - another kind's, another of this kind - its page, loaded. A
+// heading's anchor is not the workspace's, and left alone.
 //
 // The page is whoever opens workspaces. Its workspace's root workspace choice
 // party, when it has one, is joined by an opener (WorkspaceOpener) each time
@@ -48,15 +50,15 @@
 //
 //   GroupedWorkspacePage.main(el, params, workspaces, groups, arrangements?)
 //     el          the MPA's slot
-//     params      the page's: ws_group, the route's; ws_id or ws_name, which workspace
-//                 of the kind; ws_server, a workspace page's; the trail, carried on
+//     params      the page's: ws_group, the route's; ws_server, a workspace page's; the
+//                 trail, carried on. Which workspace is the anchor's, never a param
 //     workspaces  the site's manifests, by kind
 //     groups      the site's groups, as the directory is provided them
 //     arrangements  the split grid's, by kind: each workspace's first state, laid out by
 //                 the shell on a log that holds nothing yet; a kind with none starts empty
-//   GroupedWorkspacePage.address(kind, id) → where a workspace of the site is: its group's
-//               page, its id unless it is the kind's own - "", or the own's id - and its
-//               kind's anchor, so one workspace has one address; null for a kind not filed
+//   GroupedWorkspacePage.address(kind, id, name?) → where a workspace of the site is: its
+//               group's page and its kind's anchor, and - unless it is the kind's own, "" or
+//               the own's id - its name when said, else its id; null for a kind not filed
 // =============================================================================
 
 const _groupedPageOwner = Object.freeze({ toString: () => "groupedWorkspacePage" });
@@ -76,10 +78,10 @@ class GroupedWorkspacePage {
             console.error("[GroupedWorkspacePage] no group " + JSON.stringify(p.ws_group) + " on this site");
             return;
         }
-        // THE ANCHOR: which kind of the group - said in the address as it resolved, and in the trail
+        // THE ANCHOR: which kind of the group - its path said as it resolved, and in the trail
         var read = WorkspaceAnchor.read(group, HrefManagerInstance.hash()), kind = read.kind, notices = [];
         if (read.said === "unknown") notices.push("No workspace at “#" + read.asked + "” in " + group.title + " - " + read.workspace.title + " shown");
-        if (read.said === "moved" || read.said === "unknown" || (read.said === "none" && !read.asked)) HrefManagerInstance.replaceHash(read.anchor);
+        if (read.said === "moved" || read.said === "unknown" || (read.said === "none" && !read.asked)) HrefManagerInstance.replaceHash(read.anchor + read.query);
         if (p.trail && typeof p.trail.extend === "function") p.trail.extend([{ text: read.section.title }, { text: read.workspace.title }]);
         var manifest = Object.prototype.hasOwnProperty.call(workspaces, kind) ? workspaces[kind] : null;
         if (!manifest) {
@@ -87,52 +89,72 @@ class GroupedWorkspacePage {
             console.error("[GroupedWorkspacePage] no workspace of the kind " + JSON.stringify(kind) + " on this site");
             return;
         }
-        GroupedWorkspacePage._follow(group, kind);
-        // THE QUERY: which workspace of the kind
+        // ITS QUERY: which workspace of the kind
         var catalogue = new WorkspaceCatalogue({ backend: new IndexedDbLog() });
-        GroupedWorkspacePage._which(catalogue, read, p).then(function (which) {
+        GroupedWorkspacePage._which(catalogue, read).then(function (which) {
             if (which.note) notices.push(which.note);
-            GroupedWorkspacePage._open(el, p, { manifest: manifest, kind: kind, id: which.id, byName: which.byName, notices: notices,
-                                                catalogue: catalogue, arrangement: arrangements && Object.prototype.hasOwnProperty.call(arrangements, kind) ? arrangements[kind] : null });
+            GroupedWorkspacePage._open(el, p, { group: group, manifest: manifest, kind: kind, id: which.id, notices: notices, catalogue: catalogue,
+                                                arrangement: arrangements && Object.prototype.hasOwnProperty.call(arrangements, kind) ? arrangements[kind] : null });
         });
     }
 
     /**
-     * Which workspace of the kind: the query's id; else the one its name calls so - listed, or deleted and so
-     * brought back when opened - the name then kept in the address as the workspace is called; else the kind's own.
+     * Which workspace of the kind: the one the anchor's id says; else the one its name calls so - listed, or
+     * deleted and so brought back when opened; else the kind's own - a name that calls none said, and let go.
      */
-    static _which(catalogue, read, p) {
-        if (p.ws_id || !p.ws_name) return Promise.resolve({ id: p.ws_id || "", byName: false });
+    static _which(catalogue, read) {
+        if (read.workspaceId || !read.workspaceName) return Promise.resolve({ id: read.workspaceId || "" });
         var none = function (why) {
-            HrefManagerInstance.replaceParam("ws_name", null);
-            return { id: "", byName: false, note: why };
+            HrefManagerInstance.replaceHash(read.anchor);
+            return { id: "", note: why };
         };
-        return catalogue.find(new WorkspaceKind(read.kind), p.ws_name).then(function (entry) {
-            return entry ? { id: entry.log.workspace.id, byName: true }
-                         : none("No " + read.workspace.title + " workspace is called “" + p.ws_name + "” - its own shown");
+        return catalogue.find(new WorkspaceKind(read.kind), read.workspaceName).then(function (entry) {
+            return entry ? { id: entry.log.workspace.id } : none("No " + read.workspace.title + " workspace is called “" + read.workspaceName + "” - its own shown");
         }, function (e) {
             console.warn("[GroupedWorkspacePage] the workspaces of " + read.kind + " do not read: " + (e && e.message));
             return none("The workspaces of " + read.workspace.title + " do not read - its own shown");
         });
     }
 
-    /** Another anchor, once the page stands: the same kind's, as it is; another kind's, its page - that kind's own workspace. */
-    static _follow(group, kind) {
+    /**
+     * Another anchor, once the page stands: the workspace it shows, said as it is - its path, and its name;
+     * any other workspace, another kind's or another of this kind, its page, loaded.
+     */
+    static _follow(group, shown) {
         HrefManagerInstance.onHashChange(function (h) {
             if (h && !WorkspaceAnchor.isWorkspace(h)) return;
             var next = WorkspaceAnchor.read(group, h);
-            if (next.kind === kind) { if (next.anchor !== h) HrefManagerInstance.replaceHash(next.anchor); return; }
-            var to = GroupedWorkspacePage.address(next.kind, "");
-            if (to.split("#")[0] !== HrefManagerInstance.current()) { HrefManagerInstance.navigate(to); return; }
-            HrefManagerInstance.replaceHash(next.anchor);
-            HrefManagerInstance.reload();
+            if (!GroupedWorkspacePage._shows(next, shown)) { HrefManagerInstance.reload(); return; }
+            var truth = GroupedWorkspacePage._anchor(group, shown);
+            if (truth !== h) HrefManagerInstance.replaceHash(truth);
         });
+    }
+
+    /** Whether an anchor names the workspace the page shows: its kind, and it - by id, by name, or its own by neither. */
+    static _shows(next, shown) {
+        if (next.kind !== shown.kind) return false;
+        if (next.workspaceId) return next.workspaceId === shown.id;
+        if (next.workspaceName) return !!shown.name && next.workspaceName.trim().toLowerCase() === shown.name.trim().toLowerCase();
+        return shown.own;
+    }
+
+    /** What the address says of the workspace the page shows: its kind's anchor, and its name - by its id until it has one; nothing more, the kind's own. */
+    static _anchor(group, shown) {
+        return WorkspaceAnchor.of(group, shown.kind, shown.own ? null : shown.name ? { name: shown.name } : { id: shown.id });
     }
 
     /** The workspace the page shows, built: its keeping, the page's own choice, and the shell's page. */
     static _open(el, p, o) {
         var kind = o.kind, own = !o.id || o.id === WorkspaceLogIdentity.placeholder(kind);
         var here = Object.freeze({ workspaceKind: kind, workspaceId: own ? WorkspaceLogIdentity.placeholder(kind) : o.id, own: own });
+        var shown = { kind: kind, id: here.workspaceId, own: own, name: null };
+        // the address calls the workspace by what it is called - once it is, and again when it is called otherwise
+        var called = function (entry) {
+            shown.name = entry.name.value;
+            var truth = GroupedWorkspacePage._anchor(o.group, shown);
+            if (truth !== HrefManagerInstance.hash()) HrefManagerInstance.replaceHash(truth);
+        };
+        GroupedWorkspacePage._follow(o.group, shown);
         var go = function (address) { HrefManagerInstance.navigate(address); };
         var goNew = function (address) { HrefManagerInstance.openNew(address); };
         // THE KEEPING of the site's workspaces: made, renamed, deleted - by the page, as its parties ask
@@ -141,7 +163,7 @@ class GroupedWorkspacePage {
                                              addressOf: GroupedWorkspacePage.address,
                                              named: function (entry) {
                                                  if (current && current.logBar) current.logBar.named(entry);
-                                                 if (o.byName) HrefManagerInstance.replaceParam("ws_name", entry.name.value);
+                                                 called(entry);
                                              } });
         var create = function (k, name) { return keeping.create(k, name); };
         // a keeper on each of the page's parties; what one's asking changed, the others say too, for every view of the kind
@@ -165,6 +187,7 @@ class GroupedWorkspacePage {
         WorkspacePage.main(el, Object.assign({}, p, { ws_id: own ? null : o.id }), o.manifest, {
             fresh: function (q) { return GroupedWorkspacePage.address(kind, q && q.ws_id ? q.ws_id : ""); },
             arrangement: o.arrangement,
+            named: called,
             attach: function (ws, here) {
                 current = ws;
                 if (ws.logBar) {
@@ -219,11 +242,11 @@ class GroupedWorkspacePage {
         return /mac/i.test(n ? ((n.userAgentData && n.userAgentData.platform) || n.platform || "") : "");
     }
 
-    /** Its group's page - "/<group>", as the site places it - its id unless the kind's own, and its kind's anchor. */
-    static address(kind, id) {
+    /** Its group's page - "/<group>", as the site places it - and its kind's anchor, ending with its name, else its id; nothing, the kind's own. */
+    static address(kind, id, name) {
         var found = WorkspaceDirectory.find(kind);
         if (!found) return null;
-        var named = id && id !== WorkspaceLogIdentity.placeholder(kind);
-        return "/" + encodeURIComponent(found.group.id) + (named ? "?ws_id=" + encodeURIComponent(id) : "") + "#" + WorkspaceAnchor.of(found.group, kind);
+        var own = !id || id === WorkspaceLogIdentity.placeholder(kind);
+        return "/" + encodeURIComponent(found.group.id) + "#" + WorkspaceAnchor.of(found.group, kind, own ? null : name ? { name: name } : { id: id });
     }
 }

@@ -33,9 +33,10 @@ import java.util.regex.Pattern;
 /**
  * A grouped site's page of one group: {@code GroupedWorkspacePage.main(el, params, workspaces, groups)} -
  * the shell's page of the kind the anchor names, {@code #ws/<section>/<kind>}, from the
- * site's manifests; which workspace of it, the query's {@code ws_id} or {@code ws_name};
- * the page's directory provided from the site's groups, and the page opening what its
- * workspace choice party says is asked to open, at its address (RFC 0058).
+ * site's manifests; which workspace of it, the anchor's query at its end,
+ * {@code ?ws_name=} or {@code ?ws_id=}; the page's directory provided from the site's
+ * groups, and the page opening what its workspace choice party says is asked to open,
+ * at its address (RFC 0058).
  */
 public record GroupedWorkspacePageModule() implements DomModule<GroupedWorkspacePageModule> {
 
@@ -47,41 +48,33 @@ public record GroupedWorkspacePageModule() implements DomModule<GroupedWorkspace
     static final Pattern GROUP = Pattern.compile("[A-Za-z0-9_-]+");
 
     /**
-     * A grouped workspace page's params: which group - the route's; which
-     * workspace of the kind its anchor names, by its id or else by what it is
-     * called; and whether the server keeps its states ({@link WorkspacePageModule.Params}).
-     * The kind is never here: it is the anchor's, which the server never sees.
+     * A grouped workspace page's params: which group - the route's - and whether the
+     * server keeps its states. Nothing of what is inside the group: the kind, and which
+     * workspace of it, are the anchor's, which the server never sees.
      */
-    public record Params(String ws_group, String ws_id, String ws_name, boolean ws_server) implements AppModule._Param {
+    public record Params(String ws_group, boolean ws_server) implements AppModule._Param {
         public Params {
             Objects.requireNonNull(ws_group, "Params.ws_group");
             if (!GROUP.matcher(ws_group).matches()) throw new IllegalArgumentException("Params.ws_group '" + ws_group + "': letters, digits, hyphen, underscore");
-            if (ws_name != null && ws_name.isBlank()) throw new IllegalArgumentException("Params.ws_name: blank - absent, rather");
         }
     }
 
-    /** The group, required and of a group's letters; a name, trimmed, blank as none; the rest read as a workspace page's. */
+    /** The group, required and of a group's letters; the server's word, only "on"; nothing else read. */
     public static final ParamCodec<Params> CODEC = new ParamCodec<>() {
 
         @Override public Decoded<Params> from(Map<String, List<String>> query) {
             String group = QueryString.first(query, "ws_group");
             if (group == null || group.isBlank()) return Decoded.missing("ws_group");
             if (!GROUP.matcher(group).matches()) return Decoded.malformed("ws_group", group, "a group's id: letters, digits, hyphen, underscore");
-            String name = QueryString.first(query, "ws_name");
-            String named = name == null || name.isBlank() ? null : name.strip();
-            return switch (WorkspacePageModule.CODEC.from(query)) {
-                case Decoded.Ok<WorkspacePageModule.Params>(WorkspacePageModule.Params p) -> Decoded.ok(new Params(group, p.ws_id(), named, p.ws_server()));
-                case Decoded.Missing<WorkspacePageModule.Params> m -> Decoded.missing(m.key());
-                case Decoded.Malformed<WorkspacePageModule.Params> m -> Decoded.malformed(m.key(), m.value(), m.expected());
-            };
+            String server = QueryString.first(query, "ws_server");
+            if (server != null && !server.equals("on")) return Decoded.malformed("ws_server", server, "on, or absent");
+            return Decoded.ok(new Params(group, server != null));
         }
 
         @Override public Map<String, List<String>> to(Params params) {
             var q = QueryString.params();
             QueryString.put(q, "ws_group", params.ws_group());
-            if (params.ws_name() != null) QueryString.put(q, "ws_name", params.ws_name());
-            WorkspacePageModule.CODEC.to(new WorkspacePageModule.Params(params.ws_id(), params.ws_server()))
-                    .forEach((k, vs) -> vs.forEach(v -> QueryString.put(q, k, v)));
+            if (params.ws_server()) QueryString.put(q, "ws_server", "on");
             return q;
         }
     };

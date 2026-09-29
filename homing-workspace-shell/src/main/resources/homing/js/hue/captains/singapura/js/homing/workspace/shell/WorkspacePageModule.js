@@ -19,6 +19,8 @@
 //     opts.arrangement  the workspace's first state in the split grid (GridArrangement, from
 //               its Arrangement in Java): laid out when this page writes a log that holds
 //               nothing yet, through the grid and the core, so the log keeps it
+//     opts.named  (entry) → the app's own, when the workspace is named: its WorkspaceEntry,
+//               as the catalogue lists it - the name an address may call it by
 //
 // The log is the workspace's: kept in IndexedDB under its kind and its id,
 // typed, the workspace listed beside it under a name of its own the first time
@@ -51,7 +53,10 @@ class WorkspacePage {
         function named() {
             var entry = writes() ? catalogue.opened(key)
                 : catalogue.list(key.kind).then(function (all) { return all.filter(function (e) { return e.log.workspace.id === key.workspace.id; })[0] || null; });
-            entry.then(function (e) { if (ws && ws.logBar) ws.logBar.named(e); },
+            entry.then(function (e) {
+                           if (ws && ws.logBar) ws.logBar.named(e);
+                           if (e && opts && typeof opts.named === "function") opts.named(e);
+                       },
                        function (e) { console.warn("[WorkspacePage] the workspace is not listed, so not named: " + (e && e.message)); });
         }
         // Taken by another page: nothing more is recorded here, and the bar says so.
