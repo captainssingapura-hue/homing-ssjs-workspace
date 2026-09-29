@@ -33,11 +33,17 @@ public final class GridArrangementJs {
         Objects.requireNonNull(name, "name");
         Objects.requireNonNull(arrangement, "arrangement");
         if (!CONST_NAME.matcher(name).matches()) throw new IllegalArgumentException("not a constant's name: " + name);
+        return "const " + name + " = " + expression(arrangement) + ";";
+    }
+
+    /** The arrangement as an expression - for a constant of several, by kind. */
+    public static String expression(Arrangement<?, SplitGrid> arrangement) {
+        Objects.requireNonNull(arrangement, "arrangement");
         String widgets = arrangement.widgets().stream().map(GridArrangementJs::widget).collect(Collectors.joining(", "));
-        return "const " + name + " = Object.freeze({ engine: " + quote(arrangement.engine().value())
+        return "Object.freeze({ engine: " + quote(arrangement.engine().value())
                 + ", workspace: " + quote(arrangement.workspace().workspaceKind().value())
                 + ", widgets: Object.freeze({ " + widgets + " })"
-                + ", frame: " + frame(arrangement.placement().frame()) + " });";
+                + ", frame: " + frame(arrangement.placement().frame()) + " })";
     }
 
     private static String widget(ArrangedWidget w) {

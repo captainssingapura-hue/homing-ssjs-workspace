@@ -2,9 +2,12 @@ package hue.captains.singapura.js.homing.workspace.site;
 
 import hue.captains.singapura.js.homing.core.ParamCodec.Decoded;
 import hue.captains.singapura.js.homing.site.Path;
+import hue.captains.singapura.js.homing.workspace.groups.core.models.Arrangement;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.GroupedWorkspace;
+import hue.captains.singapura.js.homing.workspace.groups.core.models.SplitGrid;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceGroup;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceGroups;
+import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceArrangements;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceKind;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetDeclaration;
 import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceDeclaration;
@@ -88,5 +91,29 @@ class GroupedWorkspacesTest {
         assertInstanceOf(Decoded.Missing.class, codec.from(Map.of()));
         assertInstanceOf(Decoded.Malformed.class, codec.from(Map.of("ws_kind", List.of("no such/kind"))));
         assertInstanceOf(Decoded.Malformed.class, codec.from(Map.of("ws_kind", List.of("books"), "ws_id", List.of(id.toUpperCase()))));
+    }
+
+    /** Two regions waiting, side by side: an arrangement of a workspace that opens nothing. */
+    private static WorkspaceArrangements<Named> waiting(String kind) {
+        var w = new Named(kind);
+        return WorkspaceArrangements.of(w, Arrangement.of(w, SplitGrid.of(SplitGrid.row(SplitGrid.region("a"), SplitGrid.region("b")))));
+    }
+
+    @Test
+    void eachWorkspaceMayBeArranged_onceAndOnlyIfServed() {
+        var arranged = SITE.arranged(waiting("books"), waiting("trial"));
+        assertTrue(arranged.arrangements("books").isPresent());
+        assertTrue(arranged.arrangements("demo").isEmpty(), "arranged by none: it starts with nothing open");
+        assertThrows(IllegalArgumentException.class, () -> SITE.arranged(waiting("stray")), "a workspace it does not serve");
+        assertThrows(IllegalArgumentException.class, () -> SITE.arranged(waiting("books"), waiting("books")), "two sets for one workspace");
+    }
+
+    @Test
+    void theSplitGridsArrangementsAreGenerated_byKind() {
+        String js = SITE.arranged(waiting("books"), waiting("trial")).arrangementsJs("SITE_ARRANGEMENTS");
+        assertTrue(js.startsWith("const SITE_ARRANGEMENTS = Object.freeze({ \"books\": Object.freeze({ engine: \"split-grid\", workspace: \"books\""), js);
+        assertTrue(js.contains("\"trial\": Object.freeze({ engine: \"split-grid\""), js);
+        assertEquals("const NONE = Object.freeze({});", SITE.arrangementsJs("NONE"));
+        assertThrows(IllegalArgumentException.class, () -> SITE.arrangementsJs("lower"));
     }
 }

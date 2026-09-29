@@ -13,18 +13,24 @@
 // unless it is the workspace the page shows. The log bar's new workspace of the
 // kind is at that place too.
 //
-//   GroupedWorkspacePage.main(el, params, workspaces, groups)
+// A workspace of a kind the site has arranged starts as its arrangement has it,
+// the first time: handed to the shell, which lays it out on a log that holds
+// nothing yet (GridArrangement).
+//
+//   GroupedWorkspacePage.main(el, params, workspaces, groups, arrangements?)
 //     el          the MPA's slot
 //     params      the page's: ws_kind, the route's; ws_id and ws_server, a workspace page's
 //     workspaces  the site's manifests, by kind
 //     groups      the site's groups, as the directory is provided them
+//     arrangements  the split grid's, by kind: each workspace's first state, laid out by
+//                 the shell on a log that holds nothing yet; a kind with none starts empty
 //   GroupedWorkspacePage.address(kind, id) → where a workspace of the site is: its place,
 //               and its id unless it is the kind's own - "", or the own's id - so one
 //               workspace has one address; null for a kind not filed
 // =============================================================================
 
 class GroupedWorkspacePage {
-    static main(el, params, workspaces, groups) {
+    static main(el, params, workspaces, groups, arrangements) {
         var p = params || {}, kind = p.ws_kind;
         WorkspaceDirectory.provide(groups);
         var manifest = kind && Object.prototype.hasOwnProperty.call(workspaces, kind) ? workspaces[kind] : null;
@@ -37,6 +43,7 @@ class GroupedWorkspacePage {
         var own = !p.ws_id || p.ws_id === WorkspaceLogIdentity.placeholder(kind);
         WorkspacePage.main(el, p, manifest, {
             fresh: function (q) { return GroupedWorkspacePage.address(kind, q && q.ws_id ? q.ws_id : ""); },
+            arrangement: arrangements && Object.prototype.hasOwnProperty.call(arrangements, kind) ? arrangements[kind] : null,
             attach: function (ws, here) {
                 var party = ws.parties.party(WORKSPACE_CHOICE.name);
                 if (!party) return null;    // a workspace none of whose widgets choose one

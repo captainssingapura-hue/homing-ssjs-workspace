@@ -13,12 +13,17 @@ import hue.captains.singapura.js.homing.workspace.groups.WorkspaceGroupsJs;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.GroupPath;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.GroupedWorkspace;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.Section;
+import hue.captains.singapura.js.homing.workspace.groups.core.models.SplitGrid;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceGroup;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceGroups;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceKind;
+import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceArrangements;
+import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceSpec;
+import hue.captains.singapura.js.homing.workspace.shell.GridArrangementJs;
 import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceDeclaration;
 import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceManifest;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,10 +40,14 @@ import java.util.stream.Collectors;
  * the workspace's; and where it is filed is where it is served: {@code /<section>/<kind>},
  * its {@link GroupPath}. The site's root serves the first group's default.
  *
- * <p>What the page has of them is generated here too: the manifests, by kind, and
- * the groups, for the page's directory.</p>
+ * <p>And how each is arranged the first time, engine by engine - its
+ * {@link WorkspaceArrangements}, the declarer's, as the workspace is: a workspace
+ * with none for an engine starts with nothing open there.</p>
+ *
+ * <p>What the page has of them is generated here too: the manifests, by kind; the
+ * split grid's arrangements, by kind; and the groups, for the page's directory.</p>
  */
-public record GroupedWorkspaces(WorkspaceGroups groups, List<WorkspaceDeclaration> workspaces) {
+public record GroupedWorkspaces(WorkspaceGroups groups, List<WorkspaceDeclaration> workspaces, List<WorkspaceArrangements<?>> arrangements) {
 
     /** Where a path lands: the group, the section and the workspace filed there, and its path. */
     public record Place(WorkspaceGroup group, Section section, GroupedWorkspace workspace, GroupPath path) {}
@@ -56,10 +65,32 @@ public record GroupedWorkspaces(WorkspaceGroups groups, List<WorkspaceDeclaratio
         if (!unfiled.isEmpty()) throw new IllegalArgumentException("GroupedWorkspaces: served but filed in no group: " + unfiled);
         var unserved = filed.stream().filter(n -> !served.contains(n)).sorted().toList();
         if (!unserved.isEmpty()) throw new IllegalArgumentException("GroupedWorkspaces: filed but not served: " + unserved);
+        arrangements = List.copyOf(Objects.requireNonNull(arrangements, "GroupedWorkspaces.arrangements"));
+        var arranged = new HashSet<String>();
+        for (var a : arrangements) {
+            String kind = a.workspace().workspaceKind().value();
+            if (!workspaces.contains(a.workspace())) throw new IllegalArgumentException("GroupedWorkspaces: arrangements of " + kind + ", which it does not serve");
+            if (!arranged.add(kind)) throw new IllegalArgumentException("GroupedWorkspaces: two sets of arrangements of " + kind);
+        }
     }
+
+    /** Grouped, and arranged by none: each workspace starts with nothing open. */
+    public GroupedWorkspaces(WorkspaceGroups groups, List<WorkspaceDeclaration> workspaces) { this(groups, workspaces, List.of()); }
 
     public static GroupedWorkspaces of(WorkspaceGroups groups, WorkspaceDeclaration... workspaces) {
         return new GroupedWorkspaces(groups, List.of(workspaces));
+    }
+
+    /** The same, with these arrangements besides - each of a workspace it serves, one set a workspace. */
+    public GroupedWorkspaces arranged(WorkspaceArrangements<?>... more) {
+        var all = new ArrayList<>(arrangements);
+        all.addAll(List.of(more));
+        return new GroupedWorkspaces(groups, workspaces, all);
+    }
+
+    /** The arrangements of the workspace of that kind, if it has any. */
+    public Optional<WorkspaceArrangements<?>> arrangements(String kind) {
+        return arrangements.stream().filter(a -> a.workspace().workspaceKind().value().equals(kind)).findFirst();
     }
 
     /** The workspace of that kind, as the site serves it. */
@@ -111,6 +142,22 @@ public record GroupedWorkspaces(WorkspaceGroups groups, List<WorkspaceDeclaratio
 
     /** What the module serving the manifests imports: every workspace's kinds and root parties, each once. */
     public <M extends EsModule> ImportsFor<M> manifestsImports() { return WorkspaceManifest.imports(workspaces); }
+
+    /**
+     * The split grid's arrangements, by kind: {@code const <constName> = Object.freeze({ "<kind>": …, … });} -
+     * each workspace's that has one, what the grouped page hands the shell for a log that holds nothing yet.
+     */
+    public String arrangementsJs(String constName) {
+        if (!GridArrangementJs.CONST_NAME.matcher(constName).matches()) throw new IllegalArgumentException("not a constant's name: " + constName);
+        var entries = new ArrayList<String>();
+        for (var a : arrangements) gridEntry(a).ifPresent(entries::add);
+        return "const " + constName + " = Object.freeze({" + (entries.isEmpty() ? "" : " " + String.join(", ", entries) + " ") + "});";
+    }
+
+    private static <W extends WorkspaceSpec> Optional<String> gridEntry(WorkspaceArrangements<W> a) {
+        return a.forEngine(SplitGrid.ENGINE, SplitGrid.class)
+                .map(g -> "\"" + a.workspace().workspaceKind().value() + "\": " + GridArrangementJs.expression(g));
+    }
 
     /** The groups, for the page's directory: {@code const <constName> = Object.freeze([...]);}. */
     public String groupsJs(String constName) { return WorkspaceGroupsJs.constant(constName, groups); }
