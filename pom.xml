@@ -57,6 +57,9 @@
         <module>homing-workspace-demo-widgets</module>
         <!-- The monitors, as widgets and nothing else: the page's parties on view, for any workspace to offer. -->
         <module>homing-workspace-monitors</module>
+        <!-- The workspace switcher, as widgets and nothing else: the kinds as a tree, the chosen kind's
+             workspaces as a table, the two composed - for any workspace to offer. -->
+        <module>homing-workspace-switcher</module>
         <!-- The demo workspace, runnable: the two widget sets declared together, on the shell's page, 8098. -->
         <module>homing-workspace-demo</module>
         <!-- One widget on a page of its own, from its kind and its params on the address: the bench. -->
