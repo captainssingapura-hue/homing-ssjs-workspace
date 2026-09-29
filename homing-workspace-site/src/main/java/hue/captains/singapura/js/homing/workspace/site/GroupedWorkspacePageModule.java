@@ -11,11 +11,13 @@ import hue.captains.singapura.js.homing.core.QueryString;
 import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
 import hue.captains.singapura.js.homing.core.js.domOpsParty;
 import hue.captains.singapura.js.homing.server.HrefManager;
+import hue.captains.singapura.js.homing.workspace.groups.WorkspaceAnchorModule;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceChoiceModule;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceChoiceSecretaryModule;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceDirectoryModule;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceKeeperModule;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceOpenerModule;
+import hue.captains.singapura.js.homing.workspace.log.js.LogIdsModule;
 import hue.captains.singapura.js.homing.workspace.log.store.IndexedDbLogModule;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceCatalogueModule;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogIdentityModule;
@@ -29,10 +31,11 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 /**
- * A grouped site's workspace page: {@code GroupedWorkspacePage.main(el, params, workspaces, groups)} -
- * the shell's page, the workspace chosen by its kind from the site's manifests, the
- * page's directory provided from the site's groups, and the page opening what its
- * workspace choice party says is asked to open, at the place the groups file it.
+ * A grouped site's page of one group: {@code GroupedWorkspacePage.main(el, params, workspaces, groups)} -
+ * the shell's page of the kind the anchor names, {@code #ws/<section>/<kind>}, from the
+ * site's manifests; which workspace of it, the query's {@code ws_id} or {@code ws_name};
+ * the page's directory provided from the site's groups, and the page opening what its
+ * workspace choice party says is asked to open, at its address (RFC 0058).
  */
 public record GroupedWorkspacePageModule() implements DomModule<GroupedWorkspacePageModule> {
 
@@ -40,30 +43,34 @@ public record GroupedWorkspacePageModule() implements DomModule<GroupedWorkspace
 
     public static final GroupedWorkspacePageModule INSTANCE = new GroupedWorkspacePageModule();
 
-    /** A kind of workspace, as its log names it. */
-    static final Pattern KIND = Pattern.compile("[A-Za-z0-9_-]+");
+    /** A group's id, as it is a segment of the site's addresses ({@code GroupId}). */
+    static final Pattern GROUP = Pattern.compile("[A-Za-z0-9_-]+");
 
     /**
-     * A grouped workspace page's params: which kind of workspace - the route's -
-     * and then a workspace page's own: which of that kind, and whether the server
-     * keeps its states ({@link WorkspacePageModule.Params}).
+     * A grouped workspace page's params: which group - the route's; which
+     * workspace of the kind its anchor names, by its id or else by what it is
+     * called; and whether the server keeps its states ({@link WorkspacePageModule.Params}).
+     * The kind is never here: it is the anchor's, which the server never sees.
      */
-    public record Params(String ws_kind, String ws_id, boolean ws_server) implements AppModule._Param {
+    public record Params(String ws_group, String ws_id, String ws_name, boolean ws_server) implements AppModule._Param {
         public Params {
-            Objects.requireNonNull(ws_kind, "Params.ws_kind");
-            if (!KIND.matcher(ws_kind).matches()) throw new IllegalArgumentException("Params.ws_kind '" + ws_kind + "': letters, digits, hyphen, underscore");
+            Objects.requireNonNull(ws_group, "Params.ws_group");
+            if (!GROUP.matcher(ws_group).matches()) throw new IllegalArgumentException("Params.ws_group '" + ws_group + "': letters, digits, hyphen, underscore");
+            if (ws_name != null && ws_name.isBlank()) throw new IllegalArgumentException("Params.ws_name: blank - absent, rather");
         }
     }
 
-    /** The kind, required and of a kind's letters; the rest read as a workspace page's. */
+    /** The group, required and of a group's letters; a name, trimmed, blank as none; the rest read as a workspace page's. */
     public static final ParamCodec<Params> CODEC = new ParamCodec<>() {
 
         @Override public Decoded<Params> from(Map<String, List<String>> query) {
-            String kind = QueryString.first(query, "ws_kind");
-            if (kind == null || kind.isBlank()) return Decoded.missing("ws_kind");
-            if (!KIND.matcher(kind).matches()) return Decoded.malformed("ws_kind", kind, "a kind of workspace: letters, digits, hyphen, underscore");
+            String group = QueryString.first(query, "ws_group");
+            if (group == null || group.isBlank()) return Decoded.missing("ws_group");
+            if (!GROUP.matcher(group).matches()) return Decoded.malformed("ws_group", group, "a group's id: letters, digits, hyphen, underscore");
+            String name = QueryString.first(query, "ws_name");
+            String named = name == null || name.isBlank() ? null : name.strip();
             return switch (WorkspacePageModule.CODEC.from(query)) {
-                case Decoded.Ok<WorkspacePageModule.Params>(WorkspacePageModule.Params p) -> Decoded.ok(new Params(kind, p.ws_id(), p.ws_server()));
+                case Decoded.Ok<WorkspacePageModule.Params>(WorkspacePageModule.Params p) -> Decoded.ok(new Params(group, p.ws_id(), named, p.ws_server()));
                 case Decoded.Missing<WorkspacePageModule.Params> m -> Decoded.missing(m.key());
                 case Decoded.Malformed<WorkspacePageModule.Params> m -> Decoded.malformed(m.key(), m.value(), m.expected());
             };
@@ -71,7 +78,8 @@ public record GroupedWorkspacePageModule() implements DomModule<GroupedWorkspace
 
         @Override public Map<String, List<String>> to(Params params) {
             var q = QueryString.params();
-            QueryString.put(q, "ws_kind", params.ws_kind());
+            QueryString.put(q, "ws_group", params.ws_group());
+            if (params.ws_name() != null) QueryString.put(q, "ws_name", params.ws_name());
             WorkspacePageModule.CODEC.to(new WorkspacePageModule.Params(params.ws_id(), params.ws_server()))
                     .forEach((k, vs) -> vs.forEach(v -> QueryString.put(q, k, v)));
             return q;
@@ -85,6 +93,9 @@ public record GroupedWorkspacePageModule() implements DomModule<GroupedWorkspace
                 .add(new ModuleImports<>(List.of(new WorkspacePageModule.WorkspacePage()), WorkspacePageModule.INSTANCE))
                 // the page's directory, and its member of the workspace choice party: the opener
                 .add(new ModuleImports<>(List.of(new WorkspaceDirectoryModule.WorkspaceDirectory()), WorkspaceDirectoryModule.INSTANCE))
+                // where a kind is in its group, as the anchor names it; a kind, as the catalogue is asked by it
+                .add(new ModuleImports<>(List.of(new WorkspaceAnchorModule.WorkspaceAnchor()), WorkspaceAnchorModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new LogIdsModule.WorkspaceKind()), LogIdsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceOpenerModule.WorkspaceOpener()), WorkspaceOpenerModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceKeeperModule.WorkspaceKeeper()), WorkspaceKeeperModule.INSTANCE))
                 // what the page does to its workspaces, as its opener and keepers ask

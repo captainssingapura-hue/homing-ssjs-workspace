@@ -24,6 +24,8 @@
 //                    another: a button, open() on a press, hint its title - the page's, who
 //                    alone knows how workspaces are switched; not offered, the name is only said
 //   bar.count(n)     says how many the log holds
+//   bar.notice(text) says what the page would have a person know - how the address it
+//                    came by was read, say; "" says nothing
 //   bar.restored(same)  says whether the page came back as its log has it
 //   bar.lock(writeLock, onTakeOver?)  says who writes the log - read-only when
 //                    another page does, with a Take over that calls onTakeOver,
@@ -60,6 +62,9 @@ class WorkspaceLogBar {
         this._switch.addEventListener("click", function () { if (self._switchTo) self._switchTo(); });
         this._counted = branch.createElement("count", "span");
         css.addClass(this._counted, ws_logbar_count);
+        this._noticed = branch.createElement("notice", "span");
+        css.addClass(this._noticed, ws_logbar_count);
+        this._noticed.hidden = true;
         var button = branch.createElement("export", "button");
         button.type = "button";
         button.textContent = "Export log";
@@ -95,6 +100,7 @@ class WorkspaceLogBar {
         bar.appendChild(this._switch);
         bar.appendChild(this._named);
         bar.appendChild(this._counted);
+        bar.appendChild(this._noticed);
         bar.appendChild(this._locked);
         bar.appendChild(this._takeOver);
         bar.appendChild(this._fresh);
@@ -156,6 +162,12 @@ class WorkspaceLogBar {
     count(n) {
         this._n = n;
         this._counted.textContent = "Workspace log: " + n + (n === 1 ? " event" : " events") + this._note;
+    }
+
+    notice(text) {
+        var said = text ? String(text) : "";
+        this._noticed.textContent = said ? " · " + said : "";
+        this._noticed.hidden = !said;
     }
 
     restored(same) {

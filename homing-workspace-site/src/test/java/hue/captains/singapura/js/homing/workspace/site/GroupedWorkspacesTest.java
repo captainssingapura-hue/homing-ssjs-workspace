@@ -2,6 +2,7 @@ package hue.captains.singapura.js.homing.workspace.site;
 
 import hue.captains.singapura.js.homing.core.ParamCodec.Decoded;
 import hue.captains.singapura.js.homing.site.Path;
+import hue.captains.singapura.js.homing.site.Query;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.Arrangement;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.GroupedWorkspace;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.SplitGrid;
@@ -22,9 +23,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * A site's workspaces, grouped: each served where its group files it, the root at
- * the first group's default; every one served filed, every one filed served; and
- * the page's params - the route's kind, then a workspace page's.
+ * A site's workspaces, grouped: each group a page at its address, the root sending
+ * to the first, and nothing else - a kind is its group's own, in the page's anchor;
+ * every one served filed, every one filed served; and the page's params - the
+ * route's group, then which workspace, by id or by name, then a workspace page's.
  */
 class GroupedWorkspacesTest {
 
@@ -45,22 +47,29 @@ class GroupedWorkspacesTest {
     static final GroupedWorkspaces SITE = GroupedWorkspaces.of(GROUPS, new Named("demo"), new Named("books"), new Named("monitors"), new Named("trial"));
 
     private static String at(String path) {
-        return SITE.place(Path.parse(path)).map(p -> p.group().id().value() + " " + p.section().slug().value() + " " + p.workspace().kind().value() + " " + p.path()).orElse("nowhere");
+        return SITE.group(Path.parse(path)).map(g -> g.id().value() + " " + GroupedWorkspaces.address(g)).orElse("nowhere");
     }
 
     @Test
-    void eachIsServedWhereItsGroupFilesIt_theRootAtTheFirstGroupsDefault() {
-        assertEquals("demo together demo together/demo", at("/"));
-        assertEquals("demo together demo together/demo", at("/together/demo"));
-        assertEquals("demo one-set-each books one-set-each/books", at("/one-set-each/books"));
-        assertEquals("labs trials trial trials/trial", at("/trials/trial"));
+    void eachGroupIsAPageAtItsAddress() {
+        assertEquals("demo /demo", at("/demo"));
+        assertEquals("labs /labs", at("/labs"));
+        assertEquals("demo", SITE.home().id().value(), "the root's: the first group");
     }
 
     @Test
-    void anythingElseIsNowhere() {
-        for (String p : List.of("/together", "/together/books", "/trials/demo", "/together/demo/more", "/nope/nope", "/together/Demo")) {
+    void anythingElseIsNowhere_aKindIsItsGroupsOwn() {
+        for (String p : List.of("/", "/together/demo", "/one-set-each/books", "/demo/together/demo", "/Demo", "/nope", "/trials/trial")) {
             assertEquals("nowhere", at(p), p);
         }
+    }
+
+    @Test
+    void theRootSendsToTheFirstGroup_theQueryAndTheAnchorCarried() {
+        String sent = GroupedWorkspaces.sentTo("/demo", Query.parse("ws_name=Reading list&theme=editorial")).body();
+        assertTrue(sent.contains("window.location.replace(\"\\/demo?ws_name=Reading+list\\u0026theme=editorial\" + window.location.hash)"), sent);
+        assertTrue(sent.contains("content=\"0;url=/demo?ws_name=Reading+list&amp;theme=editorial\""), sent);
+        assertTrue(GroupedWorkspaces.sentTo("/demo", Query.NONE).body().contains("window.location.replace(\"\\/demo\" + window.location.hash)"));
     }
 
     @Test
@@ -82,15 +91,19 @@ class GroupedWorkspacesTest {
     }
 
     @Test
-    void thePagesParams_theRoutesKindThenAWorkspacePages() {
+    void thePagesParams_theRoutesGroup_thenWhichWorkspace_thenAWorkspacePages() {
         var codec = GroupedWorkspacePageModule.CODEC;
         String id = "0f1b6c2e-5000-4000-8f1b-6c2e00000001";
-        var p = codec.from(Map.of("ws_kind", List.of("books"), "ws_id", List.of(id), "ws_server", List.of("on"))).orNull();
-        assertEquals(new GroupedWorkspacePageModule.Params("books", id, true), p);
+        var p = codec.from(Map.of("ws_group", List.of("demo"), "ws_id", List.of(id), "ws_server", List.of("on"))).orNull();
+        assertEquals(new GroupedWorkspacePageModule.Params("demo", id, null, true), p);
         assertEquals(p, codec.from(codec.to(p)).orNull(), "what it writes it reads back");
+        var named = codec.from(Map.of("ws_group", List.of("demo"), "ws_name", List.of("  Reading list "))).orNull();
+        assertEquals(new GroupedWorkspacePageModule.Params("demo", null, "Reading list", false), named, "a name, trimmed");
+        assertEquals(named, codec.from(codec.to(named)).orNull());
+        assertEquals(new GroupedWorkspacePageModule.Params("demo", null, null, false), codec.from(Map.of("ws_group", List.of("demo"), "ws_name", List.of("  "))).orNull(), "a blank name: none");
         assertInstanceOf(Decoded.Missing.class, codec.from(Map.of()));
-        assertInstanceOf(Decoded.Malformed.class, codec.from(Map.of("ws_kind", List.of("no such/kind"))));
-        assertInstanceOf(Decoded.Malformed.class, codec.from(Map.of("ws_kind", List.of("books"), "ws_id", List.of(id.toUpperCase()))));
+        assertInstanceOf(Decoded.Malformed.class, codec.from(Map.of("ws_group", List.of("no such/group"))));
+        assertInstanceOf(Decoded.Malformed.class, codec.from(Map.of("ws_group", List.of("demo"), "ws_id", List.of(id.toUpperCase()))));
     }
 
     /** Two regions waiting, side by side: an arrangement of a workspace that opens nothing. */

@@ -3,20 +3,21 @@ package hue.captains.singapura.js.homing.workspace.site;
 import hue.captains.singapura.js.homing.core.AppModule;
 import hue.captains.singapura.js.homing.core.EsModule;
 import hue.captains.singapura.js.homing.core.ImportsFor;
+import hue.captains.singapura.js.homing.core.StampedParams;
+import hue.captains.singapura.js.homing.server.HtmlPageContent;
+import hue.captains.singapura.js.homing.site.Html;
 import hue.captains.singapura.js.homing.site.Navigable;
 import hue.captains.singapura.js.homing.site.Path;
+import hue.captains.singapura.js.homing.site.Query;
 import hue.captains.singapura.js.homing.site.Router;
 import hue.captains.singapura.js.homing.site.Trail;
 import hue.captains.singapura.js.homing.site.mpa.AppPage;
 import hue.captains.singapura.js.homing.site.mpa.StandardMpa;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceGroupsJs;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.GroupPath;
-import hue.captains.singapura.js.homing.workspace.groups.core.models.GroupedWorkspace;
-import hue.captains.singapura.js.homing.workspace.groups.core.models.Section;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.SplitGrid;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceGroup;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceGroups;
-import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceKind;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceArrangements;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.WorkspaceSpec;
 import hue.captains.singapura.js.homing.workspace.shell.GridArrangementJs;
@@ -37,8 +38,14 @@ import java.util.stream.Collectors;
  * A site's workspaces, grouped: every workspace it serves - each declared in Java,
  * a {@link WorkspaceDeclaration} - filed in its groups, and every kind its groups
  * file one it serves. Where a workspace is filed is the group's decision, never
- * the workspace's; and where it is filed is where it is served: {@code /<section>/<kind>},
- * its {@link GroupPath}. The site's root serves the first group's default.
+ * the workspace's.
+ *
+ * <p>THE AUTHENTIC PATH (RFC 0058): a group is a page of the site, reached from
+ * outside at {@code /<group id>}; everything inside it is the group's own - a kind
+ * is where the group files it, its {@link GroupPath}, named by the page's anchor
+ * {@code #ws/<section>/<kind>}, which never reaches the server; which workspace of
+ * the kind is a parameter, {@code ?ws_id=} or {@code ?ws_name=}, never a position.
+ * The site's root sends to the first group, so a group has one address.</p>
  *
  * <p>And how each is arranged the first time, engine by engine - its
  * {@link WorkspaceArrangements}, the declarer's, as the workspace is: a workspace
@@ -48,9 +55,6 @@ import java.util.stream.Collectors;
  * split grid's arrangements, by kind; and the groups, for the page's directory.</p>
  */
 public record GroupedWorkspaces(WorkspaceGroups groups, List<WorkspaceDeclaration> workspaces, List<WorkspaceArrangements<?>> arrangements) {
-
-    /** Where a path lands: the group, the section and the workspace filed there, and its path. */
-    public record Place(WorkspaceGroup group, Section section, GroupedWorkspace workspace, GroupPath path) {}
 
     public GroupedWorkspaces {
         Objects.requireNonNull(groups, "GroupedWorkspaces.groups");
@@ -98,43 +102,58 @@ public record GroupedWorkspaces(WorkspaceGroups groups, List<WorkspaceDeclaratio
         return workspaces.stream().filter(w -> w.name().equals(kind)).findFirst();
     }
 
-    /** Where the site's root lands: the first group's default. */
-    public Place home() {
-        var g = groups.groups().get(0);
-        return place(g, g.defaultKind());
+    /** The group the site's root sends to: the first. */
+    public WorkspaceGroup home() { return groups.groups().get(0); }
+
+    /** The group at a path: {@code /<group id>}; anything else, none - a kind is its group's own, in the page's anchor. */
+    public Optional<WorkspaceGroup> group(Path path) {
+        if (path.depth() != 1) return Optional.empty();
+        String id = path.segments().get(0);
+        return groups.groups().stream().filter(g -> g.id().value().equals(id)).findFirst();
     }
 
-    /** Where a path lands: the root, home; {@code /<section>/<kind>}, the workspace filed there; anything else, nowhere. */
-    public Optional<Place> place(Path path) {
-        if (path.isRoot()) return Optional.of(home());
-        if (path.depth() != 2) return Optional.empty();
-        String section = path.segments().get(0), kind = path.segments().get(1);
-        for (var g : groups.groups()) {
-            var filed = g.at(section, kind);
-            if (filed.isPresent()) return Optional.of(place(g, filed.get().kind()));
-        }
-        return Optional.empty();
-    }
-
-    private static Place place(WorkspaceGroup g, WorkspaceKind kind) {
-        return new Place(g, g.sectionOf(kind).orElseThrow(), g.workspace(kind).orElseThrow(), g.path(kind));
-    }
+    /** Where a group is on the site: {@code /<its id>} - the address it is reached by from outside. */
+    public static String address(WorkspaceGroup group) { return "/" + group.id().value(); }
 
     /**
-     * The site's router: every workspace at its place, as a page of the app handed in - the
-     * grouped workspace page's params, its kind the place's - and the site's root, home. The
-     * trail is the group, then the workspace; the page is titled by the workspace.
+     * The site's router: every group at its address, as a page of the app handed in - the
+     * grouped workspace page's params, its group the route's - and the site's root, sent to
+     * the first group. The trail the server writes is the group; the page carries it on from
+     * its anchor - the section, the workspace - and is titled by the workspace.
      */
     public <M extends AppModule<GroupedWorkspacePageModule.Params, M>> Router router(StandardMpa mpa, M app, boolean server) {
         Map<String, AppPage<GroupedWorkspacePageModule.Params, M>> pages = new LinkedHashMap<>();
-        for (var w : workspaces) pages.put(w.name(), mpa.page(app, new GroupedWorkspacePageModule.Params(w.name(), null, server)));
-        return path -> place(path).map(p -> {
-            var page = pages.get(p.workspace().kind().value());
-            var trail = Trail.NONE.then(p.group().title(), "/");
-            if (!path.isRoot()) trail = trail.then(p.workspace().title(), "/" + p.path());
-            var t = trail;
-            return (Navigable) q -> page.html(t, q);
-        });
+        for (var g : groups.groups()) pages.put(g.id().value(), mpa.page(app, new GroupedWorkspacePageModule.Params(g.id().value(), null, null, server)));
+        String home = address(home());
+        return path -> {
+            if (path.isRoot()) return Optional.of(q -> sentTo(home, q));
+            return group(path).map(g -> {
+                var page = pages.get(g.id().value());
+                var trail = Trail.NONE.then(g.title(), address(g));
+                return (Navigable) q -> page.html(trail, q);
+            });
+        };
+    }
+
+    /**
+     * A page that sends the browser on - the query carried, and the anchor, which only the
+     * browser has: the site's root is no group's second address.
+     */
+    static HtmlPageContent sentTo(String address, Query query) {
+        String to = query.isEmpty() ? address : address + "?" + query;
+        return new HtmlPageContent("""
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta http-equiv="refresh" content="0;url=%s">
+                    <title>Redirecting…</title>
+                </head>
+                <body>
+                    <script>window.location.replace(%s + window.location.hash);</script>
+                </body>
+                </html>
+                """.formatted(Html.escape(to), StampedParams.jsString(to)));
     }
 
     /** The manifests, by kind: {@code const <constName> = Object.freeze({ "<kind>": …, … });}. */

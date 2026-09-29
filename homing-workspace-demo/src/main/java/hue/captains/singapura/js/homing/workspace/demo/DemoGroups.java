@@ -8,9 +8,9 @@ import hue.captains.singapura.js.homing.workspace.site.GroupedWorkspaces;
 
 /**
  * The demo's workspaces, grouped: the three widget sets together, and each set on
- * its own - filed here, where the site serves them, {@code /<section>/<kind>}; the
- * site's root, the three together. A workspace does not know where it is filed:
- * the group decides.
+ * its own - filed here, in one group, the page {@code /demo}; each where the group
+ * files it, {@code #ws/<section>/<kind>}, the three together its default. A
+ * workspace does not know where it is filed: the group decides.
  */
 public final class DemoGroups {
 

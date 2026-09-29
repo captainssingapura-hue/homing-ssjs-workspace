@@ -8,9 +8,10 @@ import hue.captains.singapura.js.homing.site.mpa.StandardMpa;
 
 /**
  * The demo's workspaces, standing up on their own: a site of grouped workspaces,
- * each served where its group files it - {@code /<section>/<kind>}, the root the
- * group's default - under the framework's standard MPA and nothing else, no
- * studio. The server keeps their states, so every route says so.
+ * the group a page, {@code /demo} - the root sending to it - and each workspace
+ * where the group files it, {@code #ws/<section>/<kind>}; under the framework's
+ * standard MPA and nothing else, no studio. The server keeps their states, so
+ * every route says so.
  */
 public record WorkspaceDemoSite() implements Site {
 
