@@ -12,8 +12,8 @@ import java.util.List;
 /**
  * The demo's workspaces as a page of any standard MPA: the grouped workspace page,
  * handed the demo's manifests and groups. Its params are a grouped page's - the
- * kind its route names, which workspace of the kind, and whether the server keeps
- * its states.
+ * group its route names, which workspace of the anchor's kind, and whether the
+ * server keeps its states.
  */
 public record DemoWorkspaceApp() implements AppModule<GroupedWorkspacePageModule.Params, DemoWorkspaceApp> {
 
