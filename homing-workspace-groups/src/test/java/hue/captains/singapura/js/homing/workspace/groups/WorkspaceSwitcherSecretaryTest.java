@@ -44,6 +44,7 @@ class WorkspaceSwitcherSecretaryTest extends SecretaryTestBase {
         Value b = secretary.getMember("BUBBLES");
         assertTrue(b.getMember("Choose").asBoolean());
         assertTrue(b.getMember("Open").asBoolean());
+        assertTrue(b.getMember("OpenNew").asBoolean());
         assertTrue(!b.getMember("CurrentRequested").asBoolean());
     }
 
@@ -89,6 +90,15 @@ class WorkspaceSwitcherSecretaryTest extends SecretaryTestBase {
         Value again = dispatch(step.getMember("newState"), envelope("Chosen", Map.of("workspaceKind", "books"), "upstream"));
         assertEquals("", kinds(again), "the same again is nothing");
         assertEquals(1, count(again, "adopted"));
+    }
+
+    @Test
+    void aNewOneAskedForAlwaysGoesUp_saidInTheScopeToo_andItsOpeningAboveHeard() {
+        Value step = dispatch(choseDemo(), envelope("OpenNew", Map.of("workspaceKind", "books", "workspaceName", "", "newTab", false), "instances"));
+        assertEquals("BroadcastToMembers:OpeningNew SendToParent:OpenNew", kinds(step));
+        Value heard = dispatch(step.getMember("newState"), envelope("OpeningNew", Map.of("workspaceKind", "books", "workspaceName", "", "newTab", false), "upstream"));
+        assertEquals("", kinds(heard));
+        assertEquals(1, count(heard, "heard"));
     }
 
     @Test

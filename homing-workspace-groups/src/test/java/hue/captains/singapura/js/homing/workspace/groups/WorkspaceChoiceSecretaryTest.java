@@ -64,9 +64,22 @@ class WorkspaceChoiceSecretaryTest extends SecretaryTestBase {
     }
 
     @Test
+    void aNewOneAskedFor_isSaidToEveryMember_asItWasAsked_andCounted() {
+        Value step = dispatch(chose("demo"), envelope("OpenNew", Map.of("workspaceKind", "books", "workspaceName", "Reading list", "newTab", true), "instances"));
+        assertActionCount(step, 1);
+        assertActionKind(step, 0, "BroadcastToMembers");
+        Value said = action(step, 0).getMember("message");
+        assertEquals("OpeningNew books Reading list true", said.getMember("kind").asString() + " " + said.getMember("workspaceKind").asString()
+                + " " + said.getMember("workspaceName").asString() + " " + said.getMember("newTab").asBoolean());
+        assertEquals(1, state(step).getMember("made").asInt());
+        assertEquals("instances", state(step).getMember("lastNew").getMember("by").asString());
+        assertEquals("demo", state(step).getMember("chosen").asString(), "asking for a new one chooses nothing");
+    }
+
+    @Test
     void thePartysOwnWords_andStrangers_areKeptAsUnknown() {
         Value s = initial();
-        for (String k : new String[]{"Chosen", "Opening", "Knock", "A", "B", "C"}) s = state(dispatch(s, envelope(k, Map.of(), "someone")));
+        for (String k : new String[]{"Chosen", "OpeningNew", "Opening", "Knock", "A", "B", "C"}) s = state(dispatch(s, envelope(k, Map.of(), "someone")));
         Value unknown = s.getMember("recentUnknown");
         assertEquals(5, unknown.getArraySize(), "the last five");
         assertEquals("Opening", unknown.getArrayElement(0).getMember("kind").asString());
@@ -90,6 +103,7 @@ class WorkspaceChoiceSecretaryTest extends SecretaryTestBase {
         assertEquals("workspace-choice", js.eval("js", "WORKSPACE_CHOICE.name").asString());
         assertEquals("string", js.eval("js", "WORKSPACE_CHOICE.kinds.Open.workspaceId").asString());
         assertEquals("string", js.eval("js", "WORKSPACE_CHOICE.kinds.Chosen.workspaceKind").asString());
-        assertEquals("Choose,Chosen,CurrentRequested,Open,Opening", js.eval("js", "Object.keys(WORKSPACE_CHOICE.kinds).sort().join()").asString());
+        assertEquals("Choose,Chosen,CurrentRequested,Open,OpenNew,Opening,OpeningNew", js.eval("js", "Object.keys(WORKSPACE_CHOICE.kinds).sort().join()").asString());
+        assertEquals("boolean", js.eval("js", "WORKSPACE_CHOICE.kinds.OpenNew.newTab").asString());
     }
 }

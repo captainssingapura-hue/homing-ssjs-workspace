@@ -25,11 +25,12 @@ class WorkspaceOpenerTest extends JsModuleTestBase {
         js.eval("js", WorkspaceChoice.TYPE.js());
         js.eval("js", """
             var console = { error: function () {} };
-            var root = new MessagingParty(WORKSPACE_CHOICE, WorkspaceChoiceSecretary), went = [], chosen = [];
+            var root = new MessagingParty(WORKSPACE_CHOICE, WorkspaceChoiceSecretary), went = [], wentNew = [], made = [], chosen = [];
             var switcher = root.join("switcher", { Chosen: function (m) { chosen.push(m.workspaceKind); } });
             function addressOf(kind, id) { return kind === "elsewhere" ? null : "/set/" + kind + (id ? "?ws_id=" + id : ""); }
             var opener = new WorkspaceOpener({ party: root, here: { workspaceKind: "books", workspaceId: "b-own", own: true },
-                                               addressOf: addressOf, go: function (a) { went.push(a); } });
+                                               addressOf: addressOf, go: function (a) { went.push(a); }, goNew: function (a) { wentNew.push(a); },
+                                               create: function (kind, name) { made.push(kind + ":" + name); return Promise.resolve("/set/" + kind + "?ws_id=new-" + made.length); } });
             """);
     }
 
@@ -63,6 +64,25 @@ class WorkspaceOpenerTest extends JsModuleTestBase {
                 + " addressOf: addressOf, go: function (a) { went.push(a); } });"
                 + "switcher.tell({ kind: 'Open', workspaceKind: 'books', workspaceId: '' })");
         assertEquals("/set/books", eval("went.join('|')"));
+    }
+
+    @Test
+    void aNewOneAskedFor_thePageMakesIt_andItIsGoneTo_hereOrInANewTab() {
+        eval("switcher.tell({ kind: 'OpenNew', workspaceKind: 'books', workspaceName: 'Reading list', newTab: false });"
+                + "switcher.tell({ kind: 'OpenNew', workspaceKind: 'monitors', workspaceName: '', newTab: true })");
+        assertEquals("books:Reading list|monitors:", eval("made.join('|')"), "made as asked: a blank name, the catalogue's next");
+        assertEquals("/set/books?ws_id=new-1", eval("went.join('|')"));
+        assertEquals("/set/monitors?ws_id=new-2", eval("wentNew.join('|')"), "a new tab: goNew");
+        assertEquals("making making", eval("opener.asked().map(function (a) { return a.did; }).join(' ')"));
+    }
+
+    @Test
+    void withNoWayToMakeOne_aNewOneAskedForIsNotMade() {
+        eval("opener.leave(); opener = new WorkspaceOpener({ party: root, here: { workspaceKind: 'books', workspaceId: 'b-own', own: true },"
+                + " addressOf: addressOf, go: function (a) { went.push(a); } });"
+                + "switcher.tell({ kind: 'OpenNew', workspaceKind: 'books', workspaceName: 'x', newTab: false })");
+        assertEquals("", eval("went.join('|')"));
+        assertEquals("unknown", eval("opener.asked().map(function (a) { return a.did; }).join(' ')"));
     }
 
     @Test

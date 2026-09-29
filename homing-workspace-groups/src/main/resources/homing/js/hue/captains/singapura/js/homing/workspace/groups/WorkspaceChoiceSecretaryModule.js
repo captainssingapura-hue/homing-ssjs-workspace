@@ -9,6 +9,7 @@
 //
 //   state  { chosen: a kind | null, lastChangedBy: a member's id | null, changes: n,
 //            opened: n, lastOpen: { workspaceKind, workspaceId, by } | null,
+//            made: n, lastNew: { workspaceKind, workspaceName, newTab, by } | null,
 //            recentUnknown: [{ kind, from }] — the last few }
 //
 //   Choose { workspaceKind }         chosen := that kind, unless it is the one chosen;
@@ -18,15 +19,18 @@
 //   CurrentRequested                 Chosen, to the member that asked, alone — when one is
 //   Open { workspaceKind, workspaceId }   Opening, as it was asked, to every member; counted,
 //                                    and who asked
-//   anything else                    kept in recentUnknown, nothing done: Chosen and Opening
-//                                    are the party's own words, never a member's
+//   OpenNew { workspaceKind, workspaceName, newTab }   OpeningNew, as it was asked, to every
+//                                    member - for whoever opens workspaces to make it; counted,
+//                                    and who asked
+//   anything else                    kept in recentUnknown, nothing done: Chosen, Opening and
+//                                    OpeningNew are the party's own words, never a member's
 //
 // Pure: no DOM, no clock, no console; the state handed in is never changed.
 // =============================================================================
 
 var WorkspaceChoiceSecretary = {
 
-    initial: { chosen: null, lastChangedBy: null, changes: 0, opened: 0, lastOpen: null, recentUnknown: [] },
+    initial: { chosen: null, lastChangedBy: null, changes: 0, opened: 0, lastOpen: null, made: 0, lastNew: null, recentUnknown: [] },
 
     /** How many unknown messages are kept. */
     UNKNOWN_KEPT: 5,
@@ -47,6 +51,11 @@ var WorkspaceChoiceSecretary = {
                 return { newState: WorkspaceChoiceSecretary.with(state, { opened: state.opened + 1,
                                                                          lastOpen: { workspaceKind: m.workspaceKind, workspaceId: m.workspaceId, by: envelope.from } }),
                          actions: [{ kind: "BroadcastToMembers", message: { kind: "Opening", workspaceKind: m.workspaceKind, workspaceId: m.workspaceId } }] };
+
+            case "OpenNew":
+                return { newState: WorkspaceChoiceSecretary.with(state, { made: state.made + 1,
+                                                                         lastNew: { workspaceKind: m.workspaceKind, workspaceName: m.workspaceName, newTab: m.newTab, by: envelope.from } }),
+                         actions: [{ kind: "BroadcastToMembers", message: { kind: "OpeningNew", workspaceKind: m.workspaceKind, workspaceName: m.workspaceName, newTab: m.newTab } }] };
 
             default: {
                 var unknown = state.recentUnknown.concat([{ kind: m.kind, from: envelope.from }]).slice(-WorkspaceChoiceSecretary.UNKNOWN_KEPT);
