@@ -13,6 +13,13 @@
 // unless it is the workspace the page shows. The log bar's new workspace of the
 // kind is at that place too.
 //
+// Switching is the page's, never a workspace's: whatever the workspace holds,
+// the page keeps a workspace choice party of its own, its opener on it, and
+// summons the switcher (WorkspaceSwitcherDialog) in the system dialog - by its
+// key, Ctrl+Shift+K (Cmd+Shift+K on a Mac), wherever the hand is, or by the
+// workspace's name on the log bar - at the kind and the workspace it shows.
+// The key again, or Escape, closes it; no log keeps it.
+//
 // A workspace of a kind the site has arranged starts as its arrangement has it,
 // the first time: handed to the shell, which lays it out on a log that holds
 // nothing yet (GridArrangement).
@@ -29,7 +36,13 @@
 //               workspace has one address; null for a kind not filed
 // =============================================================================
 
+const _groupedPageOwner = Object.freeze({ toString: () => "groupedWorkspacePage" });
+
 class GroupedWorkspacePage {
+
+    /** The letter of the page's key for the switcher, with Ctrl - or Cmd - and Shift. */
+    static SWITCH_KEY = "K";
+
     static main(el, params, workspaces, groups, arrangements) {
         var p = params || {}, kind = p.ws_kind;
         WorkspaceDirectory.provide(groups);
@@ -41,21 +54,61 @@ class GroupedWorkspacePage {
             return;
         }
         var own = !p.ws_id || p.ws_id === WorkspaceLogIdentity.placeholder(kind);
+        var here = Object.freeze({ workspaceKind: kind, workspaceId: p.ws_id || WorkspaceLogIdentity.placeholder(kind), own: own });
+        var go = function (address) { HrefManagerInstance.navigate(address); };
+        // THE PAGE'S OWN CHOICE: a workspace choice party of the page's, whatever its workspace holds; its opener,
+        // and the switcher summoned in the system dialog by the page's key, or by the workspace's name on the log bar
+        var choice = new MessagingParty(WORKSPACE_CHOICE, WorkspaceChoiceSecretary);
+        new WorkspaceOpener({ party: choice, here: here, addressOf: GroupedWorkspacePage.address, go: go });
+        var summon = GroupedWorkspacePage._summoner(choice, p.keyboard, here);
+        if (p.keyboard && typeof p.keyboard.shortcut === "function") {
+            p.keyboard.shortcut(function (ev) { if (!GroupedWorkspacePage.isSwitchKey(ev)) return false; summon(); return true; });
+        }
         WorkspacePage.main(el, p, manifest, {
             fresh: function (q) { return GroupedWorkspacePage.address(kind, q && q.ws_id ? q.ws_id : ""); },
             arrangement: arrangements && Object.prototype.hasOwnProperty.call(arrangements, kind) ? arrangements[kind] : null,
             attach: function (ws, here) {
+                if (ws.logBar) ws.logBar.switching({ hint: "Switch workspace (" + GroupedWorkspacePage.switchKeyName() + ")", open: summon });
                 var party = ws.parties.party(WORKSPACE_CHOICE.name);
                 if (!party) return null;    // a workspace none of whose widgets choose one
                 var opener = new WorkspaceOpener({
                     party: party,
                     here: { workspaceKind: here.workspaceKind, workspaceId: here.workspaceId, own: own },
                     addressOf: GroupedWorkspacePage.address,
-                    go: function (address) { HrefManagerInstance.navigate(address); }
+                    go: go
                 });
                 return function () { opener.leave(); };
             }
         });
+    }
+
+    /** The switcher, summoned in the system dialog - or, open already, closed: one at a time, on a branch of the page's own. */
+    static _summoner(choice, keyboard, here) {
+        var place = domOpsParty.createBranch("workspaceSwitching"), dialog = null, made = 0;
+        place.activate(_groupedPageOwner);
+        return function () {
+            if (dialog && dialog.isOpen()) { dialog.close(); return; }
+            dialog = new WorkspaceSwitcherDialog(place.createBranch("dialog" + (++made)), {
+                party: choice, keyboard: keyboard, here: here, addressOf: GroupedWorkspacePage.address,
+                title: "Switch workspace"
+            });
+        };
+    }
+
+    /** The page's key for the switcher: Ctrl+Shift+K - on a Mac, Cmd+Shift+K; said once, read by the shortcut and the hint. */
+    static isSwitchKey(ev) {
+        if (!ev || ev.altKey || !ev.shiftKey || !(ev.ctrlKey || ev.metaKey)) return false;
+        return ev.code === "Key" + GroupedWorkspacePage.SWITCH_KEY || String(ev.key).toUpperCase() === GroupedWorkspacePage.SWITCH_KEY;
+    }
+
+    /** The key as this platform says it. */
+    static switchKeyName() {
+        return (GroupedWorkspacePage._mac() ? "⌘⇧" : "Ctrl+Shift+") + GroupedWorkspacePage.SWITCH_KEY;
+    }
+
+    static _mac() {
+        var n = typeof navigator !== "undefined" ? navigator : null;
+        return /mac/i.test(n ? ((n.userAgentData && n.userAgentData.platform) || n.platform || "") : "");
     }
 
     static address(kind, id) {

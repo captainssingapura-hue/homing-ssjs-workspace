@@ -8,12 +8,17 @@ import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.core.ParamCodec;
 import hue.captains.singapura.js.homing.core.QueryString;
+import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
+import hue.captains.singapura.js.homing.core.js.domOpsParty;
 import hue.captains.singapura.js.homing.server.HrefManager;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceChoiceModule;
+import hue.captains.singapura.js.homing.workspace.groups.WorkspaceChoiceSecretaryModule;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceDirectoryModule;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceOpenerModule;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogIdentityModule;
+import hue.captains.singapura.js.homing.workspace.parties.MessagingPartyModule;
 import hue.captains.singapura.js.homing.workspace.shell.WorkspacePageModule;
+import hue.captains.singapura.js.homing.workspace.switcher.WorkspaceSwitcherDialogModule;
 
 import java.util.List;
 import java.util.Map;
@@ -81,6 +86,12 @@ public record GroupedWorkspacePageModule() implements DomModule<GroupedWorkspace
                 .add(new ModuleImports<>(List.of(new WorkspaceChoiceModule.WORKSPACE_CHOICE()), WorkspaceChoiceModule.INSTANCE))
                 // a kind's own workspace, as its log names it
                 .add(new ModuleImports<>(List.of(new WorkspaceLogIdentityModule.WorkspaceLogIdentity()), WorkspaceLogIdentityModule.INSTANCE))
+                // THE PAGE'S OWN CHOICE: its workspace choice party, with the root secretary, and the switcher it summons
+                .add(new ModuleImports<>(List.of(new MessagingPartyModule.MessagingParty()), MessagingPartyModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceChoiceSecretaryModule.WorkspaceChoiceSecretary()), WorkspaceChoiceSecretaryModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceSwitcherDialogModule.WorkspaceSwitcherDialog()), WorkspaceSwitcherDialogModule.INSTANCE))
+                // the page's DomOps party, where the dialogs are made
+                .add(new ModuleImports<>(List.of(new domOpsParty()), DomOpsPartyModule.INSTANCE))
                 // the one way a page goes somewhere
                 .add(new ModuleImports<>(List.of(new HrefManager.HrefManagerInstance()), HrefManager.INSTANCE))
                 .build();

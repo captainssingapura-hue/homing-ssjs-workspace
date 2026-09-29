@@ -55,6 +55,22 @@
             <artifactId>homing-workspace-log</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <!-- The page's own choice party (the parties' runtime), and the switcher it summons in the system dialog. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-parties</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-switcher</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-core-js</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
         <!-- The page model: a Site's router, its paths and trails; the standard MPA's pages. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>

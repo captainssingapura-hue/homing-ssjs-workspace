@@ -3,10 +3,13 @@ package hue.captains.singapura.js.homing.workspace.site;
 import hue.captains.singapura.js.homing.core.Crate;
 import hue.captains.singapura.js.homing.core.CrateEntry;
 import hue.captains.singapura.js.homing.core.StandardJsModuleType;
+import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceGroupsCrate;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogCrate;
+import hue.captains.singapura.js.homing.workspace.parties.WorkspacePartiesCrate;
 import hue.captains.singapura.js.homing.workspace.shell.WorkspaceShellCrate;
+import hue.captains.singapura.js.homing.workspace.switcher.WorkspaceSwitcherCrate;
 
 import java.util.List;
 
@@ -32,6 +35,11 @@ public final class WorkspaceSiteCrate implements Crate {
                 WorkspaceGroupsCrate.INSTANCE,
                 // a kind's own workspace, as its log names it
                 WorkspaceLogCrate.INSTANCE,
+                // the page's own choice party, and the switcher it summons in the system dialog
+                WorkspacePartiesCrate.INSTANCE,
+                WorkspaceSwitcherCrate.INSTANCE,
+                // the page's DomOps party
+                CoreJsCrate.INSTANCE,
                 // the href manager: the one way a page goes somewhere
                 ServerCrate.INSTANCE);
     }

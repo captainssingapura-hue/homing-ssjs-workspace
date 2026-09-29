@@ -20,6 +20,9 @@
 //             the nav of the app that made it, which the bar cannot know; none, and
 //             no new workspace is offered
 //   bar.named(entry) says what the workspace is called: its WorkspaceEntry
+//   bar.switching({ hint, open })   what the workspace is called, offered as the way to
+//                    another: a button, open() on a press, hint its title - the page's, who
+//                    alone knows how workspaces are switched; not offered, the name is only said
 //   bar.count(n)     says how many the log holds
 //   bar.restored(same)  says whether the page came back as its log has it
 //   bar.lock(writeLock, onTakeOver?)  says who writes the log - read-only when
@@ -50,6 +53,11 @@ class WorkspaceLogBar {
         var bar = branch.createElement("bar", "div");
         css.addClass(bar, ws_logbar);
         this._named = branch.createElement("named", "strong");
+        this._switch = branch.createElement("switch", "button");
+        this._switch.type = "button";
+        this._switch.hidden = true;
+        this._switchTo = null;
+        this._switch.addEventListener("click", function () { if (self._switchTo) self._switchTo(); });
         this._counted = branch.createElement("count", "span");
         css.addClass(this._counted, ws_logbar_count);
         var button = branch.createElement("export", "button");
@@ -84,6 +92,7 @@ class WorkspaceLogBar {
         // the file is handed over by a link the bar keeps, never shown
         this._link = branch.createElement("link", "a");
         css.addClass(this._link, ws_logbar_link);
+        bar.appendChild(this._switch);
         bar.appendChild(this._named);
         bar.appendChild(this._counted);
         bar.appendChild(this._locked);
@@ -107,10 +116,22 @@ class WorkspaceLogBar {
         this.asides();
     }
 
+    /** What the workspace is called, offered as the way to another: a button, pressed to open(); hint its title. */
+    switching(offer) {
+        var o = offer || {};
+        this._switchTo = typeof o.open === "function" ? o.open : null;
+        this._switch.hidden = !this._switchTo;
+        this._switch.title = o.hint ? String(o.hint) : "";
+        this._switch.setAttribute("aria-label", o.hint ? String(o.hint) : "Switch workspace");
+        this._named.hidden = !!this._switchTo || !this._name;
+    }
+
     /** What the workspace is called; nothing said until it is known. */
     named(entry) {
-        this._named.textContent = entry ? entry.name.value : "";
-        this._named.hidden = !entry;
+        this._name = entry ? entry.name.value : "";
+        this._named.textContent = this._name;
+        this._switch.textContent = this._name ? this._name + " ▾" : "Switch workspace";
+        this._named.hidden = !entry || !!this._switchTo;
     }
 
     /**
