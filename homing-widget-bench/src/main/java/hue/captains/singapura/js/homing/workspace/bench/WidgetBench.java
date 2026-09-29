@@ -2,6 +2,7 @@ package hue.captains.singapura.js.homing.workspace.bench;
 
 import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyFixedDeclaration;
 import hue.captains.singapura.js.homing.workspace.monitors.WorkspaceMonitorsCrate;
+import hue.captains.singapura.js.homing.workspace.switcher.WorkspaceSwitcherCrate;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetDeclaration;
 import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookBrowserDeclaration;
 import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookJumbotronDeclaration;
@@ -20,9 +21,10 @@ public final class WidgetBench {
     /** The monitors: kinds the bench stands up like any other, and floats beside any other at a toggle. */
     public static final List<WidgetDeclaration<?>> MONITORS = WorkspaceMonitorsCrate.KINDS;
 
-    /** Every kind, the first the one the bench's root shows: the widgets, the monitors, and last the nasty ones the bench keeps to catch. */
+    /** Every kind, the first the one the bench's root shows: the widgets, the switcher's, the monitors, and last the nasty ones the bench keeps to catch. */
     public static final List<WidgetDeclaration<?>> KINDS = Stream.of(
             Stream.<WidgetDeclaration<?>>of(BooksGridDeclaration.INSTANCE, BookJumbotronDeclaration.INSTANCE, BookBrowserDeclaration.INSTANCE),
+            WorkspaceSwitcherCrate.KINDS.stream(),
             MONITORS.stream(),
             Stream.<WidgetDeclaration<?>>of(NastyFixedDeclaration.INSTANCE)).flatMap(s -> s).toList();
 

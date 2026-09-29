@@ -45,6 +45,23 @@
             <artifactId>homing-workspace-monitors</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <!-- The workspace switcher, as widgets: the kinds as a tree, the chosen kind's workspaces as a table. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-switcher</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <!-- The bench's own groups, defined in Java and generated for its page's directory. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-groups-core-models</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-groups</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
         <!-- The messaging parties' runtime: the parties a widget joins on the bench, at the root. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>

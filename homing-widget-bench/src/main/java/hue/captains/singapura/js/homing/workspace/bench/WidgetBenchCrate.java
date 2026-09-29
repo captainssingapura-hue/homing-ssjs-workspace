@@ -16,8 +16,10 @@ import hue.captains.singapura.js.homing.workspace.demowidgets.WorkspaceDemoWidge
 import hue.captains.singapura.js.homing.workspace.layers.WorkspaceLayersCrate;
 import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogCrate;
+import hue.captains.singapura.js.homing.workspace.groups.WorkspaceGroupsCrate;
 import hue.captains.singapura.js.homing.workspace.monitors.WorkspaceMonitorsCrate;
 import hue.captains.singapura.js.homing.workspace.parties.WorkspacePartiesCrate;
+import hue.captains.singapura.js.homing.workspace.switcher.WorkspaceSwitcherCrate;
 import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceWidgetsCrate;
 
 import java.util.List;
@@ -43,6 +45,9 @@ public final class WidgetBenchCrate implements Crate {
                 WorkspaceDemoWidgetsCrate.INSTANCE,
                 // the monitors, which it stands up as widgets like any other, and floats
                 WorkspaceMonitorsCrate.INSTANCE,
+                // the workspace switcher, which it stands up as widgets like any other; and the directory its page provides
+                WorkspaceSwitcherCrate.INSTANCE,
+                WorkspaceGroupsCrate.INSTANCE,
                 // the desk the monitors' floats lie on
                 UiDockingCrate.INSTANCE,
                 // the design words the toggles wear
@@ -66,6 +71,8 @@ public final class WidgetBenchCrate implements Crate {
                 CrateEntry.of(WidgetBenchApp.INSTANCE, StandardJsModuleType.CONSUMER),
                 CrateEntry.of(BenchWidgetsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(BenchWorkspaceModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                // its groups, for its page's directory
+                CrateEntry.of(BenchGroupsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(WidgetBenchStyles.INSTANCE),
                 // the monitors' bar, and the desk their floats lie on
                 CrateEntry.of(BenchMonitorsModule.INSTANCE, StandardJsModuleType.CONSUMER),

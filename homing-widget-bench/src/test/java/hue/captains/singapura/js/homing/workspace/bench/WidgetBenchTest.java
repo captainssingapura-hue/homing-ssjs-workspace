@@ -63,7 +63,8 @@ class WidgetBenchTest {
         assertTrue(js.contains("\"books-grid\": BooksGrid"), js);
         assertTrue(js.contains("\"nasty-fixed\": NastyFixed"), js);
         assertTrue(js.contains("const BENCH_PARTIES = Object.freeze({ \"books-grid\": Object.freeze([BOOK_SELECTION]), \"book-jumbotron\": Object.freeze([BOOK_SELECTION]), "
-                + "\"book-browser\": Object.freeze([BOOK_SELECTION]), \"focus-tree\": Object.freeze([])"), "each kind's declared types: " + js);
+                + "\"book-browser\": Object.freeze([BOOK_SELECTION]), \"workspace-kinds\": Object.freeze([WORKSPACE_CHOICE]), \"workspace-instances\": Object.freeze([WORKSPACE_CHOICE]), "
+                + "\"workspace-switcher\": Object.freeze([WORKSPACE_CHOICE]), \"focus-tree\": Object.freeze([])"), "each kind's declared types: " + js);
     }
 
     /** The workspace of one pane, as its declaration has it: its kinds but the nasty ones, and one root party of each type they join. */
@@ -72,7 +73,8 @@ class WidgetBenchTest {
         var js = String.join("\n", BenchWorkspaceModule.INSTANCE.selfContent(null));
         assertTrue(js.contains("const BENCH_WORKSPACE = Object.freeze({ name: \"bench-one-pane\", kinds: Object.freeze({ \"books-grid\": Object.freeze({ Widget: BooksGrid, title: \"Books grid\", parties: Object.freeze([BOOK_SELECTION]) })"), js);
         assertTrue(!js.contains("nasty"), js);
-        assertTrue(js.endsWith("parties: Object.freeze([Object.freeze({ type: BOOK_SELECTION, secretary: BookSelectionSecretary })]) });"), js);
+        assertTrue(js.endsWith("parties: Object.freeze([Object.freeze({ type: BOOK_SELECTION, secretary: BookSelectionSecretary }), "
+                + "Object.freeze({ type: WORKSPACE_CHOICE, secretary: WorkspaceChoiceSecretary })]) });"), js);
     }
 
     /** The monitors the bar floats, in its order: each its kind, its title, its toggle's mark, its class - kinds the bench also stands up alone. */

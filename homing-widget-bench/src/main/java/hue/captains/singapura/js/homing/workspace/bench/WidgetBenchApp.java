@@ -12,6 +12,7 @@ import hue.captains.singapura.js.homing.core.QueryString;
 import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
 import hue.captains.singapura.js.homing.core.js.domOpsParties;
 import hue.captains.singapura.js.homing.core.js.domOpsParty;
+import hue.captains.singapura.js.homing.workspace.groups.WorkspaceDirectoryModule;
 import hue.captains.singapura.js.homing.workspace.parties.MessagingPartyModule;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetParams;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetQuery;
@@ -83,6 +84,9 @@ public record WidgetBenchApp() implements AppModule<WidgetBenchApp.Params, Widge
     @Override
     public ImportsFor<WidgetBenchApp> imports() {
         return ImportsFor.<WidgetBenchApp>builder()
+                // the page's directory, provided at boot with the bench's groups
+                .add(new ModuleImports<>(List.of(new BenchGroupsModule.BENCH_GROUPS()), BenchGroupsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceDirectoryModule.WorkspaceDirectory()), WorkspaceDirectoryModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new BenchWidgetsModule.BENCH_WIDGETS(), new BenchWidgetsModule.BENCH_MONITORS(), new BenchWidgetsModule.BENCH_PARTIES()), BenchWidgetsModule.INSTANCE))
                 // the monitors' bar, and the desk their floats lie on
                 .add(new ModuleImports<>(List.of(new BenchMonitorsModule.BenchMonitors()), BenchMonitorsModule.INSTANCE))

@@ -12,9 +12,11 @@ import hue.captains.singapura.js.homing.workspace.core.WorkspaceCoreCrate;
 import hue.captains.singapura.js.homing.workspace.demo.WorkspaceDemoCrate;
 import hue.captains.singapura.js.homing.workspace.demowidgets.WorkspaceDemoWidgetsCrate;
 import hue.captains.singapura.js.homing.workspace.layers.WorkspaceLayersCrate;
+import hue.captains.singapura.js.homing.workspace.groups.WorkspaceGroupsCrate;
 import hue.captains.singapura.js.homing.workspace.monitors.WorkspaceMonitorsCrate;
 import hue.captains.singapura.js.homing.workspace.parties.WorkspacePartiesCrate;
 import hue.captains.singapura.js.homing.workspace.shell.WorkspaceShellCrate;
+import hue.captains.singapura.js.homing.workspace.switcher.WorkspaceSwitcherCrate;
 import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceWidgetsCrate;
 
 import java.util.Collection;
@@ -22,7 +24,7 @@ import java.util.List;
 
 /**
  * This repo's crates, as the conformance export grades them: the log's
- * generated types, the log, the shell, the messaging parties, the headless core, the layers, the widgets, the demo widgets, the monitors, the demo and the bench. Graded by the framework's policy,
+ * generated types, the log, the shell, the messaging parties, the groups, the headless core, the layers, the widgets, the demo widgets, the monitors, the switcher, the demo and the bench. Graded by the framework's policy,
  * unextended, and strictly: there is no baseline, the debt this repo was
  * copied with having left with the old stack.
  */
@@ -36,11 +38,13 @@ public final class WorkspaceConformance {
             WorkspaceLogCrate.INSTANCE,
             WorkspaceShellCrate.INSTANCE,
             WorkspacePartiesCrate.INSTANCE,
+            WorkspaceGroupsCrate.INSTANCE,
             WorkspaceCoreCrate.INSTANCE,
             WorkspaceLayersCrate.INSTANCE,
             WorkspaceWidgetsCrate.INSTANCE,
             WorkspaceDemoWidgetsCrate.INSTANCE,
             WorkspaceMonitorsCrate.INSTANCE,
+            WorkspaceSwitcherCrate.INSTANCE,
             WorkspaceDemoCrate.INSTANCE,
             WidgetBenchCrate.INSTANCE);
 

@@ -25,6 +25,8 @@
 const _workspaceBenchOwner = Object.freeze({ toString: () => "workspaceBench" });
 
 function appMain(el, params) {
+    // the page's directory of workspace groups: the bench's, provided before anything reads it
+    WorkspaceDirectory.provide(BENCH_GROUPS);
     css.addClass(el, wb_page);
     // the page's own: its place, and its tools
     var place = domOpsParty.createBranch("workspaceBench");

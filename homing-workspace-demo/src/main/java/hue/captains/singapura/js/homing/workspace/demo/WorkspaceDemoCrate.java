@@ -5,6 +5,8 @@ import hue.captains.singapura.js.homing.core.CrateEntry;
 import hue.captains.singapura.js.homing.core.StandardJsModuleType;
 import hue.captains.singapura.js.homing.workspace.demowidgets.WorkspaceDemoWidgetsCrate;
 import hue.captains.singapura.js.homing.workspace.monitors.WorkspaceMonitorsCrate;
+import hue.captains.singapura.js.homing.workspace.switcher.WorkspaceSwitcherCrate;
+import hue.captains.singapura.js.homing.workspace.groups.WorkspaceGroupsCrate;
 import hue.captains.singapura.js.homing.workspace.shell.WorkspaceShellCrate;
 
 import java.util.List;
@@ -26,15 +28,19 @@ public final class WorkspaceDemoCrate implements Crate {
         return List.of(
                 // the page a workspace is: the shell's, handed the manifest
                 WorkspaceShellCrate.INSTANCE,
-                // the two widget sets it puts together
+                // the three widget sets it puts together
                 WorkspaceDemoWidgetsCrate.INSTANCE,
-                WorkspaceMonitorsCrate.INSTANCE);
+                WorkspaceSwitcherCrate.INSTANCE,
+                WorkspaceMonitorsCrate.INSTANCE,
+                // the directory its page provides
+                WorkspaceGroupsCrate.INSTANCE);
     }
 
     @Override
     public List<CrateEntry> entries() {
         return List.of(
                 CrateEntry.of(DemoWorkspaceModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(DemoGroupsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(DemoWorkspaceApp.INSTANCE, StandardJsModuleType.CONSUMER));
     }
 }

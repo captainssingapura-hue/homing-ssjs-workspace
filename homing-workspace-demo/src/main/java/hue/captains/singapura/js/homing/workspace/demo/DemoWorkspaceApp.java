@@ -6,6 +6,7 @@ import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.core.ParamCodec;
+import hue.captains.singapura.js.homing.workspace.groups.WorkspaceDirectoryModule;
 import hue.captains.singapura.js.homing.workspace.shell.WorkspacePageModule;
 
 import java.util.List;
@@ -36,6 +37,9 @@ public record DemoWorkspaceApp() implements AppModule<WorkspacePageModule.Params
                 // its own address, for the log bar's new workspace of the kind
                 .add(new ModuleImports<>(List.of(new link()), INSTANCE))
                 .add(new ModuleImports<>(List.of(new DemoWorkspaceModule.DEMO_WORKSPACE()), DemoWorkspaceModule.INSTANCE))
+                // the page's directory, provided at boot with the demo's groups
+                .add(new ModuleImports<>(List.of(new DemoGroupsModule.DEMO_GROUPS()), DemoGroupsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceDirectoryModule.WorkspaceDirectory()), WorkspaceDirectoryModule.INSTANCE))
                 .build();
     }
 

@@ -16,6 +16,8 @@ import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogIdentity
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogStoreModule;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceWriteLockModule;
 
+import hue.captains.singapura.js.homing.workspace.groups.WorkspaceDirectoryModule;
+
 import java.util.List;
 
 /**
@@ -43,6 +45,9 @@ public record WorkspaceBenchApp() implements AppModule<WorkspaceBenchApp.Params,
     @Override
     public ImportsFor<WorkspaceBenchApp> imports() {
         return ImportsFor.<WorkspaceBenchApp>builder()
+                // the page's directory, provided at boot with the bench's groups
+                .add(new ModuleImports<>(List.of(new BenchGroupsModule.BENCH_GROUPS()), BenchGroupsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WorkspaceDirectoryModule.WorkspaceDirectory()), WorkspaceDirectoryModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new BenchWidgetsModule.BENCH_MONITORS()), BenchWidgetsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new BenchMonitorsModule.BenchMonitors()), BenchMonitorsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new PartySimulatorModule.PartySimulator()), PartySimulatorModule.INSTANCE))

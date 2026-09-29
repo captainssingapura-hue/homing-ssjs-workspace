@@ -33,16 +33,17 @@ class WorkspaceDemoSiteTest {
         assertFalse(WorkspaceDemoSite.INSTANCE.router().resolve(Path.parse("/elsewhere")).isPresent());
     }
 
-    /** Both sets' kinds, in one manifest; the one root party is the books'. */
+    /** The three sets' kinds, in one manifest; the root parties are the books' and the switcher's. */
     @Test
-    void theManifestPutsBothWidgetSetsTogether() {
+    void theManifestPutsTheWidgetSetsTogether() {
         String js = String.join("\n", DemoWorkspaceModule.INSTANCE.selfContent(null));
         assertTrue(js.contains("const DEMO_WORKSPACE = Object.freeze({ name: \"demo\""), js);
         for (String kind : List.of("\"books-grid\"", "\"book-jumbotron\"", "\"book-browser\"",
+                                   "\"workspace-kinds\"", "\"workspace-instances\"", "\"workspace-switcher\"",
                                    "\"focus-tree\"", "\"steward-lamp\"", "\"domops-tree\"", "\"party-log\"")) {
             assertTrue(js.contains(kind), kind + " in " + js);
         }
-        assertEquals(1, DemoWorkspace.INSTANCE.rootParties().size(), "the book selection; the monitors join none");
+        assertEquals(2, DemoWorkspace.INSTANCE.rootParties().size(), "the book selection and the workspace choice; the monitors join none");
     }
 
     /** A workspace page's params: which workspace of the kind, by the id its log is kept under, and the server's word - only "on". */

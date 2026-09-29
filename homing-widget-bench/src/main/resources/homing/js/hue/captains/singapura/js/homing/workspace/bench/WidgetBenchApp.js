@@ -40,6 +40,8 @@
 const _benchOwner = Object.freeze({ toString: () => "widgetBench" });
 
 function appMain(el, params) {
+    // the page's directory of workspace groups: the bench's, provided before anything reads it
+    WorkspaceDirectory.provide(BENCH_GROUPS);
     var Widget = params && BENCH_WIDGETS[params.widget];
     if (!Widget) {
         // The MPA's flat /app hands the app no params when the codec refused the
