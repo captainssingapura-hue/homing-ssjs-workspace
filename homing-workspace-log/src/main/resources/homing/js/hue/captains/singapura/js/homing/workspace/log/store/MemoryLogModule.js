@@ -3,7 +3,8 @@
 // them in the database: numbered climbing, never reused, looked up by kind and
 // workspace; one checkpoint per log, never replaced by an older one; a log that
 // cannot be read set aside, not cleared, and its checkpoint dropped with it;
-// the workspaces of each kind catalogued beside them. For a page that must not keep anything, and for tests.
+// the workspaces of each kind catalogued beside them, and those deleted apart
+// from them. For a page that must not keep anything, and for tests.
 //
 //   new MemoryLog()
 //   log.add(row) → Promise<seq>    log.rows(kind, workspaceId) → Promise<rows>
@@ -17,6 +18,9 @@
 //   log.discardAsides(kind, workspaceId) → Promise<count>
 //   log.entries(kind) → Promise<the kind's catalogue records>
 //   log.writeEntry(kind, workspaceId, make) → Promise<the record kept>; make(the kind's records) → the entry
+//   log.deleteEntry(kind, workspaceId, at) → Promise<the record moved to the deleted, or null>
+//   log.deletedEntries(kind) → Promise<the kind's deleted records>
+//   log.restoreEntry(kind, workspaceId, make) → Promise<the record kept, or null>; make(deleted, listed) → the entry
 // =============================================================================
 
 class MemoryLog {
@@ -27,6 +31,7 @@ class MemoryLog {
         this._lastAside = 0;
         this._checkpoints = new Map();
         this._entries = new Map();
+        this._deleted = new Map();
     }
 
     static _key(kind, workspaceId) { return kind + "\n" + workspaceId; }
@@ -99,6 +104,27 @@ class MemoryLog {
         try { kept = Object.freeze({ kind: kind, workspaceId: workspaceId, entry: JSON.parse(JSON.stringify(make(this._ofKind(kind)))) }); }
         catch (e) { return Promise.reject(e); }
         this._entries.set(MemoryLog._key(kind, workspaceId), kept);
+        return Promise.resolve(kept);
+    }
+
+    deleteEntry(kind, workspaceId, at) {
+        var key = MemoryLog._key(kind, workspaceId), was = this._entries.get(key);
+        if (!was) return Promise.resolve(null);
+        var moved = Object.freeze({ kind: kind, workspaceId: workspaceId, entry: was.entry, deleted: at });
+        this._deleted.set(key, moved);
+        this._entries.delete(key);
+        return Promise.resolve(moved);
+    }
+
+    deletedEntries(kind) { return Promise.resolve(Array.from(this._deleted.values()).filter(function (r) { return r.kind === kind; })); }
+
+    restoreEntry(kind, workspaceId, make) {
+        var key = MemoryLog._key(kind, workspaceId), was = this._deleted.get(key), kept;
+        if (!was) return Promise.resolve(null);
+        try { kept = Object.freeze({ kind: kind, workspaceId: workspaceId, entry: JSON.parse(JSON.stringify(make(was, this._ofKind(kind)))) }); }
+        catch (e) { return Promise.reject(e); }
+        this._entries.set(key, kept);
+        this._deleted.delete(key);
         return Promise.resolve(kept);
     }
 }

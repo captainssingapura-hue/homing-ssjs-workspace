@@ -12,7 +12,9 @@
 // transaction, as one record { id, kind, workspaceId, aside }. Clearing a log
 // or setting it aside drops its checkpoint with it. And "catalogue", the
 // workspaces of each kind - { kind, workspaceId, entry }, one per workspace,
-// kept whatever becomes of its log.
+// kept whatever becomes of its log. And "deleted", the workspaces taken out of
+// the catalogue - { kind, workspaceId, entry, deleted } - a soft delete: the
+// log, the checkpoint and the address stay, and it can be listed again.
 //
 //   new IndexedDbLog({ indexedDB? })   the factory; the page's own unless said
 //   log.add(row)                  → Promise<seq>
@@ -34,6 +36,17 @@
 //                                 → Promise<the record kept>; make(the kind's
 //                                   records) → the workspace's entry, read and
 //                                   written in one transaction
+//   log.deleteEntry(kind, workspaceId, at)
+//                                 → Promise<the record moved, or null when it was not
+//                                   listed>: the entry out of the catalogue into
+//                                   "deleted", with when - its log untouched - in one
+//                                   transaction
+//   log.deletedEntries(kind)      → Promise<the kind's deleted records>
+//   log.restoreEntry(kind, workspaceId, make)
+//                                 → Promise<the record kept, or null when it was not
+//                                   deleted>; make(its deleted record, the kind's listed
+//                                   records) → its entry, back in the catalogue, in one
+//                                   transaction
 // =============================================================================
 
 class IndexedDbLog {
@@ -42,8 +55,9 @@ class IndexedDbLog {
     static ASIDE = "aside";
     static CHECKPOINTS = "checkpoints";
     static CATALOGUE = "catalogue";
-    /** 2: the aside store joined the rows; 3: the checkpoints; 4: the catalogue. */
-    static VERSION = 4;
+    static DELETED = "deleted";
+    /** 2: the aside store joined the rows; 3: the checkpoints; 4: the catalogue; 5: the deleted, apart from it. */
+    static VERSION = 5;
 
     constructor(opts) {
         this._factory = (opts && opts.indexedDB) || indexedDB;
@@ -67,6 +81,9 @@ class IndexedDbLog {
                 }
                 if (!db.objectStoreNames.contains(IndexedDbLog.CHECKPOINTS)) {
                     db.createObjectStore(IndexedDbLog.CHECKPOINTS, { keyPath: ["kind", "workspaceId"] });
+                }
+                if (!db.objectStoreNames.contains(IndexedDbLog.DELETED)) {
+                    db.createObjectStore(IndexedDbLog.DELETED, { keyPath: ["kind", "workspaceId"] });
                 }
                 if (!db.objectStoreNames.contains(IndexedDbLog.CATALOGUE)) {
                     db.createObjectStore(IndexedDbLog.CATALOGUE, { keyPath: ["kind", "workspaceId"] });
@@ -210,6 +227,45 @@ class IndexedDbLog {
                 catch (e) { out.why = e; tx.abort(); return; }
                 store.put(kept);
                 out.value = kept;
+            };
+        });
+    }
+
+    deleteEntry(kind, workspaceId, at) {
+        return this._tx([IndexedDbLog.CATALOGUE, IndexedDbLog.DELETED], "readwrite", function (tx, out) {
+            var listed = tx.objectStore(IndexedDbLog.CATALOGUE), req = listed.get([kind, workspaceId]);
+            req.onsuccess = function () {
+                if (!req.result) { out.value = null; return; }
+                var moved = { kind: kind, workspaceId: workspaceId, entry: req.result.entry, deleted: at };
+                tx.objectStore(IndexedDbLog.DELETED).put(moved);
+                listed.delete([kind, workspaceId]);
+                out.value = moved;
+            };
+        });
+    }
+
+    deletedEntries(kind) {
+        return this._tx(IndexedDbLog.DELETED, "readonly", function (tx, out) {
+            var req = tx.objectStore(IndexedDbLog.DELETED).getAll(IndexedDbLog._ofKind(kind));
+            req.onsuccess = function () { out.value = req.result; };
+        });
+    }
+
+    restoreEntry(kind, workspaceId, make) {
+        return this._tx([IndexedDbLog.CATALOGUE, IndexedDbLog.DELETED], "readwrite", function (tx, out) {
+            var gone = tx.objectStore(IndexedDbLog.DELETED), req = gone.get([kind, workspaceId]);
+            req.onsuccess = function () {
+                var was = req.result;
+                if (!was) { out.value = null; return; }
+                var listed = tx.objectStore(IndexedDbLog.CATALOGUE), all = listed.getAll(IndexedDbLog._ofKind(kind));
+                all.onsuccess = function () {
+                    var kept;
+                    try { kept = { kind: kind, workspaceId: workspaceId, entry: make(was, all.result) }; }
+                    catch (e) { out.why = e; tx.abort(); return; }
+                    listed.put(kept);
+                    gone.delete([kind, workspaceId]);
+                    out.value = kept;
+                };
             };
         });
     }

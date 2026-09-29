@@ -84,4 +84,51 @@ class WorkspaceCatalogueTest extends JsModuleTestBase {
         assertEquals("demo", js.eval("js", "got.demo.name.value").asString(), "named among its own kind's");
         assertEquals("[\"notes\"]", js.eval("js", "names(got.list)").asString());
     }
+
+    @Test
+    void aNameIsOneWorkspaces_amongItsKinds_itsCaseAside() {
+        js.eval("js", """
+                catalogue.opened(own).then(() => catalogue.opened(second, "Groceries")).then((e) => { got.asked = e; })
+                    .then(() => catalogue.opened(third, "groceries ")).then(null, (e) => { got.newTaken = e.message; })
+                    .then(() => catalogue.rename(own, "GROCERIES")).then(null, (e) => { got.renameTaken = e.message; })
+                    .then(() => catalogue.rename(second, "Groceries")).then((e) => { got.same = e; })
+                    .then(() => catalogue.list(notes)).then((list) => { got.list = list; });
+                """);
+        assertEquals("Groceries", js.eval("js", "got.asked.name.value").asString(), "listed under the name asked for");
+        assertTrue(js.eval("js", "got.newTaken").asString().contains("is called “Groceries” already"), "a new one: refused, the name as its holder has it");
+        assertTrue(js.eval("js", "got.renameTaken").asString().contains("already"), "a rename: refused");
+        assertEquals("Groceries", js.eval("js", "got.same.name.value").asString(), "its own name again is no clash");
+        assertEquals("[\"Groceries\",\"notes\"]", js.eval("js", "JSON.stringify(got.list.map((e) => e.name.value).sort())").asString(), "the refused one never listed");
+    }
+
+    @Test
+    void aDeleteIsSoft_outOfTheList_kept_andOpenedAgainItIsBack() {
+        js.eval("js", """
+                catalogue.opened(own).then(() => { clock += 10; return catalogue.opened(second, "Groceries"); })
+                    .then(() => { clock += 10; return catalogue.remove(second); }).then((e) => { got.removed = e; })
+                    .then(() => catalogue.list(notes)).then((list) => { got.list = list; })
+                    .then(() => catalogue.deleted(notes)).then((gone) => { got.gone = gone; })
+                    .then(() => backend.rows("notes", second.workspace.id)).then(() => { clock += 10; return catalogue.opened(second); })
+                    .then((e) => { got.back = e; return catalogue.deleted(notes); }).then((gone) => { got.goneAfter = gone; })
+                    .then(() => catalogue.list(notes)).then((list) => { got.listAfter = list; });
+                """);
+        assertEquals("Groceries", js.eval("js", "got.removed.name.value").asString());
+        assertEquals("[\"notes\"]", js.eval("js", "names(got.list)").asString(), "out of the list");
+        assertEquals("Groceries 1790000000020", js.eval("js", "got.gone[0].entry.name.value + ' ' + got.gone[0].deleted").asString(), "kept apart, with when");
+        assertEquals("Groceries", js.eval("js", "got.back.name.value").asString(), "opened again: back, under its name");
+        assertEquals(1790000000010L, js.eval("js", "got.back.created").asLong(), "as it was made");
+        assertEquals(0, js.eval("js", "got.goneAfter.length").asInt());
+        assertEquals("[\"Groceries\",\"notes\"]", js.eval("js", "names(got.listAfter)").asString());
+    }
+
+    @Test
+    void backWhenItsNameWasTakenMeanwhile_itTakesTheKindsNext() {
+        js.eval("js", """
+                catalogue.opened(second, "Groceries").then(() => catalogue.remove(second))
+                    .then(() => catalogue.opened(third, "Groceries")).then(() => catalogue.opened(second)).then((e) => { got.back = e; })
+                    .then(() => catalogue.remove(own)).then(null, (e) => { got.unlisted = e.message; });
+                """);
+        assertEquals("notes", js.eval("js", "got.back.name.value").asString(), "Groceries is another's now");
+        assertTrue(js.eval("js", "got.unlisted").asString().contains("not listed, so not deleted"));
+    }
 }
