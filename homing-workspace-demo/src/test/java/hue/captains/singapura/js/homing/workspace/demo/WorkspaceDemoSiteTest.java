@@ -58,21 +58,23 @@ class WorkspaceDemoSiteTest {
         assertTrue(page("/demo", Query.parse("ws_name=Reading%20list")).contains("\"ws_name\":\"Reading list\""), "or what it is called");
     }
 
-    /** The three sets' kinds, together; each set on its own with the switcher; the root parties as their kinds join. */
+    /** The two sets' kinds, together; each set on its own; no switcher in any - switching is the page's; the root parties as their kinds join. */
     @Test
     void theManifestsAreTheirDeclarations() {
         String js = String.join("\n", DemoWorkspacesModule.INSTANCE.selfContent(null));
         assertTrue(js.contains("const DEMO_WORKSPACES = Object.freeze({ \"demo\": Object.freeze({ name: \"demo\""), js);
         assertTrue(js.contains("\"books\": Object.freeze({ name: \"books\""), js);
         assertTrue(js.contains("\"monitors\": Object.freeze({ name: \"monitors\""), js);
-        for (String kind : List.of("\"books-grid\"", "\"book-jumbotron\"", "\"book-browser\"",
-                                   "\"workspace-kinds\"", "\"workspace-instances\"", "\"workspace-switcher\"",
-                                   "\"focus-tree\"", "\"steward-lamp\"", "\"domops-tree\"", "\"party-log\"")) {
-            assertTrue(DemoWorkspace.INSTANCE.kinds().stream().anyMatch(k -> ("\"" + k.kind() + "\"").equals(kind)), kind + " in the demo");
+        for (String kind : List.of("books-grid", "book-jumbotron", "book-browser", "focus-tree", "steward-lamp", "domops-tree", "party-log")) {
+            assertTrue(DemoWorkspace.INSTANCE.kinds().stream().anyMatch(k -> k.kind().equals(kind)), kind + " in the demo");
         }
-        assertEquals(2, DemoWorkspace.INSTANCE.rootParties().size(), "the book selection and the workspace choice; the monitors join none");
-        assertEquals(2, BooksWorkspace.INSTANCE.rootParties().size(), "the book selection and the workspace choice");
-        assertEquals(1, MonitorsWorkspace.INSTANCE.rootParties().size(), "the workspace choice alone");
+        for (var w : List.of(DemoWorkspace.INSTANCE, BooksWorkspace.INSTANCE, MonitorsWorkspace.INSTANCE)) {
+            assertTrue(w.kinds().stream().noneMatch(k -> k.kind().startsWith("workspace-")), w.name() + ": no switcher of its own");
+        }
+        assertFalse(js.contains("WORKSPACE_CHOICE"), "no workspace chooses one: the page does");
+        assertEquals(1, DemoWorkspace.INSTANCE.rootParties().size(), "the book selection; the monitors join none");
+        assertEquals(1, BooksWorkspace.INSTANCE.rootParties().size(), "the book selection");
+        assertEquals(0, MonitorsWorkspace.INSTANCE.rootParties().size(), "the monitors join none");
     }
 
     /** A grouped page's params: the group, then which workspace of the anchor's kind - by the id its log is kept under, or by name - and the server's word, only "on". */
@@ -88,15 +90,17 @@ class WorkspaceDemoSiteTest {
         assertInstanceOf(Decoded.Malformed.class, codec.from(Map.of("ws_group", List.of("demo"), "ws_server", List.of("https://elsewhere"))));
     }
 
-    /** Each workspace's first state in the split grid: the switcher on the left, its own widgets beside it. */
+    /** Each workspace's first state in the split grid: its own widgets, the whole floor theirs. */
     @Test
-    void eachWorkspaceIsArranged_theSwitcherOnTheLeft() {
+    void eachWorkspaceIsArranged_itsOwnWidgetsAlone() {
         for (String kind : List.of("demo", "books", "monitors")) {
             var grid = DemoGroups.SITE.arrangements(kind).orElseThrow().forEngine(SplitGrid.ENGINE, SplitGrid.class).orElseThrow().placement();
-            assertEquals(List.of("switcher"), grid.regions().get(0).tabs().stream().map(WidgetRef::value).toList(), kind);
+            assertTrue(grid.regions().stream().flatMap(r -> r.tabs().stream()).map(WidgetRef::value).noneMatch("switcher"::equals), kind);
         }
         var books = DemoArrangements.BOOKS.arrangements().get(0);
-        assertEquals(List.of("kinds", "books", "chosen"), ((SplitGrid) books.placement()).regions().stream().map(r -> r.name().value()).toList());
+        assertEquals(List.of("books", "chosen"), ((SplitGrid) books.placement()).regions().stream().map(r -> r.name().value()).toList());
+        var demo = DemoArrangements.TOGETHER.arrangements().get(0);
+        assertEquals(List.of("books", "trees", "parties"), ((SplitGrid) demo.placement()).regions().stream().map(r -> r.name().value()).toList());
         String js = String.join("\n", DemoArrangementsModule.INSTANCE.selfContent(null));
         assertTrue(js.contains("const DEMO_ARRANGEMENTS = Object.freeze({ \"demo\": Object.freeze({ engine: \"split-grid\", workspace: \"demo\""), js);
         assertTrue(js.contains("\"books\": Object.freeze({ engine: \"split-grid\", workspace: \"books\""), js);

@@ -18,7 +18,7 @@ public final class DemoGroups {
 
     public static final WorkspaceGroups GROUPS = WorkspaceGroups.of(
             WorkspaceGroup.of("demo", "Workspace demo")
-                    .section("Together", GroupedWorkspace.of(DemoWorkspace.INSTANCE.name(), "Books, monitors and the switcher"))
+                    .section("Together", GroupedWorkspace.of(DemoWorkspace.INSTANCE.name(), "Books and monitors"))
                     .section("One set each", GroupedWorkspace.of(BooksWorkspace.INSTANCE.name(), "Books"),
                                              GroupedWorkspace.of(MonitorsWorkspace.INSTANCE.name(), "Monitors"))
                     .defaultTo(WorkspaceKind.of(DemoWorkspace.INSTANCE.name()))
