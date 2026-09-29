@@ -16,6 +16,14 @@
 // answers late for a kind no longer chosen is passed over. Not joined, it
 // shows nothing chosen, and works alone.
 //
+// Last in the table, a NEW ROW: "+ New workspace". Its name is the one thing
+// in it anyone may say — typed over what it offers, Enter to have it — and
+// its other two are derived, "now", as it will be made and opened; the
+// workspace is asked for, of the kind shown, under that name (OpenNew) —
+// left as offered, or blank, under the catalogue's next — and whoever opens
+// workspaces makes it. Enter, or a double press, anywhere on it takes its
+// name.
+//
 // The keys: the grid's — ↑ ↓ and the rest walk it. Enter opens the workspace
 // at the cursor. ← at the grid's left edge goes past it: its host, told
 // (edge), may hand the keys on. Escape the grid did not take gives the keys
@@ -29,7 +37,8 @@
 //   table.leave()
 //   table.shown()   { kind, state: "none" | "reading" | "read" | "failed", workspaces: [{ id, name, opened, created }] }
 //   table.edge(fn)  fn("left") when ← goes past the grid — for a host that hands the keys on
-//   table.cursor()  the workspace at the cursor, { workspaceKind, workspaceId }, or null
+//   table.cursor()  the workspace at the cursor, { workspaceKind, workspaceId, fresh }, or null -
+//                   fresh on the new row, its id ""
 //   table.prefer(workspaceId)   the workspace its cursor lands on whenever its kind is shown:
 //                   the page's own, so a switcher opens where the page is
 //   table.activate()   the keys claimed, and on into the grid
@@ -44,6 +53,10 @@ class WorkspaceInstances {
     /** The columns, as the relation has them, and what the header calls them. */
     static COLUMNS = Object.freeze(["name", "opened", "created"]);
     static LABELS = Object.freeze({ name: "Name", opened: "Last opened", created: "Made" });
+    /** The new row's name, as it is offered: replaced by what a person types, or, left, the catalogue's next name. */
+    static NEW_NAME = "+ New workspace";
+    /** What a person may change: the new row's name alone - so the name column is open, and only that cell commits. */
+    static DERIVED = Object.freeze(["opened", "created"]);
 
     constructor(container, params) {
         if (!container || typeof container.appendChild !== "function") throw new Error("[WorkspaceInstances] a container is required: the one its page lends it");
@@ -96,7 +109,7 @@ class WorkspaceInstances {
             relation: {
                 view: function (intent) { return intent ? null : self._rows.map(function (r) { return r.pk; }); },
                 columns: function () { return WorkspaceInstances.COLUMNS.slice(); },
-                readOnlyColumns: function () { return WorkspaceInstances.COLUMNS.slice(); },
+                readOnlyColumns: function () { return WorkspaceInstances.DERIVED.slice(); },
                 labels: function () { return WorkspaceInstances.LABELS; },
                 cellFor: function (pk, col) { return self._cellFor(pk, col); }
             },
@@ -129,14 +142,14 @@ class WorkspaceInstances {
 
     shown() {
         return Object.freeze({ kind: this._kind, state: this._state,
-                               workspaces: this._rows.map(function (r) { return Object.freeze({ id: r.id, name: r.name, opened: r.opened, created: r.created }); }) });
+                               workspaces: this._rows.filter(function (r) { return !r.fresh; }).map(function (r) { return Object.freeze({ id: r.id, name: r.name, opened: r.opened, created: r.created }); }) });
     }
 
     edge(fn) { this._edge = typeof fn === "function" ? fn : null; }
 
     cursor() {
         var at = this._grid.cursor(), row = at ? this._byPk.get(at.pk) : null;
-        return row ? Object.freeze({ workspaceKind: row.kind, workspaceId: row.id }) : null;
+        return row ? Object.freeze({ workspaceKind: row.kind, workspaceId: row.id, fresh: row.fresh === true }) : null;
     }
 
     prefer(workspaceId) { this._preferred = workspaceId ? String(workspaceId) : null; this._land(); }
@@ -170,7 +183,7 @@ class WorkspaceInstances {
             self._state = "read";
             self._showRows(entries.map(function (e) {
                 return { pk: kind + "/" + e.log.workspace.id, kind: kind, id: e.log.workspace.id, name: e.name.value, opened: e.opened, created: e.created };
-            }));
+            }).concat([{ pk: kind + "/+new", kind: kind, id: "", fresh: true, name: WorkspaceInstances.NEW_NAME }]));
         }, function (e) {
             if (at !== self._reads || self._disposed) return;
             self._failed(e);
@@ -200,9 +213,11 @@ class WorkspaceInstances {
     _cellFor(pk, col) {
         var row = this._byPk.get(pk);
         if (!row) throw new Error("[WorkspaceInstances] no such workspace: " + pk);
-        var k = pk + " " + col, c = this._cells.get(k);
+        var k = pk + " " + col, c = this._cells.get(k), self = this;
         if (!c) {
-            c = new RelGridTextCell({ branch: this._cellsBranch.createBranch("c" + (++this._cellSeq)), value: WorkspaceInstances._text(row, col) });
+            // the new row's name is the one thing a person says of it: its cell commits; every other cell only shows
+            var commit = row.fresh && col === "name" ? function (text) { self._openNew(row.kind, text); } : undefined;
+            c = new RelGridTextCell({ branch: this._cellsBranch.createBranch("c" + (++this._cellSeq)), value: WorkspaceInstances._text(row, col), onCommit: commit });
             this._cells.set(k, c);
         }
         return c;
@@ -215,7 +230,11 @@ class WorkspaceInstances {
         if (row) this._grid.selectCell(row.pk, "name");
     }
 
-    static _text(row, col) { return col === "name" ? row.name : WorkspaceInstances._when(row[col]); }
+    /** A cell's text: the name; or when, derived - for the new row, now, when it will be made and opened. */
+    static _text(row, col) {
+        if (col === "name") return row.name;
+        return row.fresh ? "now" : WorkspaceInstances._when(row[col]);
+    }
 
     /** A moment, as a person reads it here: the day, and the minute. */
     static _when(ms) {
@@ -228,23 +247,41 @@ class WorkspaceInstances {
     _openAtCursor() {
         var at = this._grid.cursor(), row = at ? this._byPk.get(at.pk) : null;
         if (!row || !this._choice) return false;
+        if (row.fresh) return this._nameAt(row);
         this._choice.tell({ kind: "Open", workspaceKind: row.kind, workspaceId: row.id });
         return true;
     }
 
+    /** The new row, opened: its name taken, the one thing of it that is anyone's to say. */
+    _nameAt(row) {
+        var at = this._grid.cursor();
+        if (!at || at.column !== "name") this._grid.selectCell(row.pk, "name");
+        this._grid.takeControlAtCursor();
+        return true;
+    }
+
+    /** A new one, named - or, left as it was offered or blank, the catalogue's next name - asked for, here. */
+    _openNew(kind, text) {
+        if (!this._choice) return;
+        var name = String(text == null ? "" : text).trim();
+        if (name === WorkspaceInstances.NEW_NAME) name = "";
+        this._choice.tell({ kind: "OpenNew", workspaceKind: kind, workspaceName: name, newTab: false });
+    }
+
     /** The head: the kind's title and how many; a note saying what there is to do, or why there is nothing. */
     _shown() {
-        var found = this._kind ? WorkspaceDirectory.find(this._kind) : null, n = this._rows.length;
+        var found = this._kind ? WorkspaceDirectory.find(this._kind) : null;
+        var kept = this._rows.filter(function (r) { return !r.fresh; }).length, rows = this._rows.length;
         var title = found ? found.workspace.title : this._kind;
         this._title.textContent = title || "Workspaces";
-        this._count.textContent = this._state === "read" && n ? String(n) : "";
+        this._count.textContent = this._state === "read" && kept ? String(kept) : "";
         var note = this._state === "none" ? "Choose a kind of workspace."
                  : this._state === "reading" ? "Reading the workspaces this browser keeps…"
                  : this._state === "failed" ? "The workspaces could not be read: " + this._failure
-                 : n ? "Enter, or a double press, opens one."
-                 : "None of this kind is kept in this browser yet.";
+                 : kept ? "Enter, or a double press, opens one - on " + WorkspaceInstances.NEW_NAME + ", names a new one."
+                 : "None of this kind is kept in this browser yet - Enter on " + WorkspaceInstances.NEW_NAME + " names a new one.";
         this._note.textContent = note;
-        css.toggleClass(this._box, sw_hidden, n === 0);
+        css.toggleClass(this._box, sw_hidden, rows === 0);
     }
 
     dispose() {

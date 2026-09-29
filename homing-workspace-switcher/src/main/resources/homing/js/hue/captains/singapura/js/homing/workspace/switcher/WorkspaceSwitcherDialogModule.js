@@ -3,6 +3,7 @@
 // switcher (WorkspaceSwitcher) in the system dialog (Dialog) — modal, titled,
 // its verbs underneath: Cancel, Open in new tab, Open. Browsing and opening are
 // different acts: moving through the kinds and their workspaces opens nothing;
+// the table's new row, named, asks for a new one; Open on it, unnamed, too;
 // Open, Enter on one, or a double press does.
 //
 // It is a page's, never a workspace's: made when summoned, gone when closed,
@@ -40,7 +41,7 @@ class WorkspaceSwitcherDialog {
         this._switcher = null;
         this._addressOf = typeof o.addressOf === "function" ? o.addressOf : null;
         this._name = "workspaceSwitcherDialog-" + (++_switcherDialogs);
-        this._member = o.party.join(this._name, { Opening: function () { self.close(); } });
+        this._member = o.party.join(this._name, { Opening: function () { self.close(); }, OpeningNew: function () { self.close(); } });
         var actions = [{ id: "cancel", label: "Cancel", onClick: function (d) { d.close(); } }];
         if (this._addressOf) actions.push({ id: "newtab", label: "Open in new tab", onClick: function () { self._go(true); } });
         actions.push({ id: "open", label: "Open", primary: true, onClick: function () { self._go(false); } });
@@ -88,6 +89,11 @@ class WorkspaceSwitcherDialog {
     _go(newTab) {
         var s = this._switcher ? this._switcher.selection() : null;
         if (!s) return;
+        if (s.fresh) {   // the new row: a new one of the kind, under the catalogue's next name, here or in a new tab
+            if (this._member) this._member.tell({ kind: "OpenNew", workspaceKind: s.workspaceKind, workspaceName: "", newTab: !!newTab });
+            this.close();
+            return;
+        }
         if (newTab) {
             var address = this._addressOf(s.workspaceKind, s.workspaceId);
             if (address) HrefManagerInstance.openNew(address);

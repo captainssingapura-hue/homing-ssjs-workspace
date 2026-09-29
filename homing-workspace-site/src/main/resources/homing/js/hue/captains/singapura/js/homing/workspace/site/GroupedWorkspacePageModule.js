@@ -18,7 +18,9 @@
 // summons the switcher (WorkspaceSwitcherDialog) in the system dialog - by its
 // key, Ctrl+Shift+K (Cmd+Shift+K on a Mac), wherever the hand is, or by the
 // workspace's name on the log bar - at the kind and the workspace it shows.
-// The key again, or Escape, closes it; no log keeps it.
+// The key again, or Escape, closes it; no log keeps it. A new workspace asked
+// for - the switcher's new row - the page makes: a fresh id, listed under the
+// name asked for, and goes to it, where its arrangement is laid out.
 //
 // A workspace of a kind the site has arranged starts as its arrangement has it,
 // the first time: handed to the shell, which lays it out on a log that holds
@@ -56,10 +58,13 @@ class GroupedWorkspacePage {
         var own = !p.ws_id || p.ws_id === WorkspaceLogIdentity.placeholder(kind);
         var here = Object.freeze({ workspaceKind: kind, workspaceId: p.ws_id || WorkspaceLogIdentity.placeholder(kind), own: own });
         var go = function (address) { HrefManagerInstance.navigate(address); };
+        var goNew = function (address) { HrefManagerInstance.openNew(address); };
+        var catalogue = new WorkspaceCatalogue({ backend: new IndexedDbLog() });
+        var create = function (k, name) { return GroupedWorkspacePage._create(catalogue, k, name); };
         // THE PAGE'S OWN CHOICE: a workspace choice party of the page's, whatever its workspace holds; its opener,
         // and the switcher summoned in the system dialog by the page's key, or by the workspace's name on the log bar
         var choice = new MessagingParty(WORKSPACE_CHOICE, WorkspaceChoiceSecretary);
-        new WorkspaceOpener({ party: choice, here: here, addressOf: GroupedWorkspacePage.address, go: go });
+        new WorkspaceOpener({ party: choice, here: here, addressOf: GroupedWorkspacePage.address, go: go, goNew: goNew, create: create });
         var summon = GroupedWorkspacePage._summoner(choice, p.keyboard, here);
         if (p.keyboard && typeof p.keyboard.shortcut === "function") {
             p.keyboard.shortcut(function (ev) { if (!GroupedWorkspacePage.isSwitchKey(ev)) return false; summon(); return true; });
@@ -75,7 +80,7 @@ class GroupedWorkspacePage {
                     party: party,
                     here: { workspaceKind: here.workspaceKind, workspaceId: here.workspaceId, own: own },
                     addressOf: GroupedWorkspacePage.address,
-                    go: go
+                    go: go, goNew: goNew, create: create
                 });
                 return function () { opener.leave(); };
             }
@@ -109,6 +114,19 @@ class GroupedWorkspacePage {
     static _mac() {
         var n = typeof navigator !== "undefined" ? navigator : null;
         return /mac/i.test(n ? ((n.userAgentData && n.userAgentData.platform) || n.platform || "") : "");
+    }
+
+    /**
+     * A new workspace of the kind, made: a fresh id, listed in the catalogue - under the name asked for,
+     * or, none, the kind's next - and its address; null for a kind the site does not serve. Its log is
+     * empty until its page writes it, and so its page lays out its arrangement.
+     */
+    static _create(catalogue, kind, name) {
+        if (!WorkspaceDirectory.find(kind)) return Promise.resolve(null);
+        var id = WorkspaceLogIdentity.fresh(), key = new LogKey(new WorkspaceKind(kind), id);
+        return catalogue.opened(key)
+            .then(function () { return name ? catalogue.rename(key, name) : null; })
+            .then(function () { return GroupedWorkspacePage.address(kind, id.id); });
     }
 
     static address(kind, id) {
