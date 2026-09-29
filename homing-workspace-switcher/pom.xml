@@ -65,6 +65,12 @@
             <artifactId>homing-design-core</artifactId>
             <version>${homing.core.version}</version>
         </dependency>
+        <!-- The system dialog the switcher is summoned in, from the ui-components. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ui-dialog</artifactId>
+            <version>${homing.components.version}</version>
+        </dependency>
         <!-- The relation tree and grid, from their own repo: the kinds' tree, the workspaces' table. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.ssjs</groupId>

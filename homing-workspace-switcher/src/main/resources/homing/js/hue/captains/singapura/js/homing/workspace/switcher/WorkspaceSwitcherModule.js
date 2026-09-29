@@ -31,6 +31,10 @@
 //   switcher.join(given)   given: { [type name]: party }; a second join without a leave is refused
 //   switcher.leave()
 //   switcher.scope()   its own workspace choice party, once joined: kept across a leave
+//   switcher.selection()  what is chosen: { workspaceKind, workspaceId } - the kind its scope
+//                         has, and the workspace at the table's cursor when it is of that kind,
+//                         else "", the kind's own; null while nothing is chosen
+//   switcher.prefer(workspaceId)   the workspace the table's cursor lands on whenever its kind is shown
 //   switcher.activate()   the tree is asked for the keys
 //   switcher.dispose()
 // =============================================================================
@@ -95,6 +99,15 @@ class WorkspaceSwitcher {
     }
 
     scope() { return this._scope; }
+
+    selection() {
+        var chosen = this._scope ? this._scope.state().choice.chosen : null;
+        if (!chosen) return null;
+        var at = this._instances.cursor();
+        return Object.freeze({ workspaceKind: chosen, workspaceId: at && at.workspaceKind === chosen ? at.workspaceId : "" });
+    }
+
+    prefer(workspaceId) { this._instances.prefer(workspaceId); }
 
     /** Asked for the keys: its tree is asked. A host never claims for what it holds. */
     activate() { this._kinds.activate(); }

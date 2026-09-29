@@ -9,6 +9,7 @@ import hue.captains.singapura.js.homing.relgrid.RelGridCrate;
 import hue.captains.singapura.js.homing.relgrid.protocol.RelGridProtocolCrate;
 import hue.captains.singapura.js.homing.reltree.RelTreeCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
+import hue.captains.singapura.js.homing.ui.dialog.UiDialogCrate;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceGroupsCrate;
 import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogCrate;
@@ -46,6 +47,8 @@ public final class WorkspaceSwitcherCrate implements Crate {
                 RelTreeCrate.INSTANCE,
                 RelGridCrate.INSTANCE,
                 RelGridProtocolCrate.INSTANCE,
+                // the system dialog the switcher is summoned in
+                UiDialogCrate.INSTANCE,
                 // the design words the switcher's sheet wears
                 DesignCrate.INSTANCE,
                 // the page's directory, and the workspace choice party: its type and secretaries
@@ -68,6 +71,8 @@ public final class WorkspaceSwitcherCrate implements Crate {
                 // the chosen kind's workspaces, as a table
                 CrateEntry.of(WorkspaceInstancesModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 // the two composed: they meet in a scope of the switcher's own, its secretary keeping the edge
-                CrateEntry.of(WorkspaceSwitcherModule.INSTANCE, StandardJsModuleType.CONSUMER));
+                CrateEntry.of(WorkspaceSwitcherModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                // the switcher summoned by a page, in the system dialog: a page's, kept by no log
+                CrateEntry.of(WorkspaceSwitcherDialogModule.INSTANCE, StandardJsModuleType.CONSUMER));
     }
 }

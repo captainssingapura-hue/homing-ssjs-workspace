@@ -29,6 +29,9 @@
 //   table.leave()
 //   table.shown()   { kind, state: "none" | "reading" | "read" | "failed", workspaces: [{ id, name, opened, created }] }
 //   table.edge(fn)  fn("left") when ← goes past the grid — for a host that hands the keys on
+//   table.cursor()  the workspace at the cursor, { workspaceKind, workspaceId }, or null
+//   table.prefer(workspaceId)   the workspace its cursor lands on whenever its kind is shown:
+//                   the page's own, so a switcher opens where the page is
 //   table.activate()   the keys claimed, and on into the grid
 //   table.dispose()
 // =============================================================================
@@ -80,6 +83,7 @@ class WorkspaceInstances {
         this._rows = [];
         this._byPk = new Map();
         this._disposed = false;
+        this._preferred = null;
         // its data: the catalogue this browser keeps, read and never written; a cell a value, on a branch of its own
         this._catalogue = new WorkspaceCatalogue({ backend: new IndexedDbLog() });
         this._cellsBranch = this._dom.createBranch("cells");
@@ -129,6 +133,13 @@ class WorkspaceInstances {
     }
 
     edge(fn) { this._edge = typeof fn === "function" ? fn : null; }
+
+    cursor() {
+        var at = this._grid.cursor(), row = at ? this._byPk.get(at.pk) : null;
+        return row ? Object.freeze({ workspaceKind: row.kind, workspaceId: row.id }) : null;
+    }
+
+    prefer(workspaceId) { this._preferred = workspaceId ? String(workspaceId) : null; this._land(); }
 
     /** Asked for the keys: they are claimed, and go on into the grid. */
     activate() { Keys.claim(this.focus); }
@@ -183,6 +194,7 @@ class WorkspaceInstances {
         this._grid.tell(new RelGridViewChanged());
         this._cells.forEach(function (c, k) { if (!self._byPk.has(k.slice(0, k.lastIndexOf(" ")))) { c.dispose(); self._cells.delete(k); } });
         this._shown();
+        this._land();
     }
 
     _cellFor(pk, col) {
@@ -194,6 +206,13 @@ class WorkspaceInstances {
             this._cells.set(k, c);
         }
         return c;
+    }
+
+    /** The cursor on the preferred workspace, when it is among the rows shown. */
+    _land() {
+        var id = this._preferred, row = null;
+        for (var i = 0; id && i < this._rows.length; i++) if (this._rows[i].id === id) row = this._rows[i];
+        if (row) this._grid.selectCell(row.pk, "name");
     }
 
     static _text(row, col) { return col === "name" ? row.name : WorkspaceInstances._when(row[col]); }
