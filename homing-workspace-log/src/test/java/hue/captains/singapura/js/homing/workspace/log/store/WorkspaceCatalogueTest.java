@@ -122,6 +122,26 @@ class WorkspaceCatalogueTest extends JsModuleTestBase {
     }
 
     @Test
+    void aWorkspaceIsFoundByItsName_itsCaseAside_listedBeforeDeleted() {
+        js.eval("js", """
+                catalogue.opened(own).then(() => catalogue.opened(second, "Groceries")).then(() => catalogue.remove(second))
+                    .then(() => catalogue.find(notes, " groceries ")).then((e) => { got.deleted = e; })
+                    .then(() => catalogue.opened(third, "GROCERIES")).then(() => catalogue.find(notes, "Groceries")).then((e) => { got.listed = e; })
+                    .then(() => catalogue.find(notes, "notes")).then((e) => { got.own = e; })
+                    .then(() => catalogue.find(notes, "nothing so called")).then((e) => { got.none = e; })
+                    .then(() => catalogue.find(notes, "  ")).then((e) => { got.blank = e; })
+                    .then(() => catalogue.find(new WorkspaceKind("demo"), "notes")).then((e) => { got.otherKind = e; });
+                """);
+        assertEquals(second(), js.eval("js", "got.deleted.log.workspace.id").asString(), "only a deleted one so called: that one - opening it brings it back");
+        assertEquals(third(), js.eval("js", "got.listed.log.workspace.id").asString(), "a listed one so called before a deleted one");
+        assertEquals("notes", js.eval("js", "got.own.name.value").asString());
+        assertTrue(js.eval("js", "got.none === null && got.blank === null && got.otherKind === null").asBoolean(), "none so called, nothing asked, another kind's: none");
+    }
+
+    private String second() { return js.eval("js", "second.workspace.id").asString(); }
+    private String third() { return js.eval("js", "third.workspace.id").asString(); }
+
+    @Test
     void backWhenItsNameWasTakenMeanwhile_itTakesTheKindsNext() {
         js.eval("js", """
                 catalogue.opened(second, "Groceries").then(() => catalogue.remove(second))

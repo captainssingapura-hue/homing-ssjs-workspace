@@ -33,6 +33,9 @@
 //   catalogue.remove(log)         → Promise<WorkspaceEntry>: out of the list, into the
 //                                   deleted; one not listed, refused
 //   catalogue.deleted(kind)       → Promise<[{ entry, deleted }]>, the latest deleted first
+//   catalogue.find(kind, name)    → Promise<WorkspaceEntry | null>: the one of the kind called
+//                                   so, its case aside - listed, else the latest deleted so
+//                                   called - or none
 //   WorkspaceCatalogue.nameFor(kind, taken) → the first of the kind's names not taken
 // =============================================================================
 
@@ -95,6 +98,21 @@ class WorkspaceCatalogue {
                 catch (e) { console.warn("[WorkspaceCatalogue] the deleted entry of " + k.kind + "/" + k.workspaceId + " does not read, and is passed over: " + e.message); }
             });
             return out.sort(function (a, b) { return b.deleted - a.deleted; });
+        });
+    }
+
+    find(kind, name) {
+        var self = this, n = String(name == null ? "" : name).trim().toLowerCase();
+        if (!(kind instanceof WorkspaceKind)) return Promise.reject(new TypeError("[WorkspaceCatalogue] find takes a WorkspaceKind, got " + JSON.stringify(kind)));
+        if (!n) return Promise.resolve(null);
+        var called = function (e) { return e.name.value.trim().toLowerCase() === n; };
+        return this.list(kind).then(function (listed) {
+            var one = listed.filter(called)[0];
+            if (one) return one;
+            return self.deleted(kind).then(function (gone) {
+                var was = gone.filter(function (d) { return called(d.entry); })[0];
+                return was ? was.entry : null;
+            });
         });
     }
 
