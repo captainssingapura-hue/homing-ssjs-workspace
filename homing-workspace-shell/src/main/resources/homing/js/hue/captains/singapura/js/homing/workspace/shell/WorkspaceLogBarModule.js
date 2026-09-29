@@ -23,6 +23,9 @@
 //   bar.switching({ hint, open })   what the workspace is called, offered as the way to
 //                    another: a button, open() on a press, hint its title - the page's, who
 //                    alone knows how workspaces are switched; not offered, the name is only said
+//   bar.resetting({ hint, reset })   the workspace offered back to how it starts: a button,
+//                    reset() on a press - the page's, who alone can build it again; hidden while
+//                    another page writes the workspace, and when not offered
 //   bar.count(n)     says how many the log holds
 //   bar.notice(text) says what the page would have a person know - how the address it
 //                    came by was read, say; "" says nothing
@@ -94,6 +97,14 @@ class WorkspaceLogBar {
         // this page's own workspace, while another page writes this one: a new one of the kind
         this._fresh = branch.createElement("fresh", "a");
         this._fresh.textContent = "Open a new workspace of this kind";
+        // the workspace back to how it starts: the page's, offered, and only to the page that writes it
+        this._reset = branch.createElement("reset", "button");
+        this._reset.type = "button";
+        this._reset.textContent = "Reset…";
+        this._reset.hidden = true;
+        this._reset.addEventListener("click", function () { if (self._resetTo) self._resetTo(); });
+        this._resetTo = null;
+        this._readOnly = false;
         // the file is handed over by a link the bar keeps, never shown
         this._link = branch.createElement("link", "a");
         css.addClass(this._link, ws_logbar_link);
@@ -104,6 +115,7 @@ class WorkspaceLogBar {
         bar.appendChild(this._locked);
         bar.appendChild(this._takeOver);
         bar.appendChild(this._fresh);
+        bar.appendChild(this._reset);
         bar.appendChild(button);
         bar.appendChild(state);
         bar.appendChild(this._aside);
@@ -132,6 +144,16 @@ class WorkspaceLogBar {
         this._named.hidden = !!this._switchTo || !this._name;
     }
 
+    /** The workspace offered back to how it starts: a button, pressed to reset(); hint its title. */
+    resetting(offer) {
+        var o = offer || {};
+        this._resetTo = typeof o.reset === "function" ? o.reset : null;
+        this._reset.title = o.hint ? String(o.hint) : "";
+        this._paintReset();
+    }
+
+    _paintReset() { this._reset.hidden = !this._resetTo || this._readOnly; }
+
     /** What the workspace is called; nothing said until it is known. */
     named(entry) {
         this._name = entry ? entry.name.value : "";
@@ -154,6 +176,8 @@ class WorkspaceLogBar {
         this._onTakeOver = onTakeOver || null;
         this._takeOver.hidden = !(this._onTakeOver && readOnly);
         this._fresh.hidden = !(readOnly && this._freshTo);
+        this._readOnly = readOnly;
+        this._paintReset();
         if (readOnly && this._freshTo) {
             HrefManagerInstance.set(this._fresh, this._freshTo({ ws_id: WorkspaceLogIdentity.fresh().id, ws_server: this._server ? "on" : null }));
         }
@@ -206,7 +230,7 @@ class WorkspaceLogBar {
     _said(all) {
         var n = all.length;
         this._latest = n ? all[n - 1] : null;
-        this._aside.textContent = n ? " · " + n + (n === 1 ? " log" : " logs") + " set aside, unread" : "";
+        this._aside.textContent = n ? " · " + n + (n === 1 ? " log" : " logs") + " set aside" : "";
         this._aside.title = n ? this._latest.why : "";
         this._aside.hidden = !n;
         this._exportAside.hidden = !n;

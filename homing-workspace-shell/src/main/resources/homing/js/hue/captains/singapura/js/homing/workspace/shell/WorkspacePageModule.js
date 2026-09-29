@@ -21,6 +21,15 @@
 //               nothing yet, through the grid and the core, so the log keeps it
 //     opts.named  (entry) → the app's own, when the workspace is named: its WorkspaceEntry,
 //               as the catalogue lists it - the name an address may call it by
+//     opts.confirm  ({ title, question, act }) → Promise<yes>: how the app asks a person -
+//               given, the log bar offers the workspace back to HOW IT STARTS (Reset…), asked
+//               first; none, and no reset is offered
+//
+// RESET, to the page that writes the workspace alone: its log SET ASIDE — kept
+// whole beside it, its checkpoint dropped, to be exported or discarded from the
+// bar like any log set aside — and the workspace built again from nothing, so
+// its arrangement lays out its first state. What it is called stays; what it
+// held is not lost until a person discards it.
 //
 // The log is the workspace's: kept in IndexedDB under its kind and its id,
 // typed, the workspace listed beside it under a name of its own the first time
@@ -47,13 +56,14 @@ class WorkspacePage {
         var key = new LogKey(log.header.kind, log.header.workspaceId);
         var catalogue = new WorkspaceCatalogue({ backend: backend });
         var lock = new WorkspaceWriteLock({ log: key, onChange: lockSaid });
-        var ws = null, detach = null;
+        var ws = null, detach = null, name = null;
         function writes() { return WorkspaceWriteLock.writes(lock.state); }
         // What the workspace is called: listed the first time a page writes it; a page that only reads it looks it up.
         function named() {
             var entry = writes() ? catalogue.opened(key)
                 : catalogue.list(key.kind).then(function (all) { return all.filter(function (e) { return e.log.workspace.id === key.workspace.id; })[0] || null; });
             entry.then(function (e) {
+                           if (e) name = e.name.value;
                            if (ws && ws.logBar) ws.logBar.named(e);
                            if (e && opts && typeof opts.named === "function") opts.named(e);
                        },
@@ -74,6 +84,25 @@ class WorkspacePage {
                 load();
             });
         }
+        // Reset, asked first, of the page that writes the workspace alone.
+        function askedToReset() {
+            if (!writes()) return;
+            opts.confirm({ title: "Reset workspace", act: "Reset",
+                           question: "Reset “" + (name || manifest.name) + "” to how it starts? What it holds now is set aside, not lost - "
+                                   + "Export set-aside log saves it to a file, Discard set-aside lets it go." })
+                .then(function (yes) { if (yes) reset(); }, function (e) { console.error("[WorkspacePage] the reset was not asked:", e); });
+        }
+        // Taken down - its recording stopped, its checkpoints' worker let go - its log set aside whole, and built again from nothing.
+        function reset() {
+            if (!writes()) return;
+            if (detach) { detach(); detach = null; }
+            if (ws) ws.dispose();
+            ws = null;
+            log.setAside("reset by a person to how the workspace starts").then(load, function (e) {
+                console.error("[WorkspacePage] the log was not set aside, so the workspace is as it was:", e);
+                load();
+            });
+        }
         function checkpointer() {
             if (typeof Worker === "undefined") return null;
             try {
@@ -90,6 +119,9 @@ class WorkspacePage {
                                                                             readOnly: !writes(), checkpointer: writes() ? checkpointer() : null,
                                                                             server: p.ws_server === "on", fresh: opts && opts.fresh });
             if (ws.logBar) ws.logBar.lock(lock.state, takeOver);
+            if (ws.logBar && opts && typeof opts.confirm === "function") {
+                ws.logBar.resetting({ hint: "Back to how this workspace starts - what it holds now is set aside, not lost", reset: askedToReset });
+            }
             if (!logged && writes()) arranged();   // a log that holds no event, whatever it folds to
             attached();
             named();

@@ -46,7 +46,8 @@
 //
 // A workspace of a kind the site has arranged starts as its arrangement has it,
 // the first time: handed to the shell, which lays it out on a log that holds
-// nothing yet (GridArrangement).
+// nothing yet (GridArrangement) - and again whenever a person resets it: the
+// log bar's Reset…, asked in the system dialog, its log set aside, not lost.
 //
 //   GroupedWorkspacePage.main(el, params, workspaces, groups, arrangements?)
 //     el          the MPA's slot
@@ -188,6 +189,7 @@ class GroupedWorkspacePage {
             fresh: function (q) { return GroupedWorkspacePage.address(kind, q && q.ws_id ? q.ws_id : ""); },
             arrangement: o.arrangement,
             named: called,
+            confirm: function (q) { return keeping.ask(q); },
             attach: function (ws, here) {
                 current = ws;
                 if (ws.logBar) {

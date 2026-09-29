@@ -26,6 +26,8 @@
 //   keeping.create(kind, name) → Promise<address | null>; a name taken, refused
 //   keeping.rename(kind, id, name) → Promise<{ changed, note }>
 //   keeping.remove(kind, id)       → Promise<{ changed, note }>
+//   keeping.ask({ title, question, act }) → Promise<yes>: a person asked, in the system dialog -
+//                                    yes only when act was pressed; a delete's, a reset's
 //   WorkspaceKeeping.heldElsewhere(logKey) → Promise<whether a page holds its write lock>
 // =============================================================================
 
@@ -86,10 +88,15 @@ class WorkspaceKeeping {
 
     /** A person asked, in the system dialog, whether to delete it: yes only when Delete was pressed. */
     _ask(entry) {
+        return this.ask({ title: "Delete workspace", act: "Delete",
+                          question: "Delete “" + entry.name.value + "”? It leaves the list; its log is kept, and opening its address brings it back." });
+    }
+
+    /** A person asked, in the system dialog, on a branch of the keeping's own: yes only when act was pressed. */
+    ask(q) {
         if (!this._asks) { this._asks = domOpsParty.createBranch("workspaceKeeping"); this._asks.activate(_workspaceKeepingOwner); }
         return new WorkspaceConfirm(this._asks.createBranch("confirm" + (++this._asked)), {
-            title: "Delete workspace", act: "Delete", keyboard: this._keyboard,
-            question: "Delete “" + entry.name.value + "”? It leaves the list; its log is kept, and opening its address brings it back."
+            title: q.title, act: q.act, question: q.question, keyboard: this._keyboard
         }).answered;
     }
 
