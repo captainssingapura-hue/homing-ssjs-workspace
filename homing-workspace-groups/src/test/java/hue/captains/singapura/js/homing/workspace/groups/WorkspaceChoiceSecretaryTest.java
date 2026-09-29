@@ -77,6 +77,20 @@ class WorkspaceChoiceSecretaryTest extends SecretaryTestBase {
     }
 
     @Test
+    void keepingThem_aRenameADeleteAndHowItWent_isSaidToEveryMember_asAsked_andCounted() {
+        Value renamed = dispatch(initial(), envelope("Rename", Map.of("workspaceKind", "books", "workspaceId", "w-1", "workspaceName", "Reading"), "instances"));
+        Value said = action(renamed, 0).getMember("message");
+        assertEquals("Renaming w-1 Reading", said.getMember("kind").asString() + " " + said.getMember("workspaceId").asString() + " " + said.getMember("workspaceName").asString());
+        Value deleted = dispatch(state(renamed), envelope("Delete", Map.of("workspaceKind", "books", "workspaceId", "w-1"), "instances"));
+        assertEquals("Deleting", action(deleted, 0).getMember("message").getMember("kind").asString());
+        Value reported = dispatch(state(deleted), envelope("Report", Map.of("workspaceKind", "books", "note", "deleted", "changed", true), "keeper"));
+        Value r = action(reported, 0).getMember("message");
+        assertEquals("BroadcastToMembers Reported books deleted true", action(reported, 0).getMember("kind").asString() + " " + r.getMember("kind").asString()
+                + " " + r.getMember("workspaceKind").asString() + " " + r.getMember("note").asString() + " " + r.getMember("changed").asBoolean());
+        assertEquals("1 1 1", state(reported).getMember("renames").asInt() + " " + state(reported).getMember("deletes").asInt() + " " + state(reported).getMember("reports").asInt());
+    }
+
+    @Test
     void thePartysOwnWords_andStrangers_areKeptAsUnknown() {
         Value s = initial();
         for (String k : new String[]{"Chosen", "OpeningNew", "Opening", "Knock", "A", "B", "C"}) s = state(dispatch(s, envelope(k, Map.of(), "someone")));
@@ -103,7 +117,7 @@ class WorkspaceChoiceSecretaryTest extends SecretaryTestBase {
         assertEquals("workspace-choice", js.eval("js", "WORKSPACE_CHOICE.name").asString());
         assertEquals("string", js.eval("js", "WORKSPACE_CHOICE.kinds.Open.workspaceId").asString());
         assertEquals("string", js.eval("js", "WORKSPACE_CHOICE.kinds.Chosen.workspaceKind").asString());
-        assertEquals("Choose,Chosen,CurrentRequested,Open,OpenNew,Opening,OpeningNew", js.eval("js", "Object.keys(WORKSPACE_CHOICE.kinds).sort().join()").asString());
+        assertEquals("Choose,Chosen,CurrentRequested,Delete,Deleting,Open,OpenNew,Opening,OpeningNew,Rename,Renaming,Report,Reported", js.eval("js", "Object.keys(WORKSPACE_CHOICE.kinds).sort().join()").asString());
         assertEquals("boolean", js.eval("js", "WORKSPACE_CHOICE.kinds.OpenNew.newTab").asString());
     }
 }

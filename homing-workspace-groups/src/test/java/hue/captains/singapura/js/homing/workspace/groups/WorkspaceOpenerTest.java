@@ -26,11 +26,14 @@ class WorkspaceOpenerTest extends JsModuleTestBase {
         js.eval("js", """
             var console = { error: function () {} };
             var root = new MessagingParty(WORKSPACE_CHOICE, WorkspaceChoiceSecretary), went = [], wentNew = [], made = [], chosen = [];
-            var switcher = root.join("switcher", { Chosen: function (m) { chosen.push(m.workspaceKind); } });
+            var told = [];
+            var switcher = root.join("switcher", { Chosen: function (m) { chosen.push(m.workspaceKind); }, Reported: function (m) { told.push(m.changed + ":" + m.note); } });
             function addressOf(kind, id) { return kind === "elsewhere" ? null : "/set/" + kind + (id ? "?ws_id=" + id : ""); }
             var opener = new WorkspaceOpener({ party: root, here: { workspaceKind: "books", workspaceId: "b-own", own: true },
                                                addressOf: addressOf, go: function (a) { went.push(a); }, goNew: function (a) { wentNew.push(a); },
-                                               create: function (kind, name) { made.push(kind + ":" + name); return Promise.resolve("/set/" + kind + "?ws_id=new-" + made.length); } });
+                                               create: function (kind, name) { made.push(kind + ":" + name);
+                                                   return name === "taken" ? Promise.reject(new TypeError("a books workspace is called \\"taken\\" already"))
+                                                                           : Promise.resolve("/set/" + kind + "?ws_id=new-" + made.length); } });
             """);
     }
 
@@ -74,6 +77,14 @@ class WorkspaceOpenerTest extends JsModuleTestBase {
         assertEquals("/set/books?ws_id=new-1", eval("went.join('|')"));
         assertEquals("/set/monitors?ws_id=new-2", eval("wentNew.join('|')"), "a new tab: goNew");
         assertEquals("making making", eval("opener.asked().map(function (a) { return a.did; }).join(' ')"));
+    }
+
+    @Test
+    void aNewOneNotMade_isSaidWhy_toEveryView() {
+        eval("switcher.tell({ kind: 'OpenNew', workspaceKind: 'books', workspaceName: 'taken', newTab: false })");
+        assertEquals("", eval("went.join('|')"));
+        assertEquals("false:a books workspace is called \"taken\" already", eval("told.join('|')"));
+        assertEquals("making failed", eval("opener.asked().map(function (a) { return a.did; }).join(' ')"));
     }
 
     @Test

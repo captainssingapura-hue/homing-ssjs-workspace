@@ -17,7 +17,8 @@
 //     addressOf  (workspaceKind, workspaceId) → the address of that workspace, or null when
 //                the page knows none; workspaceId "" for the kind's own
 //     go         (address) → the page goes there
-//     create     (workspaceKind, workspaceName) → Promise<the new workspace's address, or null>:
+//     create     (workspaceKind, workspaceName) → Promise<the new workspace's address, or null>;
+//                refused - a name taken - and it says why, Report, for every view of the kind:
 //                the page makes one; none, and a new one asked for is not made
 //     goNew      (address) → the page opens it in a new tab; go, unless said
 //   opener.asked()   what it was asked to open, and what it did - the last few, the newest
@@ -73,7 +74,11 @@ class WorkspaceOpener {
         Promise.resolve(this._create(kind, name)).then(function (address) {
             if (typeof address === "string" && address) (newTab ? self._goNew : self._go)(address);
             else self._said({ workspaceKind: kind, workspaceId: "", did: "unknown" });
-        }, function () { self._said({ workspaceKind: kind, workspaceId: "", did: "failed" }); });
+        }, function (e) {
+            // not made - a name another of the kind has, say - and said so, for every view of the kind
+            self._said({ workspaceKind: kind, workspaceId: "", did: "failed" });
+            if (self._member) self._member.tell({ kind: "Report", workspaceKind: kind, note: (e && e.message) || String(e), changed: false });
+        });
     }
 
     _said(entry) {

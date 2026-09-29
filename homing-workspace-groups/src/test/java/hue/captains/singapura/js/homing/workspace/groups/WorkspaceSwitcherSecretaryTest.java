@@ -45,6 +45,9 @@ class WorkspaceSwitcherSecretaryTest extends SecretaryTestBase {
         assertTrue(b.getMember("Choose").asBoolean());
         assertTrue(b.getMember("Open").asBoolean());
         assertTrue(b.getMember("OpenNew").asBoolean());
+        assertTrue(b.getMember("Rename").asBoolean());
+        assertTrue(b.getMember("Delete").asBoolean());
+        assertTrue(!b.getMember("Report").asBoolean(), "how it went is the keeper's word, never a view's");
         assertTrue(!b.getMember("CurrentRequested").asBoolean());
     }
 
@@ -99,6 +102,17 @@ class WorkspaceSwitcherSecretaryTest extends SecretaryTestBase {
         Value heard = dispatch(step.getMember("newState"), envelope("OpeningNew", Map.of("workspaceKind", "books", "workspaceName", "", "newTab", false), "upstream"));
         assertEquals("", kinds(heard));
         assertEquals(1, count(heard, "heard"));
+    }
+
+    @Test
+    void howAnAskingWent_saidAbove_isToldToTheScope_andTheAskingsAboveHeard() {
+        Value up = dispatch(choseDemo(), envelope("Rename", Map.of("workspaceKind", "demo", "workspaceId", "w-1", "workspaceName", "x"), "instances"));
+        assertEquals("BroadcastToMembers:Renaming SendToParent:Rename", kinds(up));
+        Value heard = dispatch(up.getMember("newState"), envelope("Renaming", Map.of("workspaceKind", "demo", "workspaceId", "w-1", "workspaceName", "x"), "upstream"));
+        assertEquals("", kinds(heard));
+        Value told = dispatch(heard.getMember("newState"), envelope("Reported", Map.of("workspaceKind", "demo", "note", "renamed", "changed", true), "upstream"));
+        assertEquals("BroadcastToMembers:Reported", kinds(told));
+        assertEquals(1, count(told, "relayed"));
     }
 
     @Test

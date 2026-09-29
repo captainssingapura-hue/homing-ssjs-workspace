@@ -33,6 +33,8 @@ public final class WorkspaceGroupsCrate implements Crate {
                 CrateEntry.of(WorkspaceChoiceSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
                 CrateEntry.of(WorkspaceSwitcherSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
                 // the page's member of it: whoever opens what the party says is asked to open
-                CrateEntry.of(WorkspaceOpenerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
+                CrateEntry.of(WorkspaceOpenerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                // and its member that keeps them: renamed, deleted, and how it went said
+                CrateEntry.of(WorkspaceKeeperModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
     }
 }
