@@ -16,7 +16,10 @@
         sections, a default among them - and the path each workspace has in it;
         and a site's groups, each workspace in one of them at most. Placement is
         the group's: a workspace knows its name and its title, never where it is
-        filed. Plain records, pure Java and no UI: nothing here needs more than
+        filed. And how a workspace is arranged, the first time, under each
+        placement engine it may be shown by: the widgets it opens, and where the
+        engine puts each, in the engine's own vocabulary - the split grid's, one
+        pane's. Plain records, pure Java and no UI: nothing here needs more than
         the JDK.
     </description>
 
