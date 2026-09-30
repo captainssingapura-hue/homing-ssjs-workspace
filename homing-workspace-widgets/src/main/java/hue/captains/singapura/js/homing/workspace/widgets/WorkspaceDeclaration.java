@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -56,11 +57,12 @@ public interface WorkspaceDeclaration extends StatelessFunctionalObject, Workspa
     /** The secretaries it puts at the root of a party in place of the type's default: by the type's name. None, unless said. */
     default Map<String, ModuleImports<?>> secretaries() { return Map.of(); }
 
-    /** A root party: its type, and the secretary at its root. */
-    record RootParty(PartyType<?> type, ModuleImports<?> secretary) {
+    /** A root party: its type, the secretary at its root, and the steward it hires when its parties fetch - the type's. */
+    record RootParty(PartyType<?> type, ModuleImports<?> secretary, Optional<ModuleImports<?>> steward) {
         public RootParty {
             Objects.requireNonNull(type, "RootParty.type");
             Objects.requireNonNull(secretary, "RootParty.secretary");
+            Objects.requireNonNull(steward, "RootParty.steward");
         }
     }
 
@@ -95,7 +97,7 @@ public interface WorkspaceDeclaration extends StatelessFunctionalObject, Workspa
             ModuleImports<?> secretary = d.secretaries().containsKey(t.name()) ? d.secretaries().get(t.name()) : t.secretary().orElse(null);
             if (secretary == null) { problems.add("the type " + t.name() + " has no secretary for its root: neither its default nor the workspace's"); continue; }
             PartyType.exportName(secretary);
-            roots.add(new RootParty(t, secretary));
+            roots.add(new RootParty(t, secretary, t.steward()));
         }
         for (String name : d.secretaries().keySet()) {
             if (!types.containsKey(name)) problems.add("a secretary put at the root of " + name + ", which no kind joins");

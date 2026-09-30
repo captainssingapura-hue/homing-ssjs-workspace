@@ -21,7 +21,9 @@
 // d is a branch at depth d. A widget made here is hosted as any host hosts
 // one: its DomOps party grafted under its section's branch, a level below it
 // (why the placement's deepest nodes hold no leaves), its focus party under the
-// layout's, and - when the host gave parties - joined to them. A widget whose class says
+// layout's, and - when the host gave parties - joined to them. A widget that
+// makes widgets of its own - a flow - is offered the kinds the layout was
+// offered (compose), before it joins. A widget whose class says
 // SIZING = "flow" is lent a box as tall as its content; any other fills what it
 // is lent, and is given a height the reader may drag. A type the host does not
 // offer is said, in its box and on the console.
@@ -206,6 +208,7 @@ class TreeLayout {
         var widget = new Kind(box, spec.params), slot = "w" + (this._widgets++);
         if (widget.roots && widget.roots.dom) branch.graft(slot, widget.roots.dom);
         if (widget.roots && widget.roots.focus) this._focusParty.root.graft(slot, widget.roots.focus);
+        if (typeof widget.compose === "function") widget.compose(this._kinds);
         if (this._given && typeof widget.join === "function") widget.join(this._given);
         this._placed.set(ref, widget);
         return box;

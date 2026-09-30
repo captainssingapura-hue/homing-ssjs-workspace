@@ -35,25 +35,35 @@ import java.util.stream.Collectors;
  * secretary for its root - neither its default nor the workspace's - fails
  * the build, never the page. A type that is never on a page needs neither.</p>
  *
+ * <p>And its DEFAULT STEWARD, when its parties fetch: the one member that does
+ * I/O, a class a root instance hires the first time its secretary sends to the
+ * steward - one per hierarchy, since a scope linked under another sends up
+ * through its link instead. A host that makes a root may hire its own.</p>
+ *
  * @param name       the type's name, which is its identity on a page: {@code book-selection}
  * @param vocabulary the sealed interface its messages are records of
  * @param constant   the import of its constant, {@link #constName()}, from the module that serves it
  * @param secretary  the import of its default root secretary, if it has one
+ * @param steward    the import of its default steward, if its parties fetch
  * @param <M>        the vocabulary
  */
-public record PartyType<M>(String name, Class<M> vocabulary, Optional<ModuleImports<?>> constant, Optional<ModuleImports<?>> secretary) {
+public record PartyType<M>(String name, Class<M> vocabulary, Optional<ModuleImports<?>> constant, Optional<ModuleImports<?>> secretary,
+                           Optional<ModuleImports<?>> steward) {
 
     /** A type's name: lowercase letters, digits and hyphens, a letter first. */
     public static final Pattern NAME = Pattern.compile("[a-z][a-z0-9-]*");
 
-    /** A type as Java has it, not yet on a page: no constant served, no default secretary. */
-    public PartyType(String name, Class<M> vocabulary) { this(name, vocabulary, Optional.empty(), Optional.empty()); }
+    /** A type as Java has it, not yet on a page: no constant served, no default secretary, no default steward. */
+    public PartyType(String name, Class<M> vocabulary) { this(name, vocabulary, Optional.empty(), Optional.empty(), Optional.empty()); }
 
     /** The same type, its constant served by the import given: one export, named {@link #constName()}. */
-    public PartyType<M> servedFrom(ModuleImports<?> imports) { return new PartyType<>(name, vocabulary, Optional.of(imports), secretary); }
+    public PartyType<M> servedFrom(ModuleImports<?> imports) { return new PartyType<>(name, vocabulary, Optional.of(imports), secretary, steward); }
 
     /** The same type, the import given its default root secretary: one export. */
-    public PartyType<M> withSecretary(ModuleImports<?> imports) { return new PartyType<>(name, vocabulary, constant, Optional.of(imports)); }
+    public PartyType<M> withSecretary(ModuleImports<?> imports) { return new PartyType<>(name, vocabulary, constant, Optional.of(imports), steward); }
+
+    /** The same type, the import given its default steward - a class a root hires: one export. */
+    public PartyType<M> withSteward(ModuleImports<?> imports) { return new PartyType<>(name, vocabulary, constant, secretary, Optional.of(imports)); }
 
     /** The one export an import brings: a constant's, a secretary's name in JavaScript. */
     public static String exportName(ModuleImports<?> imports) {
@@ -67,6 +77,7 @@ public record PartyType<M>(String name, Class<M> vocabulary, Optional<ModuleImpo
         Objects.requireNonNull(vocabulary, "PartyType.vocabulary");
         Objects.requireNonNull(constant, "PartyType.constant");
         Objects.requireNonNull(secretary, "PartyType.secretary");
+        Objects.requireNonNull(steward, "PartyType.steward");
         if (!NAME.matcher(name).matches()) throw new IllegalArgumentException("PartyType.name '" + name + "': lowercase letters, digits and hyphens, a letter first");
         if (!vocabulary.isInterface() || !vocabulary.isSealed()) throw new IllegalArgumentException("PartyType '" + name + "': its vocabulary is a sealed interface, not " + vocabulary.getName());
         var seen = new HashSet<String>();
@@ -84,6 +95,7 @@ public record PartyType<M>(String name, Class<M> vocabulary, Optional<ModuleImpo
             if (!exportName(c).equals(constName)) throw new IllegalArgumentException("PartyType '" + name + "': its constant is served as " + constName + ", not " + exportName(c));
         });
         secretary.ifPresent(PartyType::exportName);
+        steward.ifPresent(PartyType::exportName);
     }
 
     /** The kinds, in the order the vocabulary declares them. */

@@ -42,6 +42,7 @@ public final class WorkspaceManifest {
             for (var r : d.rootParties()) {
                 all.add(r.type().constant().orElseThrow());
                 all.add(r.secretary());
+                r.steward().ifPresent(all::add);
             }
         }
         var b = ImportsFor.<M>builder();
@@ -68,7 +69,8 @@ public final class WorkspaceManifest {
                         + ", title: \"" + k.title().replace("\"", "\\\"") + "\", parties: Object.freeze([" + names(k.parties()) + "])"
                         + (k.single() ? ", single: true" : "") + " })")
                 .collect(Collectors.joining(", "));
-        String parties = roots.stream().map(r -> "Object.freeze({ type: " + r.type().constName() + ", secretary: " + PartyType.exportName(r.secretary()) + " })")
+        String parties = roots.stream().map(r -> "Object.freeze({ type: " + r.type().constName() + ", secretary: " + PartyType.exportName(r.secretary())
+                        + r.steward().map(s -> ", steward: " + PartyType.exportName(s)).orElse("") + " })")
                 .collect(Collectors.joining(", "));
         return "Object.freeze({ name: \"" + d.name() + "\", kinds: Object.freeze({ " + kinds + " }), parties: Object.freeze([" + parties + "]) })";
     }

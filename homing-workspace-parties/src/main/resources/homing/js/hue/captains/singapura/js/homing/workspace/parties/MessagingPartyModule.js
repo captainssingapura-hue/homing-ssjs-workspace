@@ -13,18 +13,34 @@
 // scope that sends nothing up terminates it. Not linked, a send to the
 // parent stops here, recorded.
 //
+// THE STEWARD is the one member that does I/O, and there is one per
+// hierarchy of parties, not one per party. A secretary sends to "the steward"
+// and never knows which: linked, the send goes up through the link, as this
+// party's own word there - the party above is this one's steward; not linked,
+// it goes to the steward this party hires - the class it was given, made the
+// first time, joined as the member "steward", and kept. So a scope linked
+// under another never hires one, and a page's root parties hire one each,
+// however many scopes are linked below them. A send that can go to neither -
+// no link, and no steward given - comes back to the secretary, from
+// "unrouted", for it to answer its askers that nothing will come.
+//
 // Every message is checked against the type's vocabulary where it enters, a
 // member's and the secretary's alike: one that does not read is refused,
 // recorded, and goes nowhere. A member hears only the kinds it has a reactor
 // for; one that throws is recorded, and the rest still hear. A secretary that
 // throws keeps its state, and does nothing.
 //
-//   new MessagingParty(type, secretary)
+//   new MessagingParty(type, secretary, Steward?)
 //     type       a party type, generated from its Java declaration (PartyType):
 //                { name, kinds: { Kind: { field: shape } } } - a shape "string" | "number" |
 //                "boolean"; { field: shape }, a record; [shape], a list. Plain data all the
 //                way down, checked all the way down, and handed on frozen all the way down
-//     secretary  { initial, behavior(state, envelope) → { newState, actions } }, pure
+//     secretary  { initial, behavior(state, envelope) → { newState, actions } }, pure;
+//                an action is SendToMember { to }, BroadcastToMembers, SendToParent or
+//                SendToSteward, each with its message
+//     Steward    the class this party hires when not linked: new Steward(tell) - tell(message)
+//                tells this party as the steward - its instance's `reactors`, { Kind: fn(message) },
+//                the kinds it hears. The type's default, unless the host hires its own
 //   party.type
 //   party.join(name, reactors) → the membership
 //       reactors { Kind: function (message, envelope) }
@@ -34,23 +50,29 @@
 //                             its own type; unlink() leaves it. One link at a time
 //   party.state()             the secretary's state
 //   party.members()           [{ id, name, hears }]
+//   party.steward()           the steward this party hired, or null: none yet, none given, or linked
 //   party.on(fn) → off        every passage: { dir, from?, to?, message?, name?, reason? } —
-//                             dir "joined", "left", "linked", "unlinked", "up" (a member to the
-//                             secretary), "in" (from upstream to the secretary), "down" (to a
-//                             member), "out" (to the parent, through the link), "stopped" (to a
-//                             parent, none), "refused", "threw"
-//   party.inspect()           { type, state, linked, members, refused, stopped, bubbled, threw } — the lists bounded
+//                             dir "joined", "left", "linked", "unlinked", "hired" (its steward),
+//                             "up" (a member to the secretary), "in" (from upstream to the
+//                             secretary), "down" (to a member, the steward among them), "out" (to
+//                             the parent, or to the steward above, through the link), "stopped" (to
+//                             a parent, none), "unrouted" (to a steward, none), "refused", "threw"
+//   party.inspect()           { type, state, linked, steward, members, refused, stopped, bubbled, threw } —
+//                             steward "hired" | "above" (linked) | "not yet" | "none"; the lists bounded
 //   MessagingParty.check(type, message) → null, or why it does not read
 // =============================================================================
 
 var _partySeq = 0;
 
 class MessagingParty {
-    constructor(type, secretary) {
+    constructor(type, secretary, Steward) {
         if (!type || typeof type.name !== "string" || !type.kinds) throw new Error("[MessagingParty] a party type is required: { name, kinds }");
         if (!secretary || typeof secretary.behavior !== "function") throw new Error("[MessagingParty] '" + type.name + "': a secretary is required: { initial, behavior }");
+        if (Steward != null && typeof Steward !== "function") throw new Error("[MessagingParty] '" + type.name + "': a steward is a class, hired when needed");
         this.type = type;
         this._secretary = secretary;
+        this._Steward = Steward || null;
+        this._steward = null;        // { instance, member } once hired
         this._state = secretary.initial;
         this._members = new Map();   // id → { id, name, reactors }
         this._sinks = [];
@@ -115,6 +137,8 @@ class MessagingParty {
 
     state() { return this._state; }
 
+    steward() { return this._steward ? this._steward.instance : null; }
+
     members() {
         return Array.from(this._members.values()).map(function (m) { return Object.freeze({ id: m.id, name: m.name, hears: Object.keys(m.reactors) }); });
     }
@@ -127,7 +151,8 @@ class MessagingParty {
     }
 
     inspect() {
-        return Object.freeze({ type: this.type.name, state: this._state, linked: this._link ? this._link.name : null, members: this.members(),
+        var steward = this._link ? "above" : this._steward ? "hired" : this._Steward ? "not yet" : "none";
+        return Object.freeze({ type: this.type.name, state: this._state, linked: this._link ? this._link.name : null, steward: steward, members: this.members(),
                                refused: this._refused.slice(), stopped: this._stopped.slice(), bubbled: this._bubbled.slice(), threw: this._threw.slice() });
     }
 
@@ -223,7 +248,30 @@ class MessagingParty {
         if (a.kind === "BroadcastToMembers") this._broadcast("secretary", m);
         else if (a.kind === "SendToMember") this._deliver(a.to, "secretary", m);
         else if (a.kind === "SendToParent") this._toParent(m);
-        else this._refuse(a.message, "the secretary", "'" + (a && a.kind) + "' is not an action: SendToMember, BroadcastToMembers, SendToParent");
+        else if (a.kind === "SendToSteward") this._toSteward(m);
+        else this._refuse(a.message, "the secretary", "'" + (a && a.kind) + "' is not an action: SendToMember, BroadcastToMembers, SendToParent, SendToSteward");
+    }
+
+    /**
+     * To the steward of this hierarchy: up through the link while linked - the party above stands for it; else to
+     * the steward this party hires, the first time; with neither, back to the secretary, from "unrouted".
+     */
+    _toSteward(m) {
+        if (this._link) { MessagingParty._keep(this._bubbled, m); this._said({ dir: "out", name: this._link.name, message: m }); this._link.tell(m); return; }
+        if (this._Steward) { this._deliver(this._hire().member.id, "secretary", m); return; }
+        this._said({ dir: "unrouted", message: m });
+        this._step(Object.freeze({ from: "unrouted", name: "no steward", message: m }));
+    }
+
+    /** The steward, hired once: made with the means to tell this party, and joined as the member "steward" hearing what it says it hears. */
+    _hire() {
+        if (this._steward) return this._steward;
+        var member = null;
+        var instance = new this._Steward(function (message) { return member ? member.tell(message) : false; });
+        member = this.join("steward", instance && instance.reactors ? instance.reactors : {});
+        this._steward = Object.freeze({ instance: instance, member: member });
+        this._said({ dir: "hired", from: member.id, name: "steward" });
+        return this._steward;
     }
 
     /** Up through the link, as this party's own word there; with none, it stops here. */

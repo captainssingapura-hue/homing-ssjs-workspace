@@ -15,7 +15,8 @@
 // Its dual in Java comes with the dual of the parties' runtime.
 //
 //   new WorkspaceParties(core, { parties, kinds })   — a workspace's manifest has both
-//     parties  [{ type, secretary }] — the root parties, in the order made
+//     parties  [{ type, secretary, steward? }] — the root parties, in the order made;
+//              a steward, the class a root hires when its parties fetch
 //     kinds    { [kind]: { parties: [type] } } — the types each kind is given
 //              A kind given a type with no root party is refused here, before any widget opens
 //   parties.party(name) → the root instance of that type, or null when the workspace has none
@@ -32,7 +33,7 @@ class WorkspaceParties {
         (o.parties || []).forEach(function (p) {
             if (!p || !p.type || !p.secretary) throw new Error("[WorkspaceParties] a root party is { type, secretary }");
             if (self._parties.has(p.type.name)) throw new Error("[WorkspaceParties] two root parties of '" + p.type.name + "'");
-            self._parties.set(p.type.name, new MessagingParty(p.type, p.secretary));
+            self._parties.set(p.type.name, new MessagingParty(p.type, p.secretary, p.steward || null));
         });
         Object.keys(this._kinds).forEach(function (k) {
             (self._kinds[k].parties || []).forEach(function (t) {
