@@ -97,6 +97,18 @@ class TreePlacementTest {
     }
 
     @Test
+    void aNodeAtTheCapHoldsNoLeavesForTheyWouldSitBelowIt() {
+        Node atCap = TreePlacement.node("n18", "18", "w18");
+        for (int i = 17; i >= 1; i--) atCap = TreePlacement.node("n" + i, String.valueOf(i), List.of(), atCap);
+        Node holding = atCap;
+        var e = assertThrows(IllegalArgumentException.class, () -> TreePlacement.of(TreePlacement.root("r", List.of(), holding)));
+        assertTrue(e.getMessage().contains("at most 17"), e.getMessage());
+        Node above = TreePlacement.node("n17", "17", "w17");
+        for (int i = 16; i >= 1; i--) above = TreePlacement.node("n" + i, String.valueOf(i), List.of(), above);
+        assertEquals(17, TreePlacement.of(TreePlacement.root("r", List.of(), above)).depth());
+    }
+
+    @Test
     void aNameIsASafePathSegment() {
         Name.of("design.keys_2-b");
         assertThrows(IllegalArgumentException.class, () -> Name.of(""));

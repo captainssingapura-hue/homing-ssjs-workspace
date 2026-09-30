@@ -36,7 +36,10 @@ public record TreePlacement(Node root) implements Placement {
     /** The tree placement. */
     public static final PlacementEngine ENGINE = PlacementEngine.of("tree");
 
-    /** How deep a tree goes below its root: the rigid tree's levels. */
+    /**
+     * How deep a tree goes below its root: the rigid tree's levels. A node's leaves sit a level
+     * below it, so a node at this depth holds none.
+     */
     public static final int MAX_DEPTH = 18;
 
     /** A node's name in its path: letters, digits, dot, underscore, hyphen - at most 48, as the rigid tree's. */
@@ -127,6 +130,10 @@ public record TreePlacement(Node root) implements Placement {
 
     private static void check(Node node, String path, int depth, Set<WidgetRef> placed) {
         if (depth > MAX_DEPTH) throw new IllegalArgumentException("the node " + shown(path) + " is " + depth + " deep - at most " + MAX_DEPTH);
+        if (depth == MAX_DEPTH && !node.leaves().isEmpty()) {
+            throw new IllegalArgumentException("the node " + shown(path) + " is " + depth + " deep and holds leaves - they would be "
+                    + (depth + 1) + " deep; a node holding leaves is at most " + (MAX_DEPTH - 1));
+        }
         for (WidgetRef w : node.leaves()) {
             if (!placed.add(w)) throw new IllegalArgumentException("the tree places " + w + " twice");
         }

@@ -12,9 +12,14 @@
 // is where the reader is until it unfolds. Folding is view state, as where the
 // reader is; what folds is the host's to say - its contents', as a rule.
 //
-// A widget made here is hosted as any host hosts one: its DomOps party grafted
-// under its node's branch, its focus party under the layout's, and - when the
-// host gave parties - joined to them. A widget whose class says
+// Its DomOps party is the tree: the root's section is the party's root, and
+// every other section a branch of its parent's - the branch holding its
+// heading, its body, its leaves' boxes and the widgets in them, and its child
+// sections' branches - so a section is one branch, whole, and a node at depth
+// d is a branch at depth d. A widget made here is hosted as any host hosts
+// one: its DomOps party grafted under its section's branch, a level below it
+// (why the placement's deepest nodes hold no leaves), its focus party under the
+// layout's, and - when the host gave parties - joined to them. A widget whose class says
 // SIZING = "flow" is lent a box as tall as its content; any other fills what it
 // is lent, and is given a height the reader may drag. A type the host does not
 // offer is said, in its box and on the console.
@@ -80,7 +85,7 @@ class TreeLayout {
         this._widgets = 0;
         this._shown = null;
         this._pinned = null;
-        this._section(a.root, "", 0, column);
+        this._section(a.root, "", 0, column, null);
         container.appendChild(root);
         this.roots = Object.freeze({ dom: this._dom, focus: this._focusParty });
         var self = this;
@@ -132,10 +137,10 @@ class TreeLayout {
         return out;
     }
 
-    /** A node: its section - indented below the root - its heading, then its body of leaves and children, each under its own branch. */
-    _section(node, path, depth, parent) {
-        var branch = this._dom.createBranch("n" + (this._nodes++)), self = this;
-        branch.activate(_treeLayoutOwner);
+    /** A node: its section - indented below the root - its heading, then its body of leaves and children; on the party's root for the root, else on a branch of its parent's. */
+    _section(node, path, depth, parent, above) {
+        var branch = above ? above.createBranch("n" + (++this._nodes)) : this._dom, self = this;
+        if (above) branch.activate(_treeLayoutOwner);
         var section = branch.createElement("section", "section");
         css.addClass(section, tl_section);
         if (depth > 0) css.addClass(section, tl_nested);
@@ -152,7 +157,7 @@ class TreeLayout {
         this._sections.push({ path: path, mark: mark });
         this._byPath.set(path, { mark: mark, body: body });
         node.leaves.forEach(function (ref, i) { body.appendChild(self._leaf(branch, ref, i)); });
-        node.children.forEach(function (child) { self._section(child, path === "" ? child.name : path + "/" + child.name, depth + 1, body); });
+        node.children.forEach(function (child) { self._section(child, path === "" ? child.name : path + "/" + child.name, depth + 1, body, branch); });
         parent.appendChild(section);
     }
 
