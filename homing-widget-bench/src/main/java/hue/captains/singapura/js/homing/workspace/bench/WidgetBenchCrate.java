@@ -1,6 +1,7 @@
 package hue.captains.singapura.js.homing.workspace.bench;
 
 import hue.captains.singapura.js.homing.workspace.tree.WorkspaceTreeCrate;
+import hue.captains.singapura.js.homing.ui.splitgrid.UiSplitGridCrate;
 import hue.captains.singapura.js.homing.core.Crate;
 import hue.captains.singapura.js.homing.core.CrateEntry;
 import hue.captains.singapura.js.homing.core.StandardJsModuleType;
@@ -64,8 +65,8 @@ public final class WidgetBenchCrate implements Crate {
                 WorkspaceLayersCrate.INSTANCE,
                 WorkspaceLogCrate.INSTANCE,
                 WorkspaceLogCodecCrate.INSTANCE,
-                // the tree placement's engine, for the tree bench
-                WorkspaceTreeCrate.INSTANCE);
+                // the tree placement's engine, for the tree bench, and the split grid it is laid out in
+                WorkspaceTreeCrate.INSTANCE, UiSplitGridCrate.INSTANCE);
     }
 
     @Override

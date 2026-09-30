@@ -13,9 +13,10 @@
 // offer is said, in its box and on the console.
 //
 // It keeps where the reader is: the last section whose heading has reached the
-// top of the view - the last one, at the end of the scroll - reported when it
-// changes; and it shows a section when asked, which is then where the reader
-// is while its heading is in view. The placement itself never changes.
+// top of the view, reported when it changes; and it shows a section when
+// asked, which is then where the reader is while its heading is in view - so a
+// short section at the end, which can never reach the top, is still where a
+// reader who asked for it is. The placement itself never changes.
 //
 // The arrangement is generated in Java from a TreePlacement (TreeArrangementJs):
 //   { engine: "tree", workspace, widgets: { [ref]: { kind, params } },
@@ -163,11 +164,9 @@ class TreeLayout {
             else this._pinned = null;
         }
         if (this._pinned === null) {
-            var atEnd = this._scroll.scrollTop + this._scroll.clientHeight >= this._scroll.scrollHeight - 2;
             for (var i = 0; i < this._sections.length; i++) {
                 if (this._sections[i].mark.getBoundingClientRect().top <= box.top + 8) at = this._sections[i].path; else break;
             }
-            if (atEnd && this._scroll.scrollTop > 0 && this._sections.length) at = this._sections[this._sections.length - 1].path;
         }
         if (at !== this._shown) { this._shown = at; this._onShown(at); }
     }

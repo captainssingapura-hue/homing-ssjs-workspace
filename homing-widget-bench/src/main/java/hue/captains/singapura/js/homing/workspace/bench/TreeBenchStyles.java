@@ -16,16 +16,16 @@ import static hue.captains.singapura.js.homing.design.Text.Body;
 import static hue.captains.singapura.js.homing.design.Text.Label;
 
 /**
- * The tree bench's sheet: its page - a bar of the tree's sections, then the box the tree is
- * laid out in - and the stand-in card, a raised note of its params.
+ * The tree bench's sheet: its page - a split grid, the contents on the left and the tree on
+ * the right - and the stand-in card, a raised note of its params.
  */
 public record TreeBenchStyles() implements CssGroup<TreeBenchStyles> {
 
     public static final TreeBenchStyles INSTANCE = new TreeBenchStyles();
 
     /**
-     * The MPA's slot, as the tree bench lays it out: the whole of what the page leaves it,
-     * the bar above the box. Unlayered, so it outranks the column the slot wears in the MPA's
+     * The MPA's slot, as the tree bench lays it out: the whole of what the page leaves it, for
+     * the split grid. Unlayered, so it outranks the column the slot wears in the MPA's
      * layout layer.
      */
     public record tb_page() implements CssClass<TreeBenchStyles> {
@@ -46,19 +46,18 @@ public record TreeBenchStyles() implements CssGroup<TreeBenchStyles> {
         }
     }
 
-    /** The tree's sections, as buttons in a row that wraps. */
-    public record tb_bar() implements CssClass<TreeBenchStyles> {
+    /** The split grid's host: the whole slot, a flex box the grid fills. */
+    public record tb_shell() implements CssClass<TreeBenchStyles> {
         @Override public String body() { return """
+            flex: 1 1 auto;
+            min-height: 0;
             display: flex;
-            flex: 0 0 auto;
-            flex-wrap: wrap;
-            gap: 6px;
             """;
         }
     }
 
-    /** The box the tree is laid out in: the rest of the slot. */
-    public record tb_box() implements CssClass<TreeBenchStyles> {
+    /** A cell's box, lent to a widget that fills it: positioned, the whole of the cell. */
+    public record tb_cell() implements CssClass<TreeBenchStyles> {
         @Override public String body() { return """
             position: relative;
             flex: 1 1 auto;
@@ -97,6 +96,6 @@ public record TreeBenchStyles() implements CssGroup<TreeBenchStyles> {
 
     @Override
     public List<CssClass<TreeBenchStyles>> cssClasses() {
-        return List.of(new tb_page(), new tb_bar(), new tb_box(), new tb_card(), new tb_key(), new tb_value());
+        return List.of(new tb_page(), new tb_shell(), new tb_cell(), new tb_card(), new tb_key(), new tb_value());
     }
 }

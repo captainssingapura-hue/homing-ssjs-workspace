@@ -48,6 +48,17 @@
             <artifactId>homing-design-core</artifactId>
             <version>${homing.core.version}</version>
         </dependency>
+        <!-- The relation tree, from its own repo: the table of contents. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.ssjs</groupId>
+            <artifactId>rel-tree</artifactId>
+            <version>${homing.relgrid.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.ssjs</groupId>
+            <artifactId>rel-grid-protocol</artifactId>
+            <version>${homing.relgrid.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

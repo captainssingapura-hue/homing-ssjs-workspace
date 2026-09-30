@@ -39,6 +39,16 @@ public record TreeStyles() implements CssGroup<TreeStyles> {
         }
     }
 
+    /** The table of contents: the tree, in the body's face, scrolling on its own. */
+    public record tl_toc() implements CssClass<TreeStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Body.class, Type.Face.class), of(Body.class, Color.Ink.class)); }
+        @Override public String body() { return """
+            padding: 8px 4px;
+            box-sizing: border-box;
+            """;
+        }
+    }
+
     /** A node's section: its heading, its leaves, its children. */
     public record tl_section() implements CssClass<TreeStyles> {
         @Override public String body() { return """
@@ -96,7 +106,7 @@ public record TreeStyles() implements CssGroup<TreeStyles> {
 
     @Override
     public List<CssClass<TreeStyles>> cssClasses() {
-        return List.of(new tl_column(), new tl_section(), new tl_heading(), new tl_subheading(), new tl_code(),
+        return List.of(new tl_toc(), new tl_column(), new tl_section(), new tl_heading(), new tl_subheading(), new tl_code(),
                 new tl_leaf(), new tl_leaf_fill(), new tl_missing());
     }
 }
