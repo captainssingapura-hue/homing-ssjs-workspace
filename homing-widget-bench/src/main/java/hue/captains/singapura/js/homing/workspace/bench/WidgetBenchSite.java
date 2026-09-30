@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 /**
  * The bench as a site: a page per kind, {@code /<kind>}, its params at their
  * defaults and the address's own query read over them - {@code /books-grid?numbers=on}
- * - and the root the first kind's. The MPA's flat {@code /app?app=widget-bench&widget=…}
+ * - and the root the first kind's; {@code /workspace} and {@code /tree} beside them. The MPA's flat {@code /app?app=widget-bench&widget=…}
  * serves any kind the bench knows as well.
  */
 public record WidgetBenchSite() implements Site {
@@ -37,6 +37,9 @@ public record WidgetBenchSite() implements Site {
     /** A workspace of one pane, beside the kinds' pages: {@code /workspace}. No kind is named so. */
     static final AppPage<?, ?> WORKSPACE = MPA.page(WorkspaceBenchApp.INSTANCE, new WorkspaceBenchApp.Params());
 
+    /** The tree placement, beside the kinds' pages: {@code /tree}. No kind is named so. */
+    static final AppPage<?, ?> TREE = MPA.page(TreeBenchApp.INSTANCE, new TreeBenchApp.Params());
+
     @Override public String name() { return "widget-bench"; }
 
     @Override
@@ -47,6 +50,10 @@ public record WidgetBenchSite() implements Site {
             if (path.head().filter("workspace"::equals).isPresent()) {
                 var trail = Trail.NONE.then("Widget bench", "/").then("workspace", path.toString());
                 return Optional.of((Navigable) q -> WORKSPACE.html(trail, q));
+            }
+            if (path.head().filter("tree"::equals).isPresent()) {
+                var trail = Trail.NONE.then("Widget bench", "/").then("tree", path.toString());
+                return Optional.of((Navigable) q -> TREE.html(trail, q));
             }
             return path.head().filter(PAGES::containsKey).map(kind -> placed(kind, path));
         };

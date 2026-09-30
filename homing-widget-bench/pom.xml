@@ -62,6 +62,12 @@
             <artifactId>homing-workspace-groups</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <!-- The tree placement's engine, for the tree bench. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-tree</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
         <!-- The messaging parties' runtime: the parties a widget joins on the bench, at the root. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>

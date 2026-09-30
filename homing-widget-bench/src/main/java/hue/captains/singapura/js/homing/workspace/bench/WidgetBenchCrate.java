@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.bench;
 
+import hue.captains.singapura.js.homing.workspace.tree.WorkspaceTreeCrate;
 import hue.captains.singapura.js.homing.core.Crate;
 import hue.captains.singapura.js.homing.core.CrateEntry;
 import hue.captains.singapura.js.homing.core.StandardJsModuleType;
@@ -62,7 +63,9 @@ public final class WidgetBenchCrate implements Crate {
                 // its layers of the log, live; and the log it keeps: the store, the load, the lock
                 WorkspaceLayersCrate.INSTANCE,
                 WorkspaceLogCrate.INSTANCE,
-                WorkspaceLogCodecCrate.INSTANCE);
+                WorkspaceLogCodecCrate.INSTANCE,
+                // the tree placement's engine, for the tree bench
+                WorkspaceTreeCrate.INSTANCE);
     }
 
     @Override
@@ -87,6 +90,11 @@ public final class WidgetBenchCrate implements Crate {
                 CrateEntry.of(WorkspaceBenchApp.INSTANCE, StandardJsModuleType.CONSUMER),
                 // the nasty widgets, which misbehave on purpose for the bench to catch
                 CrateEntry.of(NastyFixedModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(NastyStyles.INSTANCE));
+                CrateEntry.of(NastyStyles.INSTANCE),
+                // the tree placement, on the bench: its tree, its stand-in card, its page
+                CrateEntry.of(TreeBenchStyles.INSTANCE),
+                CrateEntry.of(BenchTreeModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(ParamsCardModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                CrateEntry.of(TreeBenchApp.INSTANCE, StandardJsModuleType.CONSUMER));
     }
 }

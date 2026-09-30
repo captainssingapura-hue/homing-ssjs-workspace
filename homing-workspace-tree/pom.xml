@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+        <artifactId>homing.js.ws</artifactId>
+        <version>LOCAL-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>homing-workspace-tree</artifactId>
+
+    <description>
+        The tree placement's engine: a fixed tree of named nodes laid out as a
+        reading flow - each node a section under its heading, its nameless leaves'
+        widgets in order, then its children - every widget made from its type and
+        params alone, its roots grafted and its parties given; the section in view
+        reported, a section shown when asked. The arrangement is generated in Java
+        from a TreePlacement (TreeArrangementJs). Knows nothing of docs.
+    </description>
+
+    <dependencies>
+        <!-- The placement it lays out: TreePlacement, Arrangement. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-groups-core-models</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <!-- What a widget is, and the sheet it fills its container by. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-widgets</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-core-js</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-component-base</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-design-core</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- The gate, headless, as the widgets'. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-conformance-rules</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-conformance-engine</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-designs</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
