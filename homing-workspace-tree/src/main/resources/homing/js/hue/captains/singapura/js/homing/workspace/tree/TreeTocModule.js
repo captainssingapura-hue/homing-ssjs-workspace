@@ -9,6 +9,12 @@
 // roots for its host to graft; the relation tree's rows natively focused
 // inside it.
 //
+// The contents are how the reader goes about what they are of, so on the
+// focus side they HOLD it: the host grafts the view's focus party under the
+// contents (graft), and the widgets in it that take the keys - a grid, a
+// diagram - take them locally, and give them back to the contents: keys given
+// up below the contents come back to the contents, and into their tree.
+//
 // The cursor is the pick. A move onto a row - a press, the arrow keys - is
 // told (onPick); Enter or a double press tells it too, where the cursor
 // already is. Following the reader (follow) moves the cursor there, the
@@ -25,6 +31,7 @@
 //   toc.root  toc.roots   { dom, focus }
 //   toc.onPick(fn)   fn(path) - a section picked
 //   toc.onFold(fn)   fn(path, open) - a section folded, or unfolded
+//   toc.graft(name, focusParty) → the proxy: a mobile focus party held under the contents
 //   toc.follow(path) the cursor to a section, telling no one
 //   toc.picked() → the path the cursor is on, or null
 //   toc.activate()   toc.dispose()
@@ -71,7 +78,8 @@ class TreeToc {
             onActivated: function (key) { self._tell(key); }
         });
         this._focusParty = focusParties.mobile(name);
-        this.focus = this._focusParty.root.join("toc", this);
+        this._under = this._focusParty.root.createBranch("toc", this);
+        this.focus = this._under.owner;
         this._off = Keys.claimOn(root, this.focus);
         this.roots = Object.freeze({ dom: this._dom, focus: this._focusParty });
     }
@@ -79,6 +87,9 @@ class TreeToc {
     onPick(fn) { this._onPick = typeof fn === "function" ? fn : null; }
 
     onFold(fn) { this._onFold = typeof fn === "function" ? fn : null; }
+
+    /** A mobile focus party held under the contents - what they are of: the keys its members give up come back here. */
+    graft(name, party) { return this._under.graft(name, party); }
 
     /** The cursor to a section - the sections holding it unfolded first - telling no one. */
     follow(path) {
@@ -100,6 +111,9 @@ class TreeToc {
 
     /** Given the keys: into the tree - unless the browser's focus arriving in a row is what gave them. */
     granted(by) { if (by !== "native") this._tree.focus(); }
+
+    /** Keys given up below the contents come back to them. */
+    wouldHold() { return true; }
 
     /** Escape the tree did not take gives the keys back. */
     keyDown(ev) {

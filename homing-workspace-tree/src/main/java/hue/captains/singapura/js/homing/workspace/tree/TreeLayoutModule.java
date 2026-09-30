@@ -33,7 +33,8 @@ public record TreeLayoutModule() implements DomModule<TreeLayoutModule> {
                 .add(new ModuleImports<>(List.of(new domOpsParties()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WidgetStyles.wg_fill(), new WidgetStyles.wg_scroll()), WidgetStyles.INSTANCE))
-                .add(new ModuleImports<>(List.of(new TreeStyles.tl_column(), new TreeStyles.tl_section(), new TreeStyles.tl_body(), new TreeStyles.tl_nested(),
+                .add(new ModuleImports<>(List.of(new TreeStyles.tl_column(), new TreeStyles.tl_section(), new TreeStyles.tl_own(), new TreeStyles.tl_current(),
+                        new TreeStyles.tl_body(), new TreeStyles.tl_nested(),
                         new TreeStyles.tl_hidden(), new TreeStyles.tl_heading(),
                         new TreeStyles.tl_subheading(), new TreeStyles.tl_code(), new TreeStyles.tl_leaf(), new TreeStyles.tl_leaf_fill(),
                         new TreeStyles.tl_missing()), TreeStyles.INSTANCE))

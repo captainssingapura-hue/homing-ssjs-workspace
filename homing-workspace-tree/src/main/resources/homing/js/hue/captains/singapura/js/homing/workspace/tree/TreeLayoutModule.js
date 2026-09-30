@@ -1,21 +1,23 @@
 // =============================================================================
 // TreeLayout — the tree placement's engine (engine "tree"): a tree's
-// arrangement laid out as a reading flow. Each node is a section under its
-// heading, drawn from its label; then its body - its nameless leaves, in
-// order, each a box lent to a widget made from its type and its params and
-// nothing else; then its named children, nested. A widget never learns where
-// it sits.
+// arrangement laid out as a reading flow. Each node is a section: its own part
+// - its heading, drawn from its label, then its nameless leaves, in order,
+// each a box lent to a widget made from its type and its params and nothing
+// else - then its named children, nested. A widget never learns where it sits.
 //
 // A section below the root is indented under its parent, a hairline down its
 // left the length of the section, so the tree's depth reads as the contents'
-// does. A section folds: its heading stays, its body goes, and nothing in it
-// is where the reader is until it unfolds. Folding is view state, as where the
-// reader is; what folds is the host's to say - its contents', as a rule.
+// does. A section folds: its heading stays, its leaves and children go, and
+// nothing in it is where the reader is until it unfolds. Folding is view
+// state, as where the reader is; what folds is the host's to say - its
+// contents', as a rule. The current section - where the reader is - is marked
+// on its own part, in the design's current surface: its heading and leaves,
+// not its children, as the contents mark its row and not the rows below.
 //
 // Its DomOps party is the tree: the root's section is the party's root, and
 // every other section a branch of its parent's - the branch holding its
-// heading, its body, its leaves' boxes and the widgets in them, and its child
-// sections' branches - so a section is one branch, whole, and a node at depth
+// heading, its leaves' boxes and the widgets in them, and its child sections'
+// branches - so a section is one branch, whole, and a node at depth
 // d is a branch at depth d. A widget made here is hosted as any host hosts
 // one: its DomOps party grafted under its section's branch, a level below it
 // (why the placement's deepest nodes hold no leaves), its focus party under the
@@ -78,7 +80,7 @@ class TreeLayout {
         this.root = root;
         this._scroll = scroll;
         this._sections = [];          // { path, mark } in reading order: the element whose top says where the section starts
-        this._byPath = new Map();     // path → { mark, body }
+        this._byPath = new Map();     // path → { mark, own, folds }: the section's start, its own part, what folds away
         this._folded = new Set();
         this._placed = new Map();     // ref → the widget made for it
         this._nodes = 0;
@@ -110,7 +112,7 @@ class TreeLayout {
         var at = this._byPath.get(path);
         if (!at) return false;
         if (folded) this._folded.add(path); else this._folded.delete(path);
-        css.toggleClass(at.body, tl_hidden, !!folded);
+        at.folds.forEach(function (el) { css.toggleClass(el, tl_hidden, !!folded); });
         this._track();
         return true;
     }
@@ -137,27 +139,42 @@ class TreeLayout {
         return out;
     }
 
-    /** A node: its section - indented below the root - its heading, then its body of leaves and children; on the party's root for the root, else on a branch of its parent's. */
+    /**
+     * A node: its section - indented below the root - its own part (its heading, then its leaves), then its children;
+     * on the party's root for the root, else on a branch of its parent's.
+     */
     _section(node, path, depth, parent, above) {
         var branch = above ? above.createBranch("n" + (++this._nodes)) : this._dom, self = this;
         if (above) branch.activate(_treeLayoutOwner);
         var section = branch.createElement("section", "section");
         css.addClass(section, tl_section);
         if (depth > 0) css.addClass(section, tl_nested);
-        var mark = section;
+        var own = branch.createElement("own", "div");
+        css.addClass(own, tl_own);
+        section.appendChild(own);
+        var mark = own, folds = [];
         if (node.label && node.label.text) {
             mark = branch.createElement("heading", "h" + Math.min(depth + 1, 6));
             css.addClass(mark, depth < 2 ? tl_heading : tl_subheading);
             this._label(branch, mark, node.label);
-            section.appendChild(mark);
+            own.appendChild(mark);
         }
-        var body = branch.createElement("body", "div");
-        css.addClass(body, tl_body);
-        section.appendChild(body);
+        if (node.leaves.length) {
+            var leaves = branch.createElement("leaves", "div");
+            css.addClass(leaves, tl_body);
+            node.leaves.forEach(function (ref, i) { leaves.appendChild(self._leaf(branch, ref, i)); });
+            own.appendChild(leaves);
+            folds.push(leaves);
+        }
         this._sections.push({ path: path, mark: mark });
-        this._byPath.set(path, { mark: mark, body: body });
-        node.leaves.forEach(function (ref, i) { body.appendChild(self._leaf(branch, ref, i)); });
-        node.children.forEach(function (child) { self._section(child, path === "" ? child.name : path + "/" + child.name, depth + 1, body, branch); });
+        this._byPath.set(path, { mark: mark, own: own, folds: folds });
+        if (node.children.length) {
+            var children = branch.createElement("children", "div");
+            css.addClass(children, tl_body);
+            section.appendChild(children);
+            folds.push(children);
+            node.children.forEach(function (child) { self._section(child, path === "" ? child.name : path + "/" + child.name, depth + 1, children, branch); });
+        }
         parent.appendChild(section);
     }
 
@@ -194,7 +211,7 @@ class TreeLayout {
         return box;
     }
 
-    /** Where the reader is: the section asked for while it is in view, else the last shown one whose start has reached the top. */
+    /** Where the reader is: the section asked for while it is in view, else the last shown one whose start has reached the top - marked, and told. */
     _track() {
         var box = this._scroll.getBoundingClientRect(), at = this._sections.length ? this._sections[0].path : null;
         if (this._pinned !== null) {
@@ -209,6 +226,10 @@ class TreeLayout {
                 if (mark.getBoundingClientRect().top <= box.top + 8) at = this._sections[i].path; else break;
             }
         }
-        if (at !== this._shown) { this._shown = at; this._onShown(at); }
+        if (at === this._shown) return;
+        if (this._shown !== null) css.toggleClass(this._byPath.get(this._shown).own, tl_current, false);
+        this._shown = at;
+        if (at !== null) css.toggleClass(this._byPath.get(at).own, tl_current, true);
+        this._onShown(at);
     }
 }

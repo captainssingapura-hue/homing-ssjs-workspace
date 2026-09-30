@@ -9,7 +9,9 @@
 // folded or unfolded in the tree; the section in view in the tree is followed
 // in the contents, which tells nothing back. The splitter is drawn - the
 // grid's seam - so the reader sees where to drag. It lends each a cell's box,
-// grafts their roots into its own, and holds the one party the tree's
+// grafts their DomOps roots into its own - the contents' focus into its own
+// too, and the tree's under the contents, so a widget in the tree giving up
+// the keys gives them back to the contents - and holds the one party the tree's
 // widgets are given - the book selection, where the books grid and the chosen
 // book meet from different sections. Every widget is made from its type and
 // params alone.
@@ -52,5 +54,5 @@ function appMain(el, params) {
     place.graft("toc", toc.roots.dom);
     place.graft("tree", layout.roots.dom);
     focusParty.root.graft("toc", toc.roots.focus);
-    focusParty.root.graft("tree", layout.roots.focus);
+    toc.graft("tree", layout.roots.focus);
 }

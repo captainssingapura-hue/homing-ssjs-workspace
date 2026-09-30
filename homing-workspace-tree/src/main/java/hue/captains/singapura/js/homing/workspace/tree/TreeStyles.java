@@ -8,8 +8,15 @@ import java.util.List;
 
 import static hue.captains.singapura.js.homing.design.DesignClass.of;
 import static hue.captains.singapura.js.homing.design.Emphasis.Muted;
+import static hue.captains.singapura.js.homing.design.Emphasis.Primary;
+import static hue.captains.singapura.js.homing.design.Emphasis.Secondary;
+import static hue.captains.singapura.js.homing.design.Interaction.Current;
+import static hue.captains.singapura.js.homing.design.Interaction.Selectable;
+import static hue.captains.singapura.js.homing.design.Layer.Base;
 import static hue.captains.singapura.js.homing.design.Structure.Hairline;
 import static hue.captains.singapura.js.homing.design.Target.Color;
+import static hue.captains.singapura.js.homing.design.Target.Motion;
+import static hue.captains.singapura.js.homing.design.Target.Shape;
 import static hue.captains.singapura.js.homing.design.Target.Type;
 import static hue.captains.singapura.js.homing.design.Text.Body;
 import static hue.captains.singapura.js.homing.design.Text.Heading;
@@ -60,7 +67,36 @@ public record TreeStyles() implements CssGroup<TreeStyles> {
         }
     }
 
-    /** A section's body: its leaves, then its children - what folds away under its heading. */
+    /**
+     * A section's own part - its heading and its leaves, not its children: what is marked while
+     * it is the current section, the change eased as the design eases a selectable's.
+     */
+    public record tl_own() implements CssClass<TreeStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Selectable.class, Motion.Ease.class)); }
+        @Override public String body() { return """
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 8px 12px;
+            margin: 0 -12px;
+            """;
+        }
+    }
+
+    /**
+     * The current section's own part: the design's current surface and its mark - the section the
+     * contents' cursor is on. The mark is drawn in a colour of the design's: the primary, the
+     * secondary, the base surface or the body's ink.
+     */
+    public record tl_current() implements CssClass<TreeStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Current.class, Color.Surface.class), of(Current.class, Shape.Shadow.class)); }
+        @Override public List<? extends Wearable> reads() {
+            return List.of(of(Primary.class, Color.Surface.class), of(Secondary.class, Color.Surface.class), of(Base.class, Color.Surface.class), of(Body.class, Color.Ink.class));
+        }
+        @Override public String body() { return ""; }
+    }
+
+    /** A section's leaves, and its children: each folds away under its heading. */
     public record tl_body() implements CssClass<TreeStyles> {
         @Override public String body() { return """
             display: flex;
@@ -86,7 +122,7 @@ public record TreeStyles() implements CssGroup<TreeStyles> {
         }
     }
 
-    /** What is folded away: a folded section's body. */
+    /** What is folded away: a folded section's leaves and children. */
     public record tl_hidden() implements CssClass<TreeStyles> {
         @Override public String body() { return "display: none;\n"; }
     }
@@ -138,7 +174,7 @@ public record TreeStyles() implements CssGroup<TreeStyles> {
 
     @Override
     public List<CssClass<TreeStyles>> cssClasses() {
-        return List.of(new tl_toc(), new tl_column(), new tl_section(), new tl_body(), new tl_nested(), new tl_hidden(), new tl_heading(), new tl_subheading(), new tl_code(),
+        return List.of(new tl_toc(), new tl_column(), new tl_section(), new tl_own(), new tl_current(), new tl_body(), new tl_nested(), new tl_hidden(), new tl_heading(), new tl_subheading(), new tl_code(),
                 new tl_leaf(), new tl_leaf_fill(), new tl_missing());
     }
 }
