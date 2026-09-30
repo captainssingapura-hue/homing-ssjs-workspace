@@ -12,6 +12,7 @@ import hue.captains.singapura.js.homing.ui.docking.UiDockingCrate;
 import hue.captains.singapura.js.homing.ui.elements.UiElementsCrate;
 import hue.captains.singapura.js.homing.ui.focus.UiFocusCrate;
 import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyFixedModule;
+import hue.captains.singapura.js.homing.workspace.content.WorkspaceContentCrate;
 import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyStyles;
 import hue.captains.singapura.js.homing.workspace.core.WorkspaceCoreCrate;
 import hue.captains.singapura.js.homing.workspace.demowidgets.WorkspaceDemoWidgetsCrate;
@@ -66,7 +67,9 @@ public final class WidgetBenchCrate implements Crate {
                 WorkspaceLogCrate.INSTANCE,
                 WorkspaceLogCodecCrate.INSTANCE,
                 // the tree placement's engine, for the tree bench, and the split grid it is laid out in
-                WorkspaceTreeCrate.INSTANCE, UiSplitGridCrate.INSTANCE);
+                WorkspaceTreeCrate.INSTANCE, UiSplitGridCrate.INSTANCE,
+                // content parties and the flow, for the content bench
+                WorkspaceContentCrate.INSTANCE);
     }
 
     @Override
@@ -96,6 +99,16 @@ public final class WidgetBenchCrate implements Crate {
                 CrateEntry.of(TreeBenchStyles.INSTANCE),
                 CrateEntry.of(BenchTreeModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 CrateEntry.of(ParamsCardModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(TreeBenchApp.INSTANCE, StandardJsModuleType.CONSUMER));
+                CrateEntry.of(TreeBenchApp.INSTANCE, StandardJsModuleType.CONSUMER),
+                // content parties, on the bench: its note type and stewards, its card, its scopes, the traffic, its page
+                CrateEntry.of(ContentBenchStyles.INSTANCE),
+                CrateEntry.of(BenchNoteModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(BenchContentStewardModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(BenchNoteStewardModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(BenchFlowStewardModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                CrateEntry.of(NoteCardModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                CrateEntry.of(ContentPanelModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                CrateEntry.of(PartyTrafficModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                CrateEntry.of(ContentBenchApp.INSTANCE, StandardJsModuleType.CONSUMER));
     }
 }
