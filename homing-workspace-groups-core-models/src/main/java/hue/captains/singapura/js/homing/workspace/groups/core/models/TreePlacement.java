@@ -10,14 +10,16 @@ import java.util.regex.Pattern;
 
 /**
  * Where a fixed tree's widgets go: engine {@code tree}. A tree of named nodes - its
- * structure, as a split grid's tab bars are - each holding its <b>nameless leaves</b>, in
- * order, before its named children. Only leaves hold widgets; a node never is one. A doc's
- * headings are such a tree; so are a plan's phases.
+ * structure, as a split grid's tab bars are - each with at most one <b>leaf</b>, before its
+ * named children: its own content, a list of <b>unnamed widgets</b> in the order they are
+ * shown. A leaf is one thing: one entry in the contents - its node's - folded and unfolded
+ * with it. Only a leaf holds widgets; a node never is one. A doc's headings are such a tree,
+ * each section's prose, tables and code its leaf; so are a plan's phases.
  *
- * <p>A node is located by its path: the names from the root, joined by {@code /}. A nameless
- * leaf is located by its node's path and its position among the node's leaves:
- * {@code design/keys:1}. Locators are the placement's and navigation's; a widget never learns
- * its own - it is made from its type and params alone.</p>
+ * <p>A node, and its leaf, are located by the node's path: the names from the root, joined by
+ * {@code /}. A widget in a leaf is where it is by its position there, {@code design/keys:1}.
+ * Locators are the placement's and navigation's; a widget never learns its own - it is made
+ * from its type and params alone.</p>
  *
  * <p>Fixed: made once from what it places, never rearranged. There is nothing to log and
  * nothing to persist; where the reader is belongs to the engine that shows it.</p>
@@ -29,7 +31,7 @@ import java.util.regex.Pattern;
  *         TreePlacement.node("plan", "Plan", "plan-body", "plan-table")))
  * }</pre>
  *
- * @param root the tree's root: no name, its label the whole's, its leaves the introduction
+ * @param root the tree's root: no name, its label the whole's, its leaf the introduction
  */
 public record TreePlacement(Node root) implements Placement {
 
@@ -37,8 +39,8 @@ public record TreePlacement(Node root) implements Placement {
     public static final PlacementEngine ENGINE = PlacementEngine.of("tree");
 
     /**
-     * How deep a tree goes below its root: the rigid tree's levels. A node's leaves sit a level
-     * below it, so a node at this depth holds none.
+     * How deep a tree goes below its root: the rigid tree's levels. A node's leaf sits a level
+     * below it, so a node at this depth has none.
      */
     public static final int MAX_DEPTH = 18;
 
@@ -99,26 +101,30 @@ public record TreePlacement(Node root) implements Placement {
 
     /**
      * A node: its name in the path - none for the root, and only for the root - its label, its
-     * nameless leaves in the order they are shown, and its named children after them.
+     * leaf, and its named children after it. The leaf is the node's own content, the unnamed
+     * widgets in the order they are shown; empty, the node has none.
      */
-    public record Node(Optional<Name> name, Label label, List<WidgetRef> leaves, List<Node> children) {
+    public record Node(Optional<Name> name, Label label, List<WidgetRef> leaf, List<Node> children) {
         public Node {
             Objects.requireNonNull(name, "Node.name (use Optional.empty for the root)");
             Objects.requireNonNull(label, "Node.label");
-            leaves = List.copyOf(Objects.requireNonNull(leaves, "Node.leaves"));
+            leaf = List.copyOf(Objects.requireNonNull(leaf, "Node.leaf"));
             children = List.copyOf(Objects.requireNonNull(children, "Node.children"));
         }
+
+        /** Whether it has content of its own. */
+        public boolean hasLeaf() { return !leaf.isEmpty(); }
     }
 
-    /** A nameless leaf, where the placement has it: its node's path, its position there, its widget. */
-    public record Leaf(String path, int position, WidgetRef widget) {
-        public Leaf {
-            Objects.requireNonNull(path, "Leaf.path");
-            Objects.requireNonNull(widget, "Leaf.widget");
-            if (position < 0) throw new IllegalArgumentException("a leaf's position " + position + " - zero or more");
+    /** A widget, where the placement has it: its node's path, and its position in the node's leaf. */
+    public record Spot(String path, int position, WidgetRef widget) {
+        public Spot {
+            Objects.requireNonNull(path, "Spot.path");
+            Objects.requireNonNull(widget, "Spot.widget");
+            if (position < 0) throw new IllegalArgumentException("a position in a leaf " + position + " - zero or more");
         }
 
-        /** Its locator: {@code design/keys:1}; the root's leaves {@code :0}, {@code :1}. */
+        /** Where it is, as text: {@code design/keys:1}; in the root's leaf {@code :0}, {@code :1}. */
         public String locator() { return path + ":" + position; }
     }
 
@@ -130,11 +136,11 @@ public record TreePlacement(Node root) implements Placement {
 
     private static void check(Node node, String path, int depth, Set<WidgetRef> placed) {
         if (depth > MAX_DEPTH) throw new IllegalArgumentException("the node " + shown(path) + " is " + depth + " deep - at most " + MAX_DEPTH);
-        if (depth == MAX_DEPTH && !node.leaves().isEmpty()) {
-            throw new IllegalArgumentException("the node " + shown(path) + " is " + depth + " deep and holds leaves - they would be "
-                    + (depth + 1) + " deep; a node holding leaves is at most " + (MAX_DEPTH - 1));
+        if (depth == MAX_DEPTH && node.hasLeaf()) {
+            throw new IllegalArgumentException("the node " + shown(path) + " is " + depth + " deep and has a leaf - its widgets would be "
+                    + (depth + 1) + " deep; a node with a leaf is at most " + (MAX_DEPTH - 1));
         }
-        for (WidgetRef w : node.leaves()) {
+        for (WidgetRef w : node.leaf()) {
             if (!placed.add(w)) throw new IllegalArgumentException("the tree places " + w + " twice");
         }
         var names = new HashSet<Name>();
@@ -151,38 +157,38 @@ public record TreePlacement(Node root) implements Placement {
 
     public static TreePlacement of(Node root) { return new TreePlacement(root); }
 
-    /** The root: the whole's label, its introduction's leaves, its children. */
-    public static Node root(String label, List<String> leaves, Node... children) {
-        return new Node(Optional.empty(), Label.of(label), refs(leaves), List.of(children));
+    /** The root: the whole's label, the widgets of its leaf - the introduction - its children. */
+    public static Node root(String label, List<String> leaf, Node... children) {
+        return new Node(Optional.empty(), Label.of(label), refs(leaf), List.of(children));
     }
 
-    /** A named node with leaves before its children. */
-    public static Node node(String name, String label, List<String> leaves, Node... children) {
-        return new Node(Optional.of(Name.of(name)), Label.of(label), refs(leaves), List.of(children));
+    /** A named node: the widgets of its leaf, before its children. */
+    public static Node node(String name, String label, List<String> leaf, Node... children) {
+        return new Node(Optional.of(Name.of(name)), Label.of(label), refs(leaf), List.of(children));
     }
 
-    /** A named node with leaves and no children. */
-    public static Node node(String name, String label, String... leaves) {
-        return new Node(Optional.of(Name.of(name)), Label.of(label), refs(List.of(leaves)), List.of());
+    /** A named node with a leaf of these widgets, and no children. */
+    public static Node node(String name, String label, String... leaf) {
+        return new Node(Optional.of(Name.of(name)), Label.of(label), refs(List.of(leaf)), List.of());
     }
 
-    private static List<WidgetRef> refs(List<String> leaves) { return leaves.stream().map(WidgetRef::of).toList(); }
+    private static List<WidgetRef> refs(List<String> widgets) { return widgets.stream().map(WidgetRef::of).toList(); }
 
     @Override public PlacementEngine engine() { return ENGINE; }
 
-    /** The widgets in reading order: a node's leaves, then its children's. */
+    /** The widgets in reading order: a node's leaf, then its children's. */
     @Override
-    public List<WidgetRef> placed() { return leaves().stream().map(Leaf::widget).toList(); }
+    public List<WidgetRef> placed() { return spots().stream().map(Spot::widget).toList(); }
 
-    /** Every nameless leaf, in reading order, where it is. */
-    public List<Leaf> leaves() {
-        var out = new ArrayList<Leaf>();
+    /** Every widget, in reading order, where it is. */
+    public List<Spot> spots() {
+        var out = new ArrayList<Spot>();
         walk(root, "", out);
         return List.copyOf(out);
     }
 
-    private static void walk(Node node, String path, List<Leaf> out) {
-        for (int i = 0; i < node.leaves().size(); i++) out.add(new Leaf(path, i, node.leaves().get(i)));
+    private static void walk(Node node, String path, List<Spot> out) {
+        for (int i = 0; i < node.leaf().size(); i++) out.add(new Spot(path, i, node.leaf().get(i)));
         for (Node child : node.children()) walk(child, pathOf(path, child.name().orElseThrow()), out);
     }
 
@@ -213,8 +219,8 @@ public record TreePlacement(Node root) implements Placement {
     }
 
     /** Where a widget is, if the tree places it. */
-    public Optional<Leaf> leafOf(WidgetRef widget) {
-        for (Leaf l : leaves()) if (l.widget().equals(widget)) return Optional.of(l);
+    public Optional<Spot> spotOf(WidgetRef widget) {
+        for (Spot s : spots()) if (s.widget().equals(widget)) return Optional.of(s);
         return Optional.empty();
     }
 

@@ -15,7 +15,7 @@ import java.util.List;
 
 /**
  * The tree placement's engine: {@code new TreeLayout(container, opts)} - a tree's arrangement
- * laid out as a reading flow, each nameless leaf's widget made from its type and params.
+ * laid out as a reading flow, each widget of a node's leaf made from its type and params.
  */
 public record TreeLayoutModule() implements DomModule<TreeLayoutModule> {
 
@@ -23,7 +23,7 @@ public record TreeLayoutModule() implements DomModule<TreeLayoutModule> {
 
     public record TreeLayout() implements SelfContainedWidget<TreeLayoutModule> {
         @Override public String summary() {
-            return "A tree's arrangement laid out as a reading flow: each node a section under its heading, its nameless leaves' widgets in order, then its children.";
+            return "A tree's arrangement laid out as a reading flow: each node a section under its heading, its leaf's widgets in order, then its children.";
         }
     }
 

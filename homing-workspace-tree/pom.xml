@@ -13,8 +13,8 @@
 
     <description>
         The tree placement's engine: a fixed tree of named nodes laid out as a
-        reading flow - each node a section under its heading, its nameless leaves'
-        widgets in order, then its children - every widget made from its type and
+        reading flow - each node a section under its heading, the widgets of its
+        leaf in order, then its children - every widget made from its type and
         params alone, its roots grafted and its parties given; the section in view
         reported, a section shown when asked. The arrangement is generated in Java
         from a TreePlacement (TreeArrangementJs). Knows nothing of docs.

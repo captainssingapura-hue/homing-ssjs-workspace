@@ -1,26 +1,28 @@
 // =============================================================================
 // TreeLayout — the tree placement's engine (engine "tree"): a tree's
 // arrangement laid out as a reading flow. Each node is a section: its own part
-// - its heading, drawn from its label, then its nameless leaves, in order,
-// each a box lent to a widget made from its type and its params and nothing
-// else - then its named children, nested. A widget never learns where it sits.
+// - its heading, drawn from its label, then its leaf: its unnamed widgets, in
+// order, each a box lent to a widget made from its type and its params and
+// nothing else - then its named children, nested. A widget never learns where
+// it sits.
 //
 // A section below the root is indented under its parent, a hairline down its
 // left the length of the section, so the tree's depth reads as the contents'
-// does. A section folds: its heading stays, its leaves and children go, and
-// nothing in it is where the reader is until it unfolds. Folding is view
-// state, as where the reader is; what folds is the host's to say - its
-// contents', as a rule. The current section - where the reader is - is marked
-// on its own part, in the design's current surface: its heading and leaves,
-// not its children, as the contents mark its row and not the rows below.
+// does. A section folds: its heading stays, its leaf and children go - the
+// leaf whole, as it is one entry - and nothing in it is where the reader is
+// until it unfolds. Folding is view state, as where the reader is; what folds
+// is the host's to say - its contents', as a rule. The current section -
+// where the reader is - is marked on its own part, in the design's current
+// surface: its heading and leaf, not its children, as the contents mark its
+// row and not the rows below.
 //
 // Its DomOps party is the tree: the root's section is the party's root, and
 // every other section a branch of its parent's - the branch holding its
-// heading, its leaves' boxes and the widgets in them, and its child sections'
+// heading, its leaf's boxes and the widgets in them, and its child sections'
 // branches - so a section is one branch, whole, and a node at depth
 // d is a branch at depth d. A widget made here is hosted as any host hosts
 // one: its DomOps party grafted under its section's branch, a level below it
-// (why the placement's deepest nodes hold no leaves), its focus party under the
+// (why the placement's deepest nodes have no leaf), its focus party under the
 // layout's, and - when the host gave parties - joined to them. A widget that
 // makes widgets of its own - a flow - is offered the kinds the layout was
 // offered (compose), before it joins. A widget whose class says
@@ -37,7 +39,7 @@
 //
 // The arrangement is generated in Java from a TreePlacement (TreeArrangementJs):
 //   { engine: "tree", workspace, widgets: { [ref]: { kind, params } },
-//     root: { name, label: { text, runs: [{ kind, text }] }, leaves: [ref], children: [node] } }
+//     root: { name, label: { text, runs: [{ kind, text }] }, leaf: [ref], children: [node] } }
 //
 //   new TreeLayout(container, { arrangement, kinds, given?, onShown? })
 //     kinds    { [type]: WidgetClass } - the types the host offers
@@ -142,7 +144,7 @@ class TreeLayout {
     }
 
     /**
-     * A node: its section - indented below the root - its own part (its heading, then its leaves), then its children;
+     * A node: its section - indented below the root - its own part (its heading, then its leaf), then its children;
      * on the party's root for the root, else on a branch of its parent's.
      */
     _section(node, path, depth, parent, above) {
@@ -161,12 +163,12 @@ class TreeLayout {
             this._label(branch, mark, node.label);
             own.appendChild(mark);
         }
-        if (node.leaves.length) {
-            var leaves = branch.createElement("leaves", "div");
-            css.addClass(leaves, tl_body);
-            node.leaves.forEach(function (ref, i) { leaves.appendChild(self._leaf(branch, ref, i)); });
-            own.appendChild(leaves);
-            folds.push(leaves);
+        if (node.leaf.length) {
+            var leaf = branch.createElement("leaf", "div");
+            css.addClass(leaf, tl_body);
+            node.leaf.forEach(function (ref, i) { leaf.appendChild(self._widget(branch, ref, i)); });
+            own.appendChild(leaf);
+            folds.push(leaf);
         }
         this._sections.push({ path: path, mark: mark });
         this._byPath.set(path, { mark: mark, own: own, folds: folds });
@@ -191,9 +193,9 @@ class TreeLayout {
         });
     }
 
-    /** A nameless leaf: a box, and in it the widget made from its type and params. */
-    _leaf(branch, ref, i) {
-        var box = branch.createElement("leaf" + i, "div");
+    /** A widget of a leaf: a box, and in it the widget made from its type and params. */
+    _widget(branch, ref, i) {
+        var box = branch.createElement("widget" + i, "div");
         css.addClass(box, tl_leaf);
         var spec = this._arrangement.widgets[ref], Kind = spec ? this._kinds[spec.kind] : null;
         if (!Kind) {

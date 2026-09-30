@@ -10,17 +10,18 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * The tree placement: headings as structure, nameless leaves before named children, the
- * path a node's locator and the path and position a leaf's; every invariant refused with
+ * The tree placement: headings as structure, a node's one leaf - its unnamed widgets - before
+ * its named children, the path a node's locator and the path and position a widget's; every invariant refused with
  * its reason; and an arrangement over a tree held to its own checks.
  */
 class TreePlacementTest {
 
-    /** An introduction; a section with a lead and a subsection; a section of two leaves; a section of none. */
+    /** An introduction; a section with a lead and a subsection; a section whose leaf is two widgets; a section with none. */
     static final TreePlacement TREE = TreePlacement.of(TreePlacement.root("The doc", List.of("intro"),
             TreePlacement.node("design", "Design", List.of("design-lead"),
                     TreePlacement.node("keys", "Keys", "keys-body")),
@@ -30,31 +31,31 @@ class TreePlacementTest {
     private static List<String> names(List<WidgetRef> refs) { return refs.stream().map(WidgetRef::value).toList(); }
 
     @Test
-    void itPlacesInReadingOrder_aNodesLeavesBeforeItsChildren() {
+    void itPlacesInReadingOrder_aNodesLeafBeforeItsChildren() {
         assertEquals(TreePlacement.ENGINE, TREE.engine());
         assertEquals("tree", TREE.engine().value());
         assertEquals(List.of("intro", "design-lead", "keys-body", "plan-body", "plan-table"), names(TREE.placed()));
     }
 
     @Test
-    void aNodeIsLocatedByItsPath_aLeafByItsNodesPathAndPosition() {
+    void aNodeIsLocatedByItsPath_aWidgetByItsNodesPathAndItsPositionInTheLeaf() {
         assertEquals(List.of("", "design", "design/keys", "plan", "empty"), TREE.paths());
-        assertEquals(List.of(":0", "design:0", "design/keys:0", "plan:0", "plan:1"), TREE.leaves().stream().map(TreePlacement.Leaf::locator).toList());
+        assertEquals(List.of(":0", "design:0", "design/keys:0", "plan:0", "plan:1"), TREE.spots().stream().map(TreePlacement.Spot::locator).toList());
         assertEquals("Keys", TREE.node("design/keys").orElseThrow().label().text());
         assertEquals("The doc", TREE.node("").orElseThrow().label().text());
         assertTrue(TREE.node("design/nothing").isEmpty());
         assertTrue(TREE.node("keys").isEmpty(), "a path is from the root");
-        assertEquals("plan:1", TREE.leafOf(WidgetRef.of("plan-table")).orElseThrow().locator());
-        assertTrue(TREE.leafOf(WidgetRef.of("nowhere")).isEmpty());
+        assertEquals("plan:1", TREE.spotOf(WidgetRef.of("plan-table")).orElseThrow().locator());
+        assertTrue(TREE.spotOf(WidgetRef.of("nowhere")).isEmpty());
         assertEquals(2, TREE.depth());
     }
 
     @Test
-    void aNodeMayHoldNoLeaf_oneOrSeveral() {
-        assertEquals(0, TREE.node("empty").orElseThrow().leaves().size());
-        assertEquals(1, TREE.node("design/keys").orElseThrow().leaves().size());
-        assertEquals(2, TREE.node("plan").orElseThrow().leaves().size());
-        assertEquals(1, TREE.node("design").orElseThrow().leaves().size(), "a lead before a named child");
+    void aNodeHasOneLeafOrNone_aLeafIsOneWidgetOrSeveral() {
+        assertFalse(TREE.node("empty").orElseThrow().hasLeaf());
+        assertEquals(1, TREE.node("design/keys").orElseThrow().leaf().size());
+        assertEquals(2, TREE.node("plan").orElseThrow().leaf().size(), "one leaf, of two widgets");
+        assertEquals(1, TREE.node("design").orElseThrow().leaf().size(), "a lead before a named child");
     }
 
     @Test
@@ -97,7 +98,7 @@ class TreePlacementTest {
     }
 
     @Test
-    void aNodeAtTheCapHoldsNoLeavesForTheyWouldSitBelowIt() {
+    void aNodeAtTheCapHasNoLeaf_forItsWidgetsWouldSitBelowIt() {
         Node atCap = TreePlacement.node("n18", "18", "w18");
         for (int i = 17; i >= 1; i--) atCap = TreePlacement.node("n" + i, String.valueOf(i), List.of(), atCap);
         Node holding = atCap;

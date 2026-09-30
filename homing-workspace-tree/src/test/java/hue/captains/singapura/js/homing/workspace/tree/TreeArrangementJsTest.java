@@ -43,8 +43,8 @@ class TreeArrangementJsTest {
         String js = TreeArrangementJs.expression(ARRANGEMENT);
         assertTrue(js.startsWith("Object.freeze({ engine: \"tree\", workspace: \"tree-bench\""), js);
         assertTrue(js.contains("\"intro\": Object.freeze({ kind: \"note\", params: Object.freeze({ \"note\": \"the \\\"intro\\\" \\u003c/script>\" }) })"), js);
-        assertTrue(js.contains("root: Object.freeze({ name: \"\", label: Object.freeze({ text: \"The doc\", runs: Object.freeze([]) }), leaves: Object.freeze([\"intro\"])"), js);
-        assertTrue(js.contains("Object.freeze({ name: \"keys\", label: Object.freeze({ text: \"The Keys\", runs: Object.freeze([Object.freeze({ kind: \"text\", text: \"The \" }), Object.freeze({ kind: \"code\", text: \"Keys\" })]) }), leaves: Object.freeze([\"body\"]), children: Object.freeze([]) })"), js);
+        assertTrue(js.contains("root: Object.freeze({ name: \"\", label: Object.freeze({ text: \"The doc\", runs: Object.freeze([]) }), leaf: Object.freeze([\"intro\"])"), js);
+        assertTrue(js.contains("Object.freeze({ name: \"keys\", label: Object.freeze({ text: \"The Keys\", runs: Object.freeze([Object.freeze({ kind: \"text\", text: \"The \" }), Object.freeze({ kind: \"code\", text: \"Keys\" })]) }), leaf: Object.freeze([\"body\"]), children: Object.freeze([]) })"), js);
         assertTrue(!js.contains("</script>"), "a page can inline it");
     }
 

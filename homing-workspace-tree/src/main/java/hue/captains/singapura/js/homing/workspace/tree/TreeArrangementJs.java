@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * const NAME = Object.freeze({ engine: "tree", workspace: "tree-bench",
  *     widgets: Object.freeze({ "intro": Object.freeze({ kind: "note", params: Object.freeze({ "note": "intro" }) }), … }),
  *     root: Object.freeze({ name: "", label: Object.freeze({ text: "The doc", runs: Object.freeze([]) }),
- *         leaves: Object.freeze(["intro"]), children: Object.freeze([ … ]) }) });
+ *         leaf: Object.freeze(["intro"]), children: Object.freeze([ … ]) }) });
  * }</pre>
  */
 public final class TreeArrangementJs {
@@ -54,7 +54,7 @@ public final class TreeArrangementJs {
     private static String node(TreePlacement.Node n) {
         return "Object.freeze({ name: " + quote(n.name().map(TreePlacement.Name::value).orElse(""))
                 + ", label: " + label(n.label())
-                + ", leaves: Object.freeze([" + n.leaves().stream().map(WidgetRef::value).map(TreeArrangementJs::quote).collect(Collectors.joining(", ")) + "])"
+                + ", leaf: Object.freeze([" + n.leaf().stream().map(WidgetRef::value).map(TreeArrangementJs::quote).collect(Collectors.joining(", ")) + "])"
                 + ", children: Object.freeze([" + n.children().stream().map(TreeArrangementJs::node).collect(Collectors.joining(", ")) + "]) })";
     }
 

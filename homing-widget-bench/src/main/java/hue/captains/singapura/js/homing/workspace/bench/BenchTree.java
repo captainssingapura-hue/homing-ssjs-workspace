@@ -19,7 +19,7 @@ import java.util.Set;
 
 /**
  * The tree bench's tree: a synthetic tree, three levels deep, for the tree placement to lay
- * out - nodes of one leaf, of several and of none; a label drawn by runs; stand-in widgets
+ * out - nodes whose leaf is one widget, several, or none; a label drawn by runs; stand-in widgets
  * that show only their params; and the books grid and the chosen book in different sections,
  * meeting in one party.
  */
@@ -35,9 +35,9 @@ public final class BenchTree {
 
     static final TreePlacement TREE = TreePlacement.of(TreePlacement.root("A tree, placed", List.of("intro"),
             TreePlacement.node("sections", "Sections and their leaves", List.of("sections-lead"),
-                    TreePlacement.node("one", "A section of one leaf", "one"),
-                    TreePlacement.node("several", "A section of several leaves", "several-a", "several-b", "several-c"),
-                    TreePlacement.node("none", "A section of no leaf", List.of(),
+                    TreePlacement.node("one", "A leaf of one widget", "one"),
+                    TreePlacement.node("several", "A leaf of several widgets", "several-a", "several-b", "several-c"),
+                    TreePlacement.node("none", "A section with no leaf", List.of(),
                             TreePlacement.node("deeper", "Three levels down", "deeper"))),
             TreePlacement.node("widgets", "Real widgets, one party", List.of("widgets-lead"),
                     TreePlacement.node("books", "The books", "grid"),
@@ -52,10 +52,10 @@ public final class BenchTree {
     public static final Arrangement<Spec, TreePlacement> ARRANGEMENT = Arrangement.of(new Spec(), TREE,
             card("intro", "The root's own leaf: the introduction, before any section."),
             card("sections-lead", "A section's own leaf, shown before its named children."),
-            card("one", "The one leaf of its section."),
-            card("several-a", "The first of three leaves."),
-            card("several-b", "The second of three leaves."),
-            card("several-c", "The third of three leaves."),
+            card("one", "The one widget of its section's leaf."),
+            card("several-a", "The first of three widgets in one leaf."),
+            card("several-b", "The second of three widgets in one leaf."),
+            card("several-c", "The third of three widgets in one leaf."),
             card("deeper", "A leaf three levels down, under a section with no leaf of its own."),
             card("widgets-lead", "Below, the books grid and the chosen book: two sections, one party. Choose a book."),
             ArrangedWidget.of("grid", "books-grid"),
