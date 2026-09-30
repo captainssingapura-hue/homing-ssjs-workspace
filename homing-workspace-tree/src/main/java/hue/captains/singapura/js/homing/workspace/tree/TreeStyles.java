@@ -8,6 +8,7 @@ import java.util.List;
 
 import static hue.captains.singapura.js.homing.design.DesignClass.of;
 import static hue.captains.singapura.js.homing.design.Emphasis.Muted;
+import static hue.captains.singapura.js.homing.design.Structure.Hairline;
 import static hue.captains.singapura.js.homing.design.Target.Color;
 import static hue.captains.singapura.js.homing.design.Target.Type;
 import static hue.captains.singapura.js.homing.design.Text.Body;
@@ -49,7 +50,7 @@ public record TreeStyles() implements CssGroup<TreeStyles> {
         }
     }
 
-    /** A node's section: its heading, its leaves, its children. */
+    /** A node's section: its heading, then its body. */
     public record tl_section() implements CssClass<TreeStyles> {
         @Override public String body() { return """
             display: flex;
@@ -57,6 +58,37 @@ public record TreeStyles() implements CssGroup<TreeStyles> {
             gap: 12px;
             """;
         }
+    }
+
+    /** A section's body: its leaves, then its children - what folds away under its heading. */
+    public record tl_body() implements CssClass<TreeStyles> {
+        @Override public String body() { return """
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            """;
+        }
+    }
+
+    /**
+     * A section below the root: indented under its parent, a hairline down its left the length
+     * of the section, so the tree's depth reads as the contents' does. The line's colour is the
+     * design's; only its side, width and style are the sheet's.
+     */
+    public record tl_nested() implements CssClass<TreeStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Hairline.class, Color.Edge.class)); }
+        @Override public String body() { return """
+            margin-left: 4px;
+            padding-left: 16px;
+            border-left-width: 1px;
+            border-left-style: solid;
+            """;
+        }
+    }
+
+    /** What is folded away: a folded section's body. */
+    public record tl_hidden() implements CssClass<TreeStyles> {
+        @Override public String body() { return "display: none;\n"; }
     }
 
     /** The root's heading and the first level's. */
@@ -106,7 +138,7 @@ public record TreeStyles() implements CssGroup<TreeStyles> {
 
     @Override
     public List<CssClass<TreeStyles>> cssClasses() {
-        return List.of(new tl_toc(), new tl_column(), new tl_section(), new tl_heading(), new tl_subheading(), new tl_code(),
+        return List.of(new tl_toc(), new tl_column(), new tl_section(), new tl_body(), new tl_nested(), new tl_hidden(), new tl_heading(), new tl_subheading(), new tl_code(),
                 new tl_leaf(), new tl_leaf_fill(), new tl_missing());
     }
 }

@@ -1,9 +1,16 @@
 // =============================================================================
 // TreeLayout — the tree placement's engine (engine "tree"): a tree's
 // arrangement laid out as a reading flow. Each node is a section under its
-// heading, drawn from its label; then its nameless leaves, in order, each a box
-// lent to a widget made from its type and its params and nothing else; then its
-// named children, nested. A widget never learns where it sits.
+// heading, drawn from its label; then its body - its nameless leaves, in
+// order, each a box lent to a widget made from its type and its params and
+// nothing else; then its named children, nested. A widget never learns where
+// it sits.
+//
+// A section below the root is indented under its parent, a hairline down its
+// left the length of the section, so the tree's depth reads as the contents'
+// does. A section folds: its heading stays, its body goes, and nothing in it
+// is where the reader is until it unfolds. Folding is view state, as where the
+// reader is; what folds is the host's to say - its contents', as a rule.
 //
 // A widget made here is hosted as any host hosts one: its DomOps party grafted
 // under its node's branch, its focus party under the layout's, and - when the
@@ -12,11 +19,12 @@
 // is lent, and is given a height the reader may drag. A type the host does not
 // offer is said, in its box and on the console.
 //
-// It keeps where the reader is: the last section whose heading has reached the
-// top of the view, reported when it changes; and it shows a section when
-// asked, which is then where the reader is while its heading is in view - so a
-// short section at the end, which can never reach the top, is still where a
-// reader who asked for it is. The placement itself never changes.
+// It keeps where the reader is: the last shown section whose heading has
+// reached the top of the view, reported when it changes; and it shows a
+// section when asked - the folded sections above it unfolded first - which is
+// then where the reader is while its heading is in view, so a short section at
+// the end, which can never reach the top, is still where a reader who asked
+// for it is. The placement itself never changes.
 //
 // The arrangement is generated in Java from a TreePlacement (TreeArrangementJs):
 //   { engine: "tree", workspace, widgets: { [ref]: { kind, params } },
@@ -27,7 +35,8 @@
 //     given    { [party type name]: party } - joined by every widget that joins
 //     onShown  function (path) - the section in view changed
 //   layout.root  layout.roots   { dom, focus }
-//   layout.show(path) → true when the tree has the path   layout.shown() → the path in view
+//   layout.show(path) → true when the tree has it   layout.shown() → the path in view
+//   layout.fold(path, folded) → true when the tree has it   layout.folded(path)
 //   layout.paths() → every node's path, in reading order   layout.widget(ref) → the widget, or null
 //   layout.dispose()
 // =============================================================================
@@ -64,7 +73,8 @@ class TreeLayout {
         this.root = root;
         this._scroll = scroll;
         this._sections = [];          // { path, mark } in reading order: the element whose top says where the section starts
-        this._byPath = new Map();     // path → its mark
+        this._byPath = new Map();     // path → { mark, body }
+        this._folded = new Set();
         this._placed = new Map();     // ref → the widget made for it
         this._nodes = 0;
         this._widgets = 0;
@@ -80,15 +90,27 @@ class TreeLayout {
     }
 
     show(path) {
-        var mark = this._byPath.get(path);
-        if (!mark) return false;
+        var at = this._byPath.get(path), self = this;
+        if (!at) return false;
+        TreeLayout._above(path).forEach(function (p) { if (self._folded.has(p)) self.fold(p, false); });
         this._pinned = path;
-        this._scroll.scrollTop += mark.getBoundingClientRect().top - this._scroll.getBoundingClientRect().top;
+        this._scroll.scrollTop += at.mark.getBoundingClientRect().top - this._scroll.getBoundingClientRect().top;
         this._track();
         return true;
     }
 
     shown() { return this._shown; }
+
+    fold(path, folded) {
+        var at = this._byPath.get(path);
+        if (!at) return false;
+        if (folded) this._folded.add(path); else this._folded.delete(path);
+        css.toggleClass(at.body, tl_hidden, !!folded);
+        this._track();
+        return true;
+    }
+
+    folded(path) { return this._folded.has(path); }
 
     paths() { return this._sections.map(function (s) { return s.path; }); }
 
@@ -102,12 +124,21 @@ class TreeLayout {
         this._dom.dissolve();
     }
 
-    /** A node: its section, its heading, its leaves, then its children - each under its own branch. */
+    /** The paths above a path, the root's first: "a/b/c" → "", "a", "a/b". */
+    static _above(path) {
+        if (path === "") return [];
+        var out = [""], parts = path.split("/");
+        for (var i = 1; i < parts.length; i++) out.push(parts.slice(0, i).join("/"));
+        return out;
+    }
+
+    /** A node: its section - indented below the root - its heading, then its body of leaves and children, each under its own branch. */
     _section(node, path, depth, parent) {
         var branch = this._dom.createBranch("n" + (this._nodes++)), self = this;
         branch.activate(_treeLayoutOwner);
         var section = branch.createElement("section", "section");
         css.addClass(section, tl_section);
+        if (depth > 0) css.addClass(section, tl_nested);
         var mark = section;
         if (node.label && node.label.text) {
             mark = branch.createElement("heading", "h" + Math.min(depth + 1, 6));
@@ -115,10 +146,13 @@ class TreeLayout {
             this._label(branch, mark, node.label);
             section.appendChild(mark);
         }
+        var body = branch.createElement("body", "div");
+        css.addClass(body, tl_body);
+        section.appendChild(body);
         this._sections.push({ path: path, mark: mark });
-        this._byPath.set(path, mark);
-        node.leaves.forEach(function (ref, i) { section.appendChild(self._leaf(branch, ref, i)); });
-        node.children.forEach(function (child) { self._section(child, path === "" ? child.name : path + "/" + child.name, depth + 1, section); });
+        this._byPath.set(path, { mark: mark, body: body });
+        node.leaves.forEach(function (ref, i) { body.appendChild(self._leaf(branch, ref, i)); });
+        node.children.forEach(function (child) { self._section(child, path === "" ? child.name : path + "/" + child.name, depth + 1, body); });
         parent.appendChild(section);
     }
 
@@ -155,17 +189,19 @@ class TreeLayout {
         return box;
     }
 
-    /** Where the reader is: the section asked for while it is in view, else the last whose start has reached the top. */
+    /** Where the reader is: the section asked for while it is in view, else the last shown one whose start has reached the top. */
     _track() {
         var box = this._scroll.getBoundingClientRect(), at = this._sections.length ? this._sections[0].path : null;
         if (this._pinned !== null) {
-            var top = this._byPath.get(this._pinned).getBoundingClientRect().top;
-            if (top >= box.top - 1 && top < box.bottom) at = this._pinned;
+            var pinned = this._byPath.get(this._pinned).mark, top = pinned.getBoundingClientRect().top;
+            if (pinned.getClientRects().length && top >= box.top - 1 && top < box.bottom) at = this._pinned;
             else this._pinned = null;
         }
         if (this._pinned === null) {
             for (var i = 0; i < this._sections.length; i++) {
-                if (this._sections[i].mark.getBoundingClientRect().top <= box.top + 8) at = this._sections[i].path; else break;
+                var mark = this._sections[i].mark;
+                if (!mark.getClientRects().length) continue;   // folded away: not where anyone is
+                if (mark.getBoundingClientRect().top <= box.top + 8) at = this._sections[i].path; else break;
             }
         }
         if (at !== this._shown) { this._shown = at; this._onShown(at); }

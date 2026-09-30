@@ -13,7 +13,9 @@
 // told (onPick); Enter or a double press tells it too, where the cursor
 // already is. Following the reader (follow) moves the cursor there, the
 // sections that hold it unfolded, and tells no one: the reader's scrolling is
-// never pulled back to a heading by its own reflection.
+// never pulled back to a heading by its own reflection. A fold or an unfold -
+// Left, Right, Space, a press on the caret - is told (onFold), for the host to
+// fold the same section in the view the contents are of.
 //
 // The keys: the tree's - Up, Down, Home, End, PageUp, PageDown walk it; Left
 // and Right fold and unfold; Space toggles. Escape the tree did not take
@@ -22,6 +24,7 @@
 //   new TreeToc(container, { arrangement, label? })   arrangement: TreeArrangementJs's
 //   toc.root  toc.roots   { dom, focus }
 //   toc.onPick(fn)   fn(path) - a section picked
+//   toc.onFold(fn)   fn(path, open) - a section folded, or unfolded
 //   toc.follow(path) the cursor to a section, telling no one
 //   toc.picked() → the path the cursor is on, or null
 //   toc.activate()   toc.dispose()
@@ -58,6 +61,7 @@ class TreeToc {
         this._open = new Set();
         this._read(a.root, "/", 0, [], this._roots);
         this._onPick = null;
+        this._onFold = null;
         this._quiet = null;
         this._tree = new RelTree({
             container: box, branch: this._dom.createBranch("tree"), label: o.label || "Contents", folder: true,
@@ -73,6 +77,8 @@ class TreeToc {
     }
 
     onPick(fn) { this._onPick = typeof fn === "function" ? fn : null; }
+
+    onFold(fn) { this._onFold = typeof fn === "function" ? fn : null; }
 
     /** The cursor to a section - the sections holding it unfolded first - telling no one. */
     follow(path) {
@@ -116,6 +122,8 @@ class TreeToc {
 
     _tell(key) { if (this._onPick && this._nodes.has(key)) this._onPick(TreeToc._path(key)); }
 
+    _folding(key, open) { if (this._onFold && this._nodes.has(key)) this._onFold(TreeToc._path(key), open); }
+
     /** A node and those under it, each with what holds it; a node with children open from the start. */
     _read(node, key, depth, holders, into) {
         var n = { key: key, label: node.label.text, depth: depth, children: [], holders: holders }, self = this;
@@ -151,10 +159,10 @@ class TreeToc {
         return c;
     }
 
-    /** The tree's questions: a fold and an unfold, answered from the nodes; anything else, with nothing. */
+    /** The tree's questions: a fold and an unfold, answered from the nodes and told; anything else, with nothing. */
     _answer(q) {
-        if (q instanceof RelTreeUnfold) { this._open.add(q.key); return Promise.resolve(new RelTreeView(this._places())); }
-        if (q instanceof RelTreeFold) { this._open.delete(q.key); return Promise.resolve(new RelTreeView(this._places())); }
+        if (q instanceof RelTreeUnfold) { this._open.add(q.key); this._folding(q.key, true); return Promise.resolve(new RelTreeView(this._places())); }
+        if (q instanceof RelTreeFold) { this._open.delete(q.key); this._folding(q.key, false); return Promise.resolve(new RelTreeView(this._places())); }
         return Promise.resolve();
     }
 }

@@ -5,8 +5,10 @@
 // divider dragging: the contents on the left, the tree on the right.
 //
 // The page is the host of both, and where they meet: a section picked in the
-// contents is shown in the tree; the section in view in the tree is followed
-// in the contents, which tells nothing back. It lends each a cell's box,
+// contents is shown in the tree, and a section folded or unfolded there is
+// folded or unfolded in the tree; the section in view in the tree is followed
+// in the contents, which tells nothing back. The splitter is drawn - the
+// grid's seam - so the reader sees where to drag. It lends each a cell's box,
 // grafts their roots into its own, and holds the one party the tree's
 // widgets are given - the book selection, where the books grid and the chosen
 // book meet from different sections. Every widget is made from its type and
@@ -23,7 +25,7 @@ function appMain(el, params) {
     css.addClass(shell, tb_shell);
     el.appendChild(shell);
     var grid = new SplitGrid(place.createBranch("grid"), {
-        host: shell, minCellPx: 160,
+        host: shell, minCellPx: 160, seam: true,
         layout: { kind: "split", orientation: "horizontal", children: [
             { node: { kind: "cell", id: "toc" }, ratio: 1 },
             { node: { kind: "cell", id: "tree" }, ratio: 3 } ] }
@@ -45,6 +47,7 @@ function appMain(el, params) {
         onShown: function (path) { toc.follow(path); }
     });
     toc.onPick(function (path) { layout.show(path); });
+    toc.onFold(function (path, open) { layout.fold(path, !open); });
     toc.follow(layout.shown());
     place.graft("toc", toc.roots.dom);
     place.graft("tree", layout.roots.dom);
