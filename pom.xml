@@ -72,10 +72,9 @@
         <module>homing-workspace-demo</module>
         <!-- One widget on a page of its own, from its kind and its params on the address: the bench. -->
         <module>homing-widget-bench</module>
-        <!-- The conformance of this repo's crates, graded on every build; and the studio that shows the
-             report, on 8099 - apart, on core's studio stack. Local, for development and review. -->
+        <!-- The conformance of this repo's crates, graded on every build, the report in its jar.
+             The studio that shows it is the studio repo's (8099). Local, for development and review. -->
         <module>homing-workspace-conformance</module>
-        <module>homing-workspace-conformance-studio</module>
     </modules>
 
     <properties>

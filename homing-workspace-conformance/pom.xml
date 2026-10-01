@@ -13,10 +13,10 @@
         The workspace's conformance, graded: this repo's crates - the log's
         generated types, the log, the shell - by the framework's policy,
         strictly (there is no baseline), the report exported on every build.
-        Local, for development and review; not published. The studio that shows the report is
-        homing-workspace-conformance-studio, a module apart: it runs on core's
-        studio stack, which carries a copy of the workspace of its own under the
-        same names, so this repo's crates are never on its classpath.
+        Local, for development and review; not published. The report travels
+        in this module's jar; the studio that views it is downstream, in the
+        studio repo (homing-conformance-studio-workspace, port 8099), on the
+        new stack, where this repo's crates are on its classpath.
     </description>
 
     <properties>
@@ -114,18 +114,11 @@
             <artifactId>homing-conformance-export</artifactId>
             <version>${homing.core.version}</version>
         </dependency>
-        <!-- The studio's own crate views, run here - where this repo's crates are first on the classpath - and their
-             answers written beside the report, for the studio to serve: it cannot load these crates itself. -->
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-conformance-studio</artifactId>
-            <version>${homing.core.version}</version>
-        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- The report, exported on every build in the studio's layout and read back by the served studio. -->
+            <!-- The report, exported on every build in the studio's layout and read back from this jar by the studio downstream. -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
