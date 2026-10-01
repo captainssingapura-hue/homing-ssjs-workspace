@@ -6,7 +6,8 @@
 // switcher on it shows them.
 //
 // THE AUTHENTIC PATH (RFC 0058). The group is the page, reached from outside
-// by its address, "/<group>"; everything inside it is the group's own, in the
+// by its address, "/<group>" - "<under>/<group>" when the site places its
+// groups under an address of its own; everything inside it is the group's own, in the
 // anchor (WorkspaceAnchor), which never reaches the server:
 //   /<group>#ws/<section>/<kind>                    a kind, its own workspace
 //   /<group>#ws/<section>/<kind>?ws_name=<name>     one of its others, by what it is
@@ -51,7 +52,8 @@
 //
 //   GroupedWorkspacePage.main(el, params, workspaces, groups, arrangements?)
 //     el          the MPA's slot
-//     params      the page's: ws_group, the route's; ws_server, a workspace page's; the
+//     params      the page's: ws_group, the route's; ws_server, a workspace page's;
+//                 ws_under, where the site places its groups, "" for its root; the
 //                 trail, carried on. Which workspace is the anchor's, never a param
 //     workspaces  the site's manifests, by kind
 //     groups      the site's groups, as the directory is provided them
@@ -69,8 +71,12 @@ class GroupedWorkspacePage {
     /** The letter of the page's key for the switcher, with Ctrl - or Cmd - and Shift. */
     static SWITCH_KEY = "K";
 
+    /** Where the site places its groups: "" for its root - said by the page's params, one page to a document. */
+    static _under = "";
+
     static main(el, params, workspaces, groups, arrangements) {
         var p = params || {};
+        GroupedWorkspacePage._under = p.ws_under || "";
         WorkspaceDirectory.provide(groups);
         var group = p.ws_group ? WorkspaceDirectory.group(p.ws_group) : null;
         if (!group) {
@@ -244,11 +250,11 @@ class GroupedWorkspacePage {
         return /mac/i.test(n ? ((n.userAgentData && n.userAgentData.platform) || n.platform || "") : "");
     }
 
-    /** Its group's page - "/<group>", as the site places it - and its kind's anchor, ending with its name, else its id; nothing, the kind's own. */
+    /** Its group's page - "<under>/<group>", as the site places it - and its kind's anchor, ending with its name, else its id; nothing, the kind's own. */
     static address(kind, id, name) {
         var found = WorkspaceDirectory.find(kind);
         if (!found) return null;
         var own = !id || id === WorkspaceLogIdentity.placeholder(kind);
-        return "/" + encodeURIComponent(found.group.id) + "#" + WorkspaceAnchor.of(found.group, kind, own ? null : name ? { name: name } : { id: id });
+        return GroupedWorkspacePage._under + "/" + encodeURIComponent(found.group.id) + "#" + WorkspaceAnchor.of(found.group, kind, own ? null : name ? { name: name } : { id: id });
     }
 }

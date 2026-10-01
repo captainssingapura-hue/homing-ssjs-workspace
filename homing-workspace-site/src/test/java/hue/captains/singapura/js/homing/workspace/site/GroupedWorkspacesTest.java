@@ -104,6 +104,18 @@ class GroupedWorkspacesTest {
         assertInstanceOf(Decoded.Malformed.class, codec.from(Map.of("ws_group", List.of("demo"), "ws_server", List.of("https://elsewhere"))));
     }
 
+    @Test
+    void whereTheSitePlacesItsGroups_theRootUnlessSaid() {
+        var codec = GroupedWorkspacePageModule.CODEC;
+        var under = codec.from(Map.of("ws_group", List.of("demo"), "ws_under", List.of("/workspaces"))).orNull();
+        assertEquals(new GroupedWorkspacePageModule.Params("demo", false, "/workspaces"), under);
+        assertEquals(under, codec.from(codec.to(under)).orNull(), "what it writes it reads back");
+        assertEquals("", new GroupedWorkspacePageModule.Params("demo", true).ws_under(), "the root, when nothing is said");
+        assertEquals(null, codec.to(new GroupedWorkspacePageModule.Params("demo", true)).get("ws_under"), "the root is not written");
+        for (String bad : List.of("workspaces", "/workspaces/", "/a b", "//x"))
+            assertInstanceOf(Decoded.Malformed.class, codec.from(Map.of("ws_group", List.of("demo"), "ws_under", List.of(bad))), bad);
+    }
+
     /** Two regions waiting, side by side: an arrangement of a workspace that opens nothing. */
     private static WorkspaceArrangements<Named> waiting(String kind) {
         var w = new Named(kind);

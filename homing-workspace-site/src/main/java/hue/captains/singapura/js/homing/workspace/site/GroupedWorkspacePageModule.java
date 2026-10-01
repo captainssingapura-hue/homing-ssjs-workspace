@@ -47,19 +47,30 @@ public record GroupedWorkspacePageModule() implements DomModule<GroupedWorkspace
     /** A group's id, as it is a segment of the site's addresses ({@code GroupId}). */
     static final Pattern GROUP = Pattern.compile("[A-Za-z0-9_-]+");
 
+    /** Where a site places its groups: "" for its root, else an address of such segments, {@code /workspaces}. */
+    static final Pattern UNDER = Pattern.compile("(/[A-Za-z0-9_-]+)*");
+
     /**
-     * A grouped workspace page's params: which group - the route's - and whether the
-     * server keeps its states. Nothing of what is inside the group: the kind, and which
-     * workspace of it, are the anchor's, which the server never sees.
+     * A grouped workspace page's params: which group - the route's - whether the server keeps
+     * its states, and where the site places its groups - {@code ws_under}, "" for its root, else
+     * an address such as {@code /workspaces}: a group's page is {@code <ws_under>/<group>}, the
+     * site's other groups beside it, which is where the page sends a choice of another. Nothing of
+     * what is inside the group: the kind, and which workspace of it, are the anchor's, which the
+     * server never sees.
      */
-    public record Params(String ws_group, boolean ws_server) implements AppModule._Param {
+    public record Params(String ws_group, boolean ws_server, String ws_under) implements AppModule._Param {
         public Params {
             Objects.requireNonNull(ws_group, "Params.ws_group");
             if (!GROUP.matcher(ws_group).matches()) throw new IllegalArgumentException("Params.ws_group '" + ws_group + "': letters, digits, hyphen, underscore");
+            if (ws_under == null) ws_under = "";
+            if (!UNDER.matcher(ws_under).matches()) throw new IllegalArgumentException("Params.ws_under '" + ws_under + "': \"\", or /segments, no trailing slash");
         }
+
+        /** A group's page at the site's root. */
+        public Params(String ws_group, boolean ws_server) { this(ws_group, ws_server, ""); }
     }
 
-    /** The group, required and of a group's letters; the server's word, only "on"; nothing else read. */
+    /** The group, required and of a group's letters; the server's word, only "on"; where the groups are, when not the root; nothing else read. */
     public static final ParamCodec<Params> CODEC = new ParamCodec<>() {
 
         @Override public Decoded<Params> from(Map<String, List<String>> query) {
@@ -68,13 +79,16 @@ public record GroupedWorkspacePageModule() implements DomModule<GroupedWorkspace
             if (!GROUP.matcher(group).matches()) return Decoded.malformed("ws_group", group, "a group's id: letters, digits, hyphen, underscore");
             String server = QueryString.first(query, "ws_server");
             if (server != null && !server.equals("on")) return Decoded.malformed("ws_server", server, "on, or absent");
-            return Decoded.ok(new Params(group, server != null));
+            String under = QueryString.first(query, "ws_under");
+            if (under != null && !UNDER.matcher(under).matches()) return Decoded.malformed("ws_under", under, "where the groups are: /segments, no trailing slash");
+            return Decoded.ok(new Params(group, server != null, under == null ? "" : under));
         }
 
         @Override public Map<String, List<String>> to(Params params) {
             var q = QueryString.params();
             QueryString.put(q, "ws_group", params.ws_group());
             if (params.ws_server()) QueryString.put(q, "ws_server", "on");
+            if (!params.ws_under().isEmpty()) QueryString.put(q, "ws_under", params.ws_under());
             return q;
         }
     };
