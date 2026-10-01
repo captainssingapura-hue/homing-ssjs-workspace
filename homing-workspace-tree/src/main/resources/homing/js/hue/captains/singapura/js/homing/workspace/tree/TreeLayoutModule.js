@@ -37,6 +37,12 @@
 // the end, which can never reach the top, is still where a reader who asked
 // for it is. The placement itself never changes.
 //
+// It keeps, as it makes them, the widgets whose class says STAGEABLE = true,
+// by their own names - their DomOps parties' - and lends one to a stage when
+// asked: the widget's root, taken from its box, and its section's title for
+// where it sits. The box holds the widget's height while it is away, saying
+// where it went; restore puts it back. The widget never learns it moved.
+//
 // The arrangement is generated in Java from a TreePlacement (TreeArrangementJs):
 //   { engine: "tree", workspace, widgets: { [ref]: { kind, params } },
 //     root: { name, label: { text, runs: [{ kind, text }] }, leaf: [ref], children: [node] } }
@@ -49,6 +55,7 @@
 //   layout.show(path) → true when the tree has it   layout.shown() → the path in view
 //   layout.fold(path, folded) → true when the tree has it   layout.folded(path)
 //   layout.paths() → every node's path, in reading order   layout.widget(ref) → the widget, or null
+//   layout.lend(name) → { root, title }, or null: not kept, or lent already   layout.restore(name) → true when it was lent
 //   layout.dispose()
 // =============================================================================
 
@@ -87,6 +94,7 @@ class TreeLayout {
         this._byPath = new Map();     // path → { mark, own, folds }: the section's start, its own part, what folds away
         this._folded = new Set();
         this._placed = new Map();     // ref → the widget made for it
+        this._kept = new Map();       // name → { widget, box, branch, slot, title, held, lent }: the widgets kept for a stage
         this._nodes = 0;
         this._widgets = 0;
         this._shown = null;
@@ -127,6 +135,30 @@ class TreeLayout {
 
     widget(ref) { return this._placed.get(ref) || null; }
 
+    /** A kept widget lent to a stage: its root out of its box, and the box holding its height, saying where it went. */
+    lend(name) {
+        var at = this._kept.get(name);
+        if (!at || at.lent) return null;
+        if (!at.held) {
+            at.held = at.branch.createElement("held" + at.slot, "p");
+            css.addClass(at.held, tl_held);
+            at.held.textContent = "On the stage.";
+        }
+        at.held.style.setProperty("--tl-held", at.box.offsetHeight + "px");
+        at.box.replaceChild(at.held, at.widget.root);
+        at.lent = true;
+        return { root: at.widget.root, title: at.title };
+    }
+
+    /** A lent widget back in its box, where it was. */
+    restore(name) {
+        var at = this._kept.get(name);
+        if (!at || !at.lent) return false;
+        at.box.replaceChild(at.widget.root, at.held);
+        at.lent = false;
+        return true;
+    }
+
     dispose() {
         this._scroll.removeEventListener("scroll", this._onScroll);
         this._placed.forEach(function (w) { if (typeof w.dispose === "function") w.dispose(); });
@@ -166,7 +198,7 @@ class TreeLayout {
         if (node.leaf.length) {
             var leaf = branch.createElement("leaf", "div");
             css.addClass(leaf, tl_body);
-            node.leaf.forEach(function (ref, i) { leaf.appendChild(self._widget(branch, ref, i)); });
+            node.leaf.forEach(function (ref, i) { leaf.appendChild(self._widget(branch, ref, i, node.label ? node.label.text : "")); });
             own.appendChild(leaf);
             folds.push(leaf);
         }
@@ -193,8 +225,8 @@ class TreeLayout {
         });
     }
 
-    /** A widget of a leaf: a box, and in it the widget made from its type and params. */
-    _widget(branch, ref, i) {
+    /** A widget of a leaf: a box, and in it the widget made from its type and params - kept for a stage when its class says so. */
+    _widget(branch, ref, i, title) {
         var box = branch.createElement("widget" + i, "div");
         css.addClass(box, tl_leaf);
         var spec = this._arrangement.widgets[ref], Kind = spec ? this._kinds[spec.kind] : null;
@@ -213,6 +245,9 @@ class TreeLayout {
         if (typeof widget.compose === "function") widget.compose(this._kinds);
         if (this._given && typeof widget.join === "function") widget.join(this._given);
         this._placed.set(ref, widget);
+        if (Kind.STAGEABLE === true && widget.root && widget.roots && widget.roots.dom) {
+            this._kept.set(widget.roots.dom.name, { widget: widget, box: box, branch: branch, slot: slot, title: title, held: null, lent: false });
+        }
         return box;
     }
 

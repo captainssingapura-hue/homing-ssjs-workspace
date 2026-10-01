@@ -2,9 +2,11 @@ package hue.captains.singapura.js.homing.workspace.tree;
 
 import hue.captains.singapura.js.homing.core.CssClass;
 import hue.captains.singapura.js.homing.core.CssGroup;
+import hue.captains.singapura.js.homing.core.CssVar;
 import hue.captains.singapura.js.homing.core.Wearable;
 
 import java.util.List;
+import java.util.Set;
 
 import static hue.captains.singapura.js.homing.design.DesignClass.of;
 import static hue.captains.singapura.js.homing.design.Emphasis.Muted;
@@ -172,9 +174,19 @@ public record TreeStyles() implements CssGroup<TreeStyles> {
         @Override public String body() { return "margin: 0;\n"; }
     }
 
+    /** Where a widget lent to the stage was: its height held, so nothing moves while it is away; a dashed hairline, and a word for where it went. */
+    public record tl_held() implements CssClass<TreeStyles> {
+        @Override public Set<CssVar> runtimeVars() { return Set.of(new CssVar("--tl-held")); }
+        @Override public List<? extends Wearable> wears() { return List.of(of(Hairline.class, Color.Edge.class), of(Muted.class, Color.Ink.class)); }
+        @Override public String body() {
+            return "box-sizing: border-box;\nmin-height: var(--tl-held);\nmargin: 0;\ndisplay: flex;\nalign-items: center;\njustify-content: center;\n"
+                    + "border-width: 1px;\nborder-style: dashed;\nfont-style: italic;\n";
+        }
+    }
+
     @Override
     public List<CssClass<TreeStyles>> cssClasses() {
         return List.of(new tl_toc(), new tl_column(), new tl_section(), new tl_own(), new tl_current(), new tl_body(), new tl_nested(), new tl_hidden(), new tl_heading(), new tl_subheading(), new tl_code(),
-                new tl_leaf(), new tl_leaf_fill(), new tl_missing());
+                new tl_leaf(), new tl_leaf_fill(), new tl_missing(), new tl_held());
     }
 }

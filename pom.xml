@@ -53,6 +53,8 @@
         <!-- Content parties: one pattern, one secretary for every content type; the flow and its widget. -->
         <module>homing-workspace-content</module>
         <module>homing-workspace-tree</module>
+        <!-- The stage: one per page, modal; a widget lent by its placement and given back. -->
+        <module>homing-workspace-stage</module>
         <!-- The workspace as a page, knowing no widget: the desk and its dock grid on the core, the recorder,
              the restore; a page any widget set hands its manifest to. -->
         <module>homing-workspace-shell</module>

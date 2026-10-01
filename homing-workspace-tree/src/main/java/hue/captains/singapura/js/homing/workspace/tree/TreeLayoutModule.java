@@ -37,7 +37,7 @@ public record TreeLayoutModule() implements DomModule<TreeLayoutModule> {
                         new TreeStyles.tl_body(), new TreeStyles.tl_nested(),
                         new TreeStyles.tl_hidden(), new TreeStyles.tl_heading(),
                         new TreeStyles.tl_subheading(), new TreeStyles.tl_code(), new TreeStyles.tl_leaf(), new TreeStyles.tl_leaf_fill(),
-                        new TreeStyles.tl_missing()), TreeStyles.INSTANCE))
+                        new TreeStyles.tl_missing(), new TreeStyles.tl_held()), TreeStyles.INSTANCE))
                 .build();
     }
 
