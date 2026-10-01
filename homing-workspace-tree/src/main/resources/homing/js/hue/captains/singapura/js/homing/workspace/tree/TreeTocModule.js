@@ -3,7 +3,8 @@
 // tree, a row each, showing the node's label - the root first, and every node
 // with children open from the start. It reads the arrangement it is given and
 // never the layout: the two meet through whoever hosts them. It says which
-// section the reader picked; it follows the section in view.
+// section the reader picked; it follows the section in view. It paints no
+// ground of its own: it lies on whatever holds it, as the view it is of does.
 //
 // A self-contained widget: its DomOps and focus parties its own, offered as
 // roots for its host to graft; the relation tree's rows natively focused
@@ -72,6 +73,7 @@ class TreeToc {
         this._quiet = null;
         this._tree = new RelTree({
             container: box, branch: this._dom.createBranch("tree"), label: o.label || "Contents", folder: true,
+            surface: false,   // no ground of its own: it lies on what holds it, as the view does
             relation: { view: function () { return self._places(); }, cellFor: function (key) { return self._cellFor(key); } },
             ask: function (q) { return self._answer(q); },
             onCursorMoved: function (key) { if (key !== self._quiet) self._tell(key); },
