@@ -77,11 +77,6 @@ public record WorkspaceStyles() implements CssGroup<WorkspaceStyles> {
         @Override public String body() { return ""; }
     }
 
-    /** A control or a line the strip has nothing for now: off it. A class, since a designed button's own display outranks the hidden attribute. */
-    public record ws_logbar_off() implements CssClass<WorkspaceStyles> {
-        @Override public String body() { return "display: none;"; }
-    }
-
     /** The link the file is handed over by: never shown. */
     public record ws_logbar_link() implements CssClass<WorkspaceStyles> {
         @Override public String body() { return "display: none;"; }
@@ -113,5 +108,5 @@ public record WorkspaceStyles() implements CssGroup<WorkspaceStyles> {
     }
 
     @Override
-    public List<CssClass<WorkspaceStyles>> cssClasses() { return List.of(new ws_floor(), new ws_logbar_name(), new ws_logbar_count(), new ws_logbar_note(), new ws_logbar_fresh(), new ws_logbar_off(), new ws_logbar_link(), new ws_fake(), new ws_fake_count(), new ws_fake_row()); }
+    public List<CssClass<WorkspaceStyles>> cssClasses() { return List.of(new ws_floor(), new ws_logbar_name(), new ws_logbar_count(), new ws_logbar_note(), new ws_logbar_fresh(), new ws_logbar_link(), new ws_fake(), new ws_fake_count(), new ws_fake_row()); }
 }

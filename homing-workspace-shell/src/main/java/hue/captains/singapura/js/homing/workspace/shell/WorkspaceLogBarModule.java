@@ -40,7 +40,7 @@ public record WorkspaceLogBarModule() implements DomModule<WorkspaceLogBarModule
                 .add(new ModuleImports<>(List.of(new Elements.ButtonBuilder()), Elements.INSTANCE))
                 .add(new ModuleImports<>(List.of(new IconModule.Icon()), IconModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceStyles.ws_logbar_name(), new WorkspaceStyles.ws_logbar_count(), new WorkspaceStyles.ws_logbar_note(),
-                                                 new WorkspaceStyles.ws_logbar_fresh(), new WorkspaceStyles.ws_logbar_off(), new WorkspaceStyles.ws_logbar_link()), WorkspaceStyles.INSTANCE))
+                                                 new WorkspaceStyles.ws_logbar_fresh(), new WorkspaceStyles.ws_logbar_link()), WorkspaceStyles.INSTANCE))
                 .build();
     }
 

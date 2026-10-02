@@ -17,6 +17,9 @@
 // Take over (warning) and Discard set-aside (danger). THE STRIP STAYS OUT
 // WHILE IT SAYS SOMETHING A PERSON MUST KNOW — that another page writes this
 // workspace, or that a log was set aside — and goes with the hand otherwise.
+// What applies only sometimes is ON the strip only while it applies: every
+// control is minted once, flat on the bar's branch, and attached in its place
+// while it applies and detached when it does not - nothing is toggled hidden.
 //
 //   new WorkspaceLogBar(branch, { host, store, server?, fresh? })
 //     host    where the strip goes: the workspace's floor, a positioned box, under its grid
@@ -77,7 +80,6 @@ class WorkspaceLogBar {
         new Icon(mark, { name: "disclose" });
         this._switch.el.appendChild(this._switchName);
         this._switch.el.appendChild(mark);
-        this._show(this._switch.el, false);
         this._counted = branch.createElement("count", "span");
         css.addClass(this._counted, ws_logbar_count);
         this._noticed = this._line("notice");
@@ -100,9 +102,11 @@ class WorkspaceLogBar {
         // the file is handed over by a link the bar keeps, never shown
         this._link = branch.createElement("link", "a");
         css.addClass(this._link, ws_logbar_link);
-        [this._switch.el, this._named, this._counted, this._noticed, this._locked, this._takeOver.el, this._fresh, this._reset.el,
-         exportLog.el, exportState.el, this._aside, this._exportAside.el, this._discardAside.el, this._link]
-            .forEach(function (el) { self.root.appendChild(el); });
+        // THE STRIP'S ORDER: every control in its place, attached while it applies. The log line and the exports always
+        // do; the rest are attached by what the bar is told, below.
+        this._order = [this._switch.el, this._named, this._counted, this._noticed, this._locked, this._takeOver.el, this._fresh, this._reset.el,
+                       exportLog.el, exportState.el, this._aside, this._exportAside.el, this._discardAside.el, this._link];
+        [this._counted, exportLog.el, exportState.el, this._link].forEach(function (el) { self._mount(el, true); });
         this._note = "";
         this._onTakeOver = null;
         this.named(null);
@@ -125,8 +129,15 @@ class WorkspaceLogBar {
         return el;
     }
 
-    /** On the strip, or off it: a class, since a designed button's own display outranks the hidden attribute. */
-    _show(el, on) { css.toggleClass(el, ws_logbar_off, !on); }
+    /** Attached to the strip in its place while it applies - before the next one in the order that is there - and detached when not. */
+    _mount(el, on) {
+        var strip = this.root;
+        if (!on) { if (el.parentNode === strip) strip.removeChild(el); return; }
+        if (el.parentNode === strip) return;
+        var next = null;
+        for (var i = this._order.indexOf(el) + 1; i < this._order.length && !next; i++) if (this._order[i].parentNode === strip) next = this._order[i];
+        strip.insertBefore(el, next);
+    }
 
     /** Kept out while it says something a person must know: that another page writes this workspace, or that a log was set aside. */
     _attend() { this.strip.hold(this._readOnly || !!this._latest); }
@@ -135,10 +146,10 @@ class WorkspaceLogBar {
     switching(offer) {
         var o = offer || {};
         this._switchTo = typeof o.open === "function" ? o.open : null;
-        this._show(this._switch.el, !!this._switchTo);
+        this._mount(this._switch.el, !!this._switchTo);
         this._switch.el.title = o.hint ? String(o.hint) : "";
         this._switch.el.setAttribute("aria-label", o.hint ? String(o.hint) : "Switch workspace");
-        this._show(this._named, !this._switchTo && !!this._name);
+        this._mount(this._named, !this._switchTo && !!this._name);
     }
 
     /** The workspace offered back to how it starts: a button, pressed to reset(); hint its title. */
@@ -149,14 +160,14 @@ class WorkspaceLogBar {
         this._paintReset();
     }
 
-    _paintReset() { this._show(this._reset.el, !!this._resetTo && !this._readOnly); }
+    _paintReset() { this._mount(this._reset.el, !!this._resetTo && !this._readOnly); }
 
     /** What the workspace is called; nothing said until it is known. */
     named(entry) {
         this._name = entry ? entry.name.value : "";
         this._named.textContent = this._name;
         this._switchName.textContent = this._name || "Switch workspace";
-        this._show(this._named, !!entry && !this._switchTo);
+        this._mount(this._named, !!entry && !this._switchTo);
     }
 
     /**
@@ -169,10 +180,10 @@ class WorkspaceLogBar {
         this._locked.textContent = held === Held.ELSEWHERE ? "Read-only: another page writes this workspace"
             : held === Held.TAKEN ? "Read-only: another page took this workspace over - what changes here is not kept"
             : held === Held.UNGUARDED ? "Unguarded: this browser keeps no locks" : "";
-        this._show(this._locked, !!this._locked.textContent);
+        this._mount(this._locked, !!this._locked.textContent);
         this._onTakeOver = onTakeOver || null;
-        this._show(this._takeOver.el, !!(this._onTakeOver && readOnly));
-        this._show(this._fresh, !!(readOnly && this._freshTo));
+        this._mount(this._takeOver.el, !!(this._onTakeOver && readOnly));
+        this._mount(this._fresh, !!(readOnly && this._freshTo));
         this._readOnly = readOnly;
         this._paintReset();
         this._attend();
@@ -189,7 +200,7 @@ class WorkspaceLogBar {
     notice(text) {
         var said = text ? String(text) : "";
         this._noticed.textContent = said;
-        this._show(this._noticed, !!said);
+        this._mount(this._noticed, !!said);
     }
 
     restored(same) {
@@ -230,9 +241,9 @@ class WorkspaceLogBar {
         this._latest = n ? all[n - 1] : null;
         this._aside.textContent = n ? n + (n === 1 ? " log" : " logs") + " set aside" : "";
         this._aside.title = n ? this._latest.why : "";
-        this._show(this._aside, !!n);
-        this._show(this._exportAside.el, !!n);
-        this._show(this._discardAside.el, !!n);
+        this._mount(this._aside, !!n);
+        this._mount(this._exportAside.el, !!n);
+        this._mount(this._discardAside.el, !!n);
         this._attend();
     }
 
