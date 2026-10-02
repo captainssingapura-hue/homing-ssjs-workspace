@@ -7,13 +7,18 @@ import hue.captains.singapura.js.homing.core.Wearable;
 import java.util.List;
 
 import static hue.captains.singapura.js.homing.design.DesignClass.of;
+import static hue.captains.singapura.js.homing.design.Emphasis.Muted;
+import static hue.captains.singapura.js.homing.design.Target.Motion;
 import static hue.captains.singapura.js.homing.design.Text.Body;
+import static hue.captains.singapura.js.homing.design.Text.Caption;
+import static hue.captains.singapura.js.homing.design.Text.Label;
+import static hue.captains.singapura.js.homing.design.Text.Link;
 import static hue.captains.singapura.js.homing.design.Text.Numeral;
 import static hue.captains.singapura.js.homing.design.Target.Type;
 import static hue.captains.singapura.js.homing.design.Layer.Recessed;
 import static hue.captains.singapura.js.homing.design.Target.Color;
 
-/** The workspace's floor: the one box it draws, as the gallery's docking page draws its own; its log's bar; and the fake widgets' structure while the tabs are built. */
+/** The workspace's floor: the one box it draws, as the gallery's docking page draws its own; what its control strip says; and the fake widgets' structure while the tabs are built. */
 public record WorkspaceStyles() implements CssGroup<WorkspaceStyles> {
 
     public static final WorkspaceStyles INSTANCE = new WorkspaceStyles();
@@ -37,24 +42,44 @@ public record WorkspaceStyles() implements CssGroup<WorkspaceStyles> {
         }
     }
 
-    /** The log's bar, along the foot of the floor under the grid: what is recorded, and Export. */
-    public record ws_logbar() implements CssClass<WorkspaceStyles> {
-        @Override public List<? extends Wearable> wears() {
-            return List.of(of(Recessed.class, Color.Surface.class), of(Body.class, Color.Ink.class), of(Body.class, Type.Face.class));
-        }
+    /** What the workspace is called, said on its strip when it is not offered as the way to another. */
+    public record ws_logbar_name() implements CssClass<WorkspaceStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Label.class, Type.Scale.class)); }
+        @Override public String body() { return ""; }
+    }
+
+    /** What the log holds, said: small and quiet, taking the room the controls leave and giving it up before they do. */
+    public record ws_logbar_count() implements CssClass<WorkspaceStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Caption.class, Type.Scale.class), of(Muted.class, Color.Ink.class)); }
         @Override public String body() { return """
-            flex: 0 0 auto;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 4px 12px;
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
             """;
         }
     }
 
-    /** What the log holds, said. */
-    public record ws_logbar_count() implements CssClass<WorkspaceStyles> {
-        @Override public String body() { return "flex: 1 1 auto;"; }
+    /** What else the strip says - who writes the workspace, a log set aside, how the address was read - in the body's ink, small. */
+    public record ws_logbar_note() implements CssClass<WorkspaceStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Caption.class, Type.Scale.class)); }
+        @Override public String body() { return """
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            """;
+        }
+    }
+
+    /** The way to a new workspace of this kind: a link, as the design draws one. */
+    public record ws_logbar_fresh() implements CssClass<WorkspaceStyles> {
+        @Override public List<? extends Wearable> wears() { return List.of(of(Link.class, Color.Ink.class), of(Link.class, Type.Decoration.class), of(Link.class, Motion.Ease.class), of(Caption.class, Type.Scale.class)); }
+        @Override public String body() { return ""; }
+    }
+
+    /** A control or a line the strip has nothing for now: off it. A class, since a designed button's own display outranks the hidden attribute. */
+    public record ws_logbar_off() implements CssClass<WorkspaceStyles> {
+        @Override public String body() { return "display: none;"; }
     }
 
     /** The link the file is handed over by: never shown. */
@@ -88,5 +113,5 @@ public record WorkspaceStyles() implements CssGroup<WorkspaceStyles> {
     }
 
     @Override
-    public List<CssClass<WorkspaceStyles>> cssClasses() { return List.of(new ws_floor(), new ws_logbar(), new ws_logbar_count(), new ws_logbar_link(), new ws_fake(), new ws_fake_count(), new ws_fake_row()); }
+    public List<CssClass<WorkspaceStyles>> cssClasses() { return List.of(new ws_floor(), new ws_logbar_name(), new ws_logbar_count(), new ws_logbar_note(), new ws_logbar_fresh(), new ws_logbar_off(), new ws_logbar_link(), new ws_fake(), new ws_fake_count(), new ws_fake_row()); }
 }

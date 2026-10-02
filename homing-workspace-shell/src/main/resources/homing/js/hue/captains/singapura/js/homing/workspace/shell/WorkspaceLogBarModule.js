@@ -1,18 +1,25 @@
 // =============================================================================
-// WorkspaceLogBar — the workspace log's own line along the foot of the floor:
-// how many events it has recorded; Export log, which saves the log as a
-// workspace log file — the file the Java validator reads; and Export state,
-// which saves what the browser folds that log to — the file the validator
-// compares with Java's own fold. And a stored log the page could not read,
-// set aside rather than cleared: how many there are, the latest exported as
-// the log file it was - where the validator says which line fails - and
-// discarded when asked. What the workspace is called, first. And, while
-// another page writes this workspace, the way to one of this page's own: a new
-// workspace of the same kind. The gallery keeps no log, so this is the
-// workspace's alone.
+// WorkspaceLogBar — the workspace's control strip, on an EdgeStrip at the foot
+// of the floor: the floor keeps all its room but a thin lip, and the hand
+// brought to the lip lays the strip over the foot of the grid; the hand gone,
+// the grid has its foot back. On it, the workspace log's own line: how many
+// events it has recorded; Export log, which saves the log as a workspace log
+// file — the file the Java validator reads; and Export state, which saves what
+// the browser folds that log to — the file the validator compares with Java's
+// own fold. And a stored log the page could not read, set aside rather than
+// cleared: how many there are, the latest exported as the log file it was -
+// where the validator says which line fails - and discarded when asked. What
+// the workspace is called, first. And, while another page writes this
+// workspace, the way to one of this page's own: a new workspace of the same
+// kind. The gallery keeps no log, so this is the workspace's alone.
+//
+// Every control on it is a designed Button, small, in the plain word but for
+// Take over (warning) and Discard set-aside (danger). THE STRIP STAYS OUT
+// WHILE IT SAYS SOMETHING A PERSON MUST KNOW — that another page writes this
+// workspace, or that a log was set aside — and goes with the hand otherwise.
 //
 //   new WorkspaceLogBar(branch, { host, store, server?, fresh? })
-//     host    where the bar goes: the workspace's floor, under its grid
+//     host    where the strip goes: the workspace's floor, a positioned box, under its grid
 //     store   the WorkspaceLogStore it exports
 //     server  whether the server keeps this workspace's states: a new workspace
 //             opened from the bar is kept there too
@@ -38,6 +45,7 @@
 //   bar.asides()     → Promise<the set-aside logs>, and the bar says them
 //   bar.exportAside() → Promise<the latest set-aside log's text>, and the file saved
 //   bar.discardAsides() → Promise<how many>, and the bar says none
+//   bar.root         the strip;  bar.strip  the EdgeStrip it is
 //   bar.dispose()
 // =============================================================================
 
@@ -54,78 +62,48 @@ class WorkspaceLogBar {
         this._server = !!o.server;
         this._freshTo = typeof o.fresh === "function" ? o.fresh : null;
         this._url = null;
+        this._readOnly = false;
+        this._latest = null;
         var self = this;
-        var bar = branch.createElement("bar", "div");
-        css.addClass(bar, ws_logbar);
+        this.strip = new EdgeStripBuilder().label("Workspace").host(o.host).build(branch.createBranch("strip"));
+        this.root = this.strip.root;
+        // what the workspace is called: said, or offered as the way to another - its name and the mark that it opens
         this._named = branch.createElement("named", "strong");
-        this._switch = branch.createElement("switch", "button");
-        this._switch.type = "button";
-        this._switch.hidden = true;
+        css.addClass(this._named, ws_logbar_name);
         this._switchTo = null;
-        this._switch.addEventListener("click", function () { if (self._switchTo) self._switchTo(); });
+        this._switch = this._button("switch", "plain", "", function () { if (self._switchTo) self._switchTo(); });
+        this._switchName = branch.createElement("switchName", "span");
+        var mark = branch.createElement("switchMark", Icon.TAG);
+        new Icon(mark, { name: "disclose" });
+        this._switch.el.appendChild(this._switchName);
+        this._switch.el.appendChild(mark);
+        this._show(this._switch.el, false);
         this._counted = branch.createElement("count", "span");
         css.addClass(this._counted, ws_logbar_count);
-        this._noticed = branch.createElement("notice", "span");
-        css.addClass(this._noticed, ws_logbar_count);
-        this._noticed.hidden = true;
-        var button = branch.createElement("export", "button");
-        button.type = "button";
-        button.textContent = "Export log";
-        button.addEventListener("click", function () { self.export(); });
-        var state = branch.createElement("exportState", "button");
-        state.type = "button";
-        state.textContent = "Export state";
-        state.addEventListener("click", function () { self.exportState(); });
-        // a stored log the page could not read: said, exported, discarded
-        this._aside = branch.createElement("aside", "span");
-        css.addClass(this._aside, ws_logbar_count);
-        this._exportAside = branch.createElement("exportAside", "button");
-        this._exportAside.type = "button";
-        this._exportAside.textContent = "Export set-aside log";
-        this._exportAside.addEventListener("click", function () { self.exportAside(); });
-        this._discardAside = branch.createElement("discardAside", "button");
-        this._discardAside.type = "button";
-        this._discardAside.textContent = "Discard set-aside";
-        this._discardAside.addEventListener("click", function () { self.discardAsides(); });
+        this._noticed = this._line("notice");
         // who writes the log: said while it is not this page, with the way to take it over
-        this._locked = branch.createElement("locked", "span");
-        css.addClass(this._locked, ws_logbar_count);
-        this._takeOver = branch.createElement("takeOver", "button");
-        this._takeOver.type = "button";
-        this._takeOver.textContent = "Take over";
-        this._takeOver.addEventListener("click", function () { if (self._onTakeOver) self._onTakeOver(); });
+        this._locked = this._line("locked");
+        this._takeOver = this._button("takeOver", "warning", "Take over", function () { if (self._onTakeOver) self._onTakeOver(); });
         // this page's own workspace, while another page writes this one: a new one of the kind
         this._fresh = branch.createElement("fresh", "a");
+        css.addClass(this._fresh, ws_logbar_fresh);
         this._fresh.textContent = "Open a new workspace of this kind";
         // the workspace back to how it starts: the page's, offered, and only to the page that writes it
-        this._reset = branch.createElement("reset", "button");
-        this._reset.type = "button";
-        this._reset.textContent = "Reset…";
-        this._reset.hidden = true;
-        this._reset.addEventListener("click", function () { if (self._resetTo) self._resetTo(); });
         this._resetTo = null;
-        this._readOnly = false;
+        this._reset = this._button("reset", "plain", "Reset…", function () { if (self._resetTo) self._resetTo(); });
+        var exportLog = this._button("export", "plain", "Export log", function () { self.export(); });
+        var exportState = this._button("exportState", "plain", "Export state", function () { self.exportState(); });
+        // a stored log the page could not read: said, exported, discarded
+        this._aside = this._line("aside");
+        this._exportAside = this._button("exportAside", "plain", "Export set-aside log", function () { self.exportAside(); });
+        this._discardAside = this._button("discardAside", "danger", "Discard set-aside", function () { self.discardAsides(); });
         // the file is handed over by a link the bar keeps, never shown
         this._link = branch.createElement("link", "a");
         css.addClass(this._link, ws_logbar_link);
-        bar.appendChild(this._switch);
-        bar.appendChild(this._named);
-        bar.appendChild(this._counted);
-        bar.appendChild(this._noticed);
-        bar.appendChild(this._locked);
-        bar.appendChild(this._takeOver);
-        bar.appendChild(this._fresh);
-        bar.appendChild(this._reset);
-        bar.appendChild(button);
-        bar.appendChild(state);
-        bar.appendChild(this._aside);
-        bar.appendChild(this._exportAside);
-        bar.appendChild(this._discardAside);
-        bar.appendChild(this._link);
-        o.host.appendChild(bar);
-        this.root = bar;
+        [this._switch.el, this._named, this._counted, this._noticed, this._locked, this._takeOver.el, this._fresh, this._reset.el,
+         exportLog.el, exportState.el, this._aside, this._exportAside.el, this._discardAside.el, this._link]
+            .forEach(function (el) { self.root.appendChild(el); });
         this._note = "";
-        this._latest = null;
         this._onTakeOver = null;
         this.named(null);
         this.count(0);
@@ -134,32 +112,51 @@ class WorkspaceLogBar {
         this.asides();
     }
 
+    /** A designed button on the strip: small, in a colour word, pressed to act. */
+    _button(name, colour, label, onClick) {
+        var b = new ButtonBuilder();
+        return b.label(label).colour(colour).size(-1).onClick(onClick).build(this.branch.createElement(name, b.tag));
+    }
+
+    /** A line of text on the strip that says something, and says nothing while it is empty. */
+    _line(name) {
+        var el = this.branch.createElement(name, "span");
+        css.addClass(el, ws_logbar_note);
+        return el;
+    }
+
+    /** On the strip, or off it: a class, since a designed button's own display outranks the hidden attribute. */
+    _show(el, on) { css.toggleClass(el, ws_logbar_off, !on); }
+
+    /** Kept out while it says something a person must know: that another page writes this workspace, or that a log was set aside. */
+    _attend() { this.strip.hold(this._readOnly || !!this._latest); }
+
     /** What the workspace is called, offered as the way to another: a button, pressed to open(); hint its title. */
     switching(offer) {
         var o = offer || {};
         this._switchTo = typeof o.open === "function" ? o.open : null;
-        this._switch.hidden = !this._switchTo;
-        this._switch.title = o.hint ? String(o.hint) : "";
-        this._switch.setAttribute("aria-label", o.hint ? String(o.hint) : "Switch workspace");
-        this._named.hidden = !!this._switchTo || !this._name;
+        this._show(this._switch.el, !!this._switchTo);
+        this._switch.el.title = o.hint ? String(o.hint) : "";
+        this._switch.el.setAttribute("aria-label", o.hint ? String(o.hint) : "Switch workspace");
+        this._show(this._named, !this._switchTo && !!this._name);
     }
 
     /** The workspace offered back to how it starts: a button, pressed to reset(); hint its title. */
     resetting(offer) {
         var o = offer || {};
         this._resetTo = typeof o.reset === "function" ? o.reset : null;
-        this._reset.title = o.hint ? String(o.hint) : "";
+        this._reset.el.title = o.hint ? String(o.hint) : "";
         this._paintReset();
     }
 
-    _paintReset() { this._reset.hidden = !this._resetTo || this._readOnly; }
+    _paintReset() { this._show(this._reset.el, !!this._resetTo && !this._readOnly); }
 
     /** What the workspace is called; nothing said until it is known. */
     named(entry) {
         this._name = entry ? entry.name.value : "";
         this._named.textContent = this._name;
-        this._switch.textContent = this._name ? this._name + " ▾" : "Switch workspace";
-        this._named.hidden = !entry || !!this._switchTo;
+        this._switchName.textContent = this._name || "Switch workspace";
+        this._show(this._named, !!entry && !this._switchTo);
     }
 
     /**
@@ -169,15 +166,16 @@ class WorkspaceLogBar {
     lock(writeLock, onTakeOver) {
         var held = writeLock ? writeLock.held : null;
         var readOnly = held === Held.ELSEWHERE || held === Held.TAKEN;
-        this._locked.textContent = held === Held.ELSEWHERE ? " · read-only: another page writes this workspace"
-            : held === Held.TAKEN ? " · read-only: another page took this workspace over - what changes here is not kept"
-            : held === Held.UNGUARDED ? " · unguarded: this browser keeps no locks" : "";
-        this._locked.hidden = !this._locked.textContent;
+        this._locked.textContent = held === Held.ELSEWHERE ? "Read-only: another page writes this workspace"
+            : held === Held.TAKEN ? "Read-only: another page took this workspace over - what changes here is not kept"
+            : held === Held.UNGUARDED ? "Unguarded: this browser keeps no locks" : "";
+        this._show(this._locked, !!this._locked.textContent);
         this._onTakeOver = onTakeOver || null;
-        this._takeOver.hidden = !(this._onTakeOver && readOnly);
-        this._fresh.hidden = !(readOnly && this._freshTo);
+        this._show(this._takeOver.el, !!(this._onTakeOver && readOnly));
+        this._show(this._fresh, !!(readOnly && this._freshTo));
         this._readOnly = readOnly;
         this._paintReset();
+        this._attend();
         if (readOnly && this._freshTo) {
             HrefManagerInstance.set(this._fresh, this._freshTo({ ws_id: WorkspaceLogIdentity.fresh().id, ws_server: this._server ? "on" : null }));
         }
@@ -190,8 +188,8 @@ class WorkspaceLogBar {
 
     notice(text) {
         var said = text ? String(text) : "";
-        this._noticed.textContent = said ? " · " + said : "";
-        this._noticed.hidden = !said;
+        this._noticed.textContent = said;
+        this._show(this._noticed, !!said);
     }
 
     restored(same) {
@@ -230,11 +228,12 @@ class WorkspaceLogBar {
     _said(all) {
         var n = all.length;
         this._latest = n ? all[n - 1] : null;
-        this._aside.textContent = n ? " · " + n + (n === 1 ? " log" : " logs") + " set aside" : "";
+        this._aside.textContent = n ? n + (n === 1 ? " log" : " logs") + " set aside" : "";
         this._aside.title = n ? this._latest.why : "";
-        this._aside.hidden = !n;
-        this._exportAside.hidden = !n;
-        this._discardAside.hidden = !n;
+        this._show(this._aside, !!n);
+        this._show(this._exportAside.el, !!n);
+        this._show(this._discardAside.el, !!n);
+        this._attend();
     }
 
     /** The text handed over as a file, by the link the bar keeps. */
@@ -249,7 +248,7 @@ class WorkspaceLogBar {
 
     dispose() {
         if (this._url) URL.revokeObjectURL(this._url);
-        if (this.root.parentNode) this.root.parentNode.removeChild(this.root);
+        this.strip.dispose();
         try { this.branch.dissolve(); } catch (e) {}
     }
 }

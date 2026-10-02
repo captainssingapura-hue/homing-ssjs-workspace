@@ -62,6 +62,19 @@
             <version>${homing.components.version}</version>
         </dependency>
 
+        <!-- The control strip: the edge strip it lies on and its designed
+             buttons; the mark on its switcher. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ui-elements</artifactId>
+            <version>${homing.components.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ui-icons</artifactId>
+            <version>${homing.components.version}</version>
+        </dependency>
+
         <!-- The three the workspace's panes are made of: the grid arranges,
              a dock holds tabs, the desk carries what floats. -->
         <dependency>

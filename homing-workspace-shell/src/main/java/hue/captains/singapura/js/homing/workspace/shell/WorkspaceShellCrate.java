@@ -7,6 +7,8 @@ import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
 import hue.captains.singapura.js.homing.site.mpa.MpaCrate;
 import hue.captains.singapura.js.homing.ui.docking.UiDockingCrate;
+import hue.captains.singapura.js.homing.ui.elements.UiElementsCrate;
+import hue.captains.singapura.js.homing.ui.icons.UiIconsCrate;
 import hue.captains.singapura.js.homing.ui.menu.UiMenuCrate;
 import hue.captains.singapura.js.homing.ui.panes.UiPanesCrate;
 import hue.captains.singapura.js.homing.ui.splitgrid.UiSplitGridCrate;
@@ -46,6 +48,9 @@ public final class WorkspaceShellCrate implements Crate {
                 UiPanesCrate.INSTANCE,
                 UiDockingCrate.INSTANCE,
                 UiMenuCrate.INSTANCE,
+                // The control strip: the edge strip it lies on, its designed buttons, the mark on its switcher.
+                UiElementsCrate.INSTANCE,
+                UiIconsCrate.INSTANCE,
                 WorkspaceLogCodecCrate.INSTANCE,
                 // The workspace log: its store, where it keeps its rows, its export, its fold.
                 hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogCrate.INSTANCE,
