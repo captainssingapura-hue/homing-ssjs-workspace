@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+        <artifactId>homing.js.ws</artifactId>
+        <version>LOCAL-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>homing-workspace-shell</artifactId>
+
+    <description>
+        The split-grid workspace on its headless core (GridWorkspace), as a
+        page of any standard MPA that a widget set's app hands its manifest
+        to (WorkspacePage), built as the gallery's docking page is (RFC 0066
+        E3, the workspace detour): a desk and its dock grid on a floor. It
+        knows no widget: the widget sets are modules of their own, each
+        runnable. Its log is recorded as the workspace changes, restored on
+        every load and read back to prove it (WorkspaceRecorder,
+        WorkspaceProjection), and exported from the bar along its foot.
+
+        The old shell this repo was copied with - chrome, switcher,
+        checkpoints, replay, write lock - is gone from here; each part is
+        ported when it is needed, from core's copy.
+    </description>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <!-- RFC 0066 E3 - the framework page model the workspace is a page OF.
+             A widget set's app is an AppModule under a StandardMpa, and the slot
+             WorkspacePage fills says it lays itself out by wearing the MPA main-full word. The
+             studio mounting needs none of this; a standalone workspace is
+             nothing but this. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-site-mpa</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+        <!-- The MPA's implementation - StandardMpa, its page, its chrome - from the
+             ui-components repo; core's homing-site-mpa above holds the definitions. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-site-mpa-standard</artifactId>
+            <version>${homing.components.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-design-core</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+        <!-- The context menus: the steward, the typed tree, the icons on it. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ui-menu</artifactId>
+            <version>${homing.components.version}</version>
+        </dependency>
+
+        <!-- The control strip: the edge strip it lies on and its designed
+             buttons; the mark on its switcher. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ui-elements</artifactId>
+            <version>${homing.components.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ui-icons</artifactId>
+            <version>${homing.components.version}</version>
+        </dependency>
+
+        <!-- The three the workspace's panes are made of: the grid arranges,
+             a dock holds tabs, the desk carries what floats. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ui-splitgrid</artifactId>
+            <version>${homing.components.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ui-panes</artifactId>
+            <version>${homing.components.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ui-docking</artifactId>
+            <version>${homing.components.version}</version>
+        </dependency>
+
+        <!-- The substrate: core's js (the party), the keys, the server's CSS manager. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-core-js</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-component-base</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-server</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+
+        <!-- The workspace's value objects: the kind a page's log is kept under. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-log-codec</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-log</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <!-- The workspace on its core: the headless core and the parties beside it, the roster's
+             layer of the log, and what a widget is to a workspace - the holder its tab lends it. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-core</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-layers</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-widgets</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <!-- The arrangements' core models: a split grid's arrangement, generated for the page. JDK only. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-groups-core-models</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- GraalVM-backed JS test harness — each shell sub-class gets a
+             Diligent-Secretaries-style unit test in isolation, no DOM. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ssjs-test-fixtures</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- The gate (ShellConformanceTest), headless: the rules, the engine that
+             grades the served artifacts, and the designs every pair the shell's
+             sheets wear must be bound in. Test scope: the shell chooses no design;
+             a site does. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-conformance-rules</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-conformance-engine</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-designs</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+</project>

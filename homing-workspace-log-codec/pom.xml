@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+        <artifactId>homing.js.ws</artifactId>
+        <version>LOCAL-SNAPSHOT</version>
+    </parent>
+    <artifactId>homing-workspace-log-codec</artifactId>
+    <description>
+        Output-only module: hosts NOTHING but what the workspace log's manifest
+        generates. At generate-sources the generators of homing-workspace-codecs
+        write, from WorkspaceLogManifest: the Java codecs (package log.codec),
+        one per type; the JavaScript modules, one per top-level Java declaration,
+        into target/classes; and the Java that serves them (package log.js) - a
+        DomModule per module and their crate, WorkspaceLogCodecCrate. The source
+        root is the generated directory, so generated code never lives in src/,
+        only in target/.
+    </description>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <log.codec.dir>${project.build.directory}/generated-sources/log-codec</log.codec.dir>
+    </properties>
+
+    <dependencies>
+        <!-- The generators on the exec classpath, and through them the types and Json/Wire the codecs use. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
+            <artifactId>homing-workspace-codecs</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <!-- What the generated modules are served as: DomModule, their exports and imports, the crate. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-core</artifactId>
+            <version>${homing.core.version}</version>
+        </dependency>
+
+        <!-- The gate over what was generated: crate integrity, the lanes strictly (the line cap among them), the scripts loading. -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-conformance-rules</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-conformance-engine</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ssjs-test-fixtures</artifactId>
+            <version>${homing.core.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <!-- Output-only: the module's one source root IS the generated directory. -->
+        <sourceDirectory>${log.codec.dir}</sourceDirectory>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>generate-workspace-log-java-codecs</id>
+                        <phase>generate-sources</phase>
+                        <goals><goal>java</goal></goals>
+                        <configuration>
+                            <mainClass>hue.captains.singapura.js.homing.workspace.codecs.log.WorkspaceLogJavaGen</mainClass>
+                            <arguments>
+                                <argument>${log.codec.dir}</argument>
+                            </arguments>
+                            <classpathScope>compile</classpathScope>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <!-- The modules' scripts into the classes directory, where the framework serves them; their Java beside the codecs. -->
+                        <id>generate-workspace-log-js-modules</id>
+                        <phase>generate-sources</phase>
+                        <goals><goal>java</goal></goals>
+                        <configuration>
+                            <mainClass>hue.captains.singapura.js.homing.workspace.codecs.log.WorkspaceLogJsGen</mainClass>
+                            <arguments>
+                                <argument>${project.build.outputDirectory}</argument>
+                                <argument>${log.codec.dir}</argument>
+                            </arguments>
+                            <classpathScope>compile</classpathScope>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
