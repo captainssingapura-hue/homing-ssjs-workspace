@@ -35,7 +35,9 @@
 // section when asked - the folded sections above it unfolded first - which is
 // then where the reader is while its heading is in view, so a short section at
 // the end, which can never reach the top, is still where a reader who asked
-// for it is. The placement itself never changes.
+// for it is. Told where the reader is (readAt) - a press in a section, say -
+// it marks and reports that section, the doc not moved, on the same terms: so
+// while its heading is in view. The placement itself never changes.
 //
 // It keeps, as it makes them, the widgets whose class says STAGEABLE = true,
 // by their own names - their DomOps parties' - and lends one to a stage when
@@ -53,8 +55,10 @@
 //     onShown  function (path) - the section in view changed
 //   layout.root  layout.roots   { dom, focus }
 //   layout.show(path) → true when the tree has it   layout.shown() → the path in view
+//   layout.readAt(path) → true when the tree has it: the reader is there - marked and reported, the doc not moved
 //   layout.fold(path, folded) → true when the tree has it   layout.folded(path)
 //   layout.paths() → every node's path, in reading order   layout.widget(ref) → the widget, or null
+//   layout.pathOf(name) → the path of the section a widget sits in, by its own name - its DomOps party's - or null
 //   layout.lend(name) → { root, title }, or null: not kept, or lent already   layout.restore(name) → true when it was lent
 //   layout.dispose()
 // =============================================================================
@@ -95,6 +99,7 @@ class TreeLayout {
         this._folded = new Set();
         this._placed = new Map();     // ref → the widget made for it
         this._kept = new Map();       // name → { widget, box, branch, slot, title, held, lent }: the widgets kept for a stage
+        this._where = new Map();      // name → path: the section every widget made here sits in, by the widget's own name
         this._nodes = 0;
         this._widgets = 0;
         this._shown = null;
@@ -120,6 +125,14 @@ class TreeLayout {
 
     shown() { return this._shown; }
 
+    /** The reader is in this section, said by the host: marked and reported as a section shown is, the doc not moved - and so while its heading is in view. */
+    readAt(path) {
+        if (!this._byPath.has(path)) return false;
+        this._pinned = path;
+        this._track();
+        return true;
+    }
+
     fold(path, folded) {
         var at = this._byPath.get(path);
         if (!at) return false;
@@ -134,6 +147,9 @@ class TreeLayout {
     paths() { return this._sections.map(function (s) { return s.path; }); }
 
     widget(ref) { return this._placed.get(ref) || null; }
+
+    /** The path of the section a widget sits in, by its own name - the one its DomOps party has - or null: not made here. The widget never learns it. */
+    pathOf(name) { return this._where.has(name) ? this._where.get(name) : null; }
 
     /** A kept widget lent to a stage: its root out of its box, and the box holding its height, saying where it went. */
     lend(name) {
@@ -198,7 +214,7 @@ class TreeLayout {
         if (node.leaf.length) {
             var leaf = branch.createElement("leaf", "div");
             css.addClass(leaf, tl_body);
-            node.leaf.forEach(function (ref, i) { leaf.appendChild(self._widget(branch, ref, i, node.label ? node.label.text : "")); });
+            node.leaf.forEach(function (ref, i) { leaf.appendChild(self._widget(branch, ref, i, node.label ? node.label.text : "", path)); });
             own.appendChild(leaf);
             folds.push(leaf);
         }
@@ -226,7 +242,7 @@ class TreeLayout {
     }
 
     /** A widget of a leaf: a box, and in it the widget made from its type and params - kept for a stage when its class says so. */
-    _widget(branch, ref, i, title) {
+    _widget(branch, ref, i, title, path) {
         var box = branch.createElement("widget" + i, "div");
         css.addClass(box, tl_leaf);
         var spec = this._arrangement.widgets[ref], Kind = spec ? this._kinds[spec.kind] : null;
@@ -245,6 +261,7 @@ class TreeLayout {
         if (typeof widget.compose === "function") widget.compose(this._kinds);
         if (this._given && typeof widget.join === "function") widget.join(this._given);
         this._placed.set(ref, widget);
+        if (widget.roots && widget.roots.dom) this._where.set(widget.roots.dom.name, path);
         if (Kind.STAGEABLE === true && widget.root && widget.roots && widget.roots.dom) {
             this._kept.set(widget.roots.dom.name, { widget: widget, box: box, branch: branch, slot: slot, title: title, held: null, lent: false });
         }

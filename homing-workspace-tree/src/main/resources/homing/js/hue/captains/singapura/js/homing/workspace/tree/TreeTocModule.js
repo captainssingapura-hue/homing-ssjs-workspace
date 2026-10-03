@@ -108,8 +108,8 @@ class TreeToc {
 
     picked() { var key = this._tree.cursor(); return key ? TreeToc._path(key) : null; }
 
-    /** Asked for the keys: they are claimed, and go on into the tree. */
-    activate() { Keys.claim(this.focus); }
+    /** Asked for the keys: they are claimed - nothing, when they hold them already - and go on into the tree either way. */
+    activate() { Keys.claim(this.focus); this._tree.focus(); }
 
     /** Given the keys: into the tree - unless the browser's focus arriving in a row is what gave them. */
     granted(by) { if (by !== "native") this._tree.focus(); }
