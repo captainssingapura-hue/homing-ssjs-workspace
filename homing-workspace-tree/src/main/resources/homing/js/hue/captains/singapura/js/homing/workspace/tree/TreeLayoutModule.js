@@ -35,7 +35,9 @@
 // section when asked - the folded sections above it unfolded first - which is
 // then where the reader is while its heading is in view, so a short section at
 // the end, which can never reach the top, is still where a reader who asked
-// for it is. The placement itself never changes.
+// for it is. Told where the reader is (readAt) - a press in a section, say -
+// it marks and reports that section, the doc not moved, on the same terms: so
+// while its heading is in view. The placement itself never changes.
 //
 // It keeps, as it makes them, the widgets whose class says STAGEABLE = true,
 // by their own names - their DomOps parties' - and lends one to a stage when
@@ -53,6 +55,7 @@
 //     onShown  function (path) - the section in view changed
 //   layout.root  layout.roots   { dom, focus }
 //   layout.show(path) → true when the tree has it   layout.shown() → the path in view
+//   layout.readAt(path) → true when the tree has it: the reader is there - marked and reported, the doc not moved
 //   layout.fold(path, folded) → true when the tree has it   layout.folded(path)
 //   layout.paths() → every node's path, in reading order   layout.widget(ref) → the widget, or null
 //   layout.pathOf(name) → the path of the section a widget sits in, by its own name - its DomOps party's - or null
@@ -121,6 +124,14 @@ class TreeLayout {
     }
 
     shown() { return this._shown; }
+
+    /** The reader is in this section, said by the host: marked and reported as a section shown is, the doc not moved - and so while its heading is in view. */
+    readAt(path) {
+        if (!this._byPath.has(path)) return false;
+        this._pinned = path;
+        this._track();
+        return true;
+    }
 
     fold(path, folded) {
         var at = this._byPath.get(path);
