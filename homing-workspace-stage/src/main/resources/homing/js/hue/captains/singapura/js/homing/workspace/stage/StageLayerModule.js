@@ -44,8 +44,7 @@ class StageLayer {
         this._title.setAttribute("id", "stage-title");
         layer.setAttribute("aria-labelledby", "stage-title");
         head.appendChild(this._title);
-        var b = new ButtonBuilder().label("Close").plain().size(-1).onClick(function () { self._onClose(); });
-        var close = b.build(branch.createElement("close", b.tag));
+        var close = new PlainButton(branch.createElement("close", PlainButton.TAG), { label: "Close", size: -1, onClick: function () { self._onClose(); } });
         close.el.setAttribute("aria-label", "Close the stage");
         head.appendChild(close.el);
         frame.appendChild(head);

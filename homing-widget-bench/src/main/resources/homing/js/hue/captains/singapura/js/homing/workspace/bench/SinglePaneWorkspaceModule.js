@@ -144,17 +144,14 @@ class SinglePaneWorkspace {
         this._showing.addEventListener("change", function () { self.show(self._showing.value || null); });
         this._options = null;
         this._refills = 0;
-        var b = new ButtonBuilder(), c = new ButtonBuilder(), r = new ButtonBuilder();
         this._name = d.createElement("name", "input");
         this._name.type = "text";
         this._name.placeholder = "A name";
         this._name.setAttribute("aria-label", "A name for the widget shown - none takes its name back");
         css.addClass(this._name, wb_ws_name);
-        var rename = r.label("Rename").plain().size(-1).onClick(function () { var id = self.pane.shown(); if (id) self.rename(id, self._name.value); self._name.value = ""; })
-                      .build(d.createElement("rename", r.tag));
-        var open = b.label("Open…").plain().size(-1).onClick(function () { self.pane.pick(kinds, function (kind) { self.open(kind, {}, "shown"); }); })
-                    .build(d.createElement("open", b.tag));
-        var close = c.label("Close").plain().size(-1).onClick(function () { var id = self.pane.shown(); if (id) self.close(id); }).build(d.createElement("close", c.tag));
+        var rename = new PlainButton(d.createElement("rename", PlainButton.TAG), { label: "Rename", size: -1, onClick: function () { var id = self.pane.shown(); if (id) self.rename(id, self._name.value); self._name.value = ""; } });
+        var open = new PlainButton(d.createElement("open", PlainButton.TAG), { label: "Open…", size: -1, onClick: function () { self.pane.pick(kinds, function (kind) { self.open(kind, {}, "shown"); }); } });
+        var close = new PlainButton(d.createElement("close", PlainButton.TAG), { label: "Close", size: -1, onClick: function () { var id = self.pane.shown(); if (id) self.close(id); } });
         [open.el, this._label("showing-label", "Showing"), this._showing, this._name, rename.el, close.el].forEach(function (el) { bar.appendChild(el); });
         return bar;
     }

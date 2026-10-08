@@ -54,8 +54,7 @@ class PartySimulator {
         pick.appendChild(PartySimulator._option(branch, "pick-none", "", "Template…"));
         Object.keys(party.type.kinds).forEach(function (k) { pick.appendChild(PartySimulator._option(branch, "pick-" + k, k, k)); });
         pick.addEventListener("change", function () { if (pick.value) input.value = JSON.stringify(PartySimulator.template(party.type, pick.value)); pick.value = ""; });
-        var b = new ButtonBuilder();
-        var send = b.label("Send to all").plain().size(-1).onClick(function () { self.send(input.value); }).build(branch.createElement("send", b.tag));
+        var send = new PlainButton(branch.createElement("send", PlainButton.TAG), { label: "Send to all", size: -1, onClick: function () { self.send(input.value); } });
         this._said = branch.createElement("said", "div");
         css.addClass(this._said, wb_sim_said);
         this._said.setAttribute("role", "status");

@@ -29,11 +29,9 @@ class PanePicker {
         heading.textContent = "Open a widget";
         root.appendChild(heading);
         (o.kinds || []).forEach(function (k, i) {
-            var b = new ButtonBuilder();
-            root.appendChild(b.label(k.title || k.id).plain().onClick(function () { o.onPick(k.id); }).build(branch.createElement("kind-" + i, b.tag)).el);
+            root.appendChild(new PlainButton(branch.createElement("kind-" + i, PlainButton.TAG), { label: k.title || k.id, onClick: function () { o.onPick(k.id); } }).el);
         });
-        var c = new ButtonBuilder();
-        root.appendChild(c.label("Cancel").plain().size(-1).onClick(function () { o.onCancel(); }).build(branch.createElement("cancel", c.tag)).el);
+        root.appendChild(new PlainButton(branch.createElement("cancel", PlainButton.TAG), { label: "Cancel", size: -1, onClick: function () { o.onCancel(); } }).el);
         this.root = root;
     }
 }

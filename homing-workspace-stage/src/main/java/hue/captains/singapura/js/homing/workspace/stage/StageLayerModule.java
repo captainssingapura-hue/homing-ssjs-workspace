@@ -9,7 +9,7 @@ import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.ui.dialog.ModalityModule;
-import hue.captains.singapura.js.homing.ui.elements.Elements;
+import hue.captains.singapura.js.homing.ui.elements.PlainButtonModule;
 
 import java.util.List;
 
@@ -34,7 +34,7 @@ public record StageLayerModule() implements DomModule<StageLayerModule> {
     public ImportsFor<StageLayerModule> imports() {
         return ImportsFor.<StageLayerModule>builder()
                 .add(new ModuleImports<>(List.of(new ModalityModule.Modality()), ModalityModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(new Elements.ButtonBuilder()), Elements.INSTANCE))
+                .add(new ModuleImports<>(List.of(new PlainButtonModule.PlainButton()), PlainButtonModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new StageStyles.sg_layer(), new StageStyles.sg_hidden(), new StageStyles.sg_scrim(),
                         new StageStyles.sg_frame(), new StageStyles.sg_head(), new StageStyles.sg_title(), new StageStyles.sg_seat()), StageStyles.INSTANCE))
                 .build();

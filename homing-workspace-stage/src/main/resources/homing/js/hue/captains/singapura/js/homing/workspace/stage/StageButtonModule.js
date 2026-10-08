@@ -24,8 +24,7 @@ class StageButton {
         this._widget = String(o.widget);
         this._member = null;
         this._shown = false;
-        var b = new ButtonBuilder().label("Focus").plain().size(-1).onClick(function () { self._press(); });
-        this._button = b.build(branch.createElement("stage", b.tag));
+        this._button = new PlainButton(branch.createElement("stage", PlainButton.TAG), { label: "Focus", size: -1, onClick: function () { self._press(); } });
         this._button.el.setAttribute("aria-label", "Show it on the stage");
         this.root = this._button.el;
     }

@@ -68,13 +68,13 @@ class WorkspaceLogBar {
         this._readOnly = false;
         this._latest = null;
         var self = this;
-        this.strip = new EdgeStripBuilder().label("Workspace").host(o.host).build(branch.createBranch("strip"));
+        this.strip = new EdgeStrip(branch.createBranch("strip"), { label: "Workspace", host: o.host });
         this.root = this.strip.root;
         // what the workspace is called: said, or offered as the way to another - its name and the mark that it opens
         this._named = branch.createElement("named", "strong");
         css.addClass(this._named, ws_logbar_name);
         this._switchTo = null;
-        this._switch = this._button("switch", "plain", "", function () { if (self._switchTo) self._switchTo(); });
+        this._switch = this._button("switch", PlainButton, "", function () { if (self._switchTo) self._switchTo(); });
         this._switchName = branch.createElement("switchName", "span");
         var mark = branch.createElement("switchMark", Icon.TAG);
         new Icon(mark, { name: "disclose" });
@@ -85,20 +85,20 @@ class WorkspaceLogBar {
         this._noticed = this._line("notice");
         // who writes the log: said while it is not this page, with the way to take it over
         this._locked = this._line("locked");
-        this._takeOver = this._button("takeOver", "warning", "Take over", function () { if (self._onTakeOver) self._onTakeOver(); });
+        this._takeOver = this._button("takeOver", WarningButton, "Take over", function () { if (self._onTakeOver) self._onTakeOver(); });
         // this page's own workspace, while another page writes this one: a new one of the kind
         this._fresh = branch.createElement("fresh", "a");
         css.addClass(this._fresh, ws_logbar_fresh);
         this._fresh.textContent = "Open a new workspace of this kind";
         // the workspace back to how it starts: the page's, offered, and only to the page that writes it
         this._resetTo = null;
-        this._reset = this._button("reset", "plain", "Reset…", function () { if (self._resetTo) self._resetTo(); });
-        var exportLog = this._button("export", "plain", "Export log", function () { self.export(); });
-        var exportState = this._button("exportState", "plain", "Export state", function () { self.exportState(); });
+        this._reset = this._button("reset", PlainButton, "Reset…", function () { if (self._resetTo) self._resetTo(); });
+        var exportLog = this._button("export", PlainButton, "Export log", function () { self.export(); });
+        var exportState = this._button("exportState", PlainButton, "Export state", function () { self.exportState(); });
         // a stored log the page could not read: said, exported, discarded
         this._aside = this._line("aside");
-        this._exportAside = this._button("exportAside", "plain", "Export set-aside log", function () { self.exportAside(); });
-        this._discardAside = this._button("discardAside", "danger", "Discard set-aside", function () { self.discardAsides(); });
+        this._exportAside = this._button("exportAside", PlainButton, "Export set-aside log", function () { self.exportAside(); });
+        this._discardAside = this._button("discardAside", DangerButton, "Discard set-aside", function () { self.discardAsides(); });
         // the file is handed over by a link the bar keeps, never shown
         this._link = branch.createElement("link", "a");
         css.addClass(this._link, ws_logbar_link);
@@ -116,10 +116,9 @@ class WorkspaceLogBar {
         this.asides();
     }
 
-    /** A designed button on the strip: small, in a colour word, pressed to act. */
-    _button(name, colour, label, onClick) {
-        var b = new ButtonBuilder();
-        return b.label(label).colour(colour).size(-1).onClick(onClick).build(this.branch.createElement(name, b.tag));
+    /** A designed button on the strip: small, one of the button leaves, pressed to act. */
+    _button(name, Kind, label, onClick) {
+        return new Kind(this.branch.createElement(name, Kind.TAG), { label: label, size: -1, onClick: onClick });
     }
 
     /** A line of text on the strip that says something, and says nothing while it is empty. */
