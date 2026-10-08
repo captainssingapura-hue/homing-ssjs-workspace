@@ -52,7 +52,7 @@ class StageButton {
 
     _at(shown) {
         this._shown = shown;
-        this._button.label(shown ? "Back" : "Focus");
+        this._button.label = shown ? "Back" : "Focus";
         this._button.el.setAttribute("aria-label", shown ? "Bring it back from the stage" : "Show it on the stage");
     }
 
