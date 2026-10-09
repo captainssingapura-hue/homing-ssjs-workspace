@@ -18,6 +18,13 @@
 
 const _stageLayerOwner = Object.freeze({ toString: () => "stage" });
 
+/** The stage's close pressed: the stage closed. */
+class StageLayerClose {
+    constructor(layer) { this._layer = layer; }
+    canHandle(type) { return type === EVENT.CLICK; }
+    handle() { this._layer._onClose(); }
+}
+
 class StageLayer {
     constructor(branch, opts) {
         if (!branch) throw new Error("[StageLayer] a branch of its own is required");
@@ -44,7 +51,8 @@ class StageLayer {
         this._title.setAttribute("id", "stage-title");
         layer.setAttribute("aria-labelledby", "stage-title");
         head.appendChild(this._title);
-        var close = new PlainButton(branch.createElement("close", PlainButton.TAG), { label: "Close", size: -1, onClick: function () { self._onClose(); } });
+        var close = new PlainButton(PlainButtonFactory.create(branch, "close"), { label: "Close", size: -1 });
+        close.setOnClick(new StageLayerClose(self));
         close.el.setAttribute("aria-label", "Close the stage");
         head.appendChild(close.el);
         frame.appendChild(head);
