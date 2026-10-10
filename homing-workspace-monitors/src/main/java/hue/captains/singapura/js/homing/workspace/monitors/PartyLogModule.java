@@ -9,7 +9,7 @@ import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.component.keyboard.FocusPartyModule;
 import hue.captains.singapura.js.homing.component.keyboard.KeyboardStewardModule;
 import hue.captains.singapura.js.homing.component.keyboard.focusParty;
-import hue.captains.singapura.js.homing.ui.focus.FocusStyles;
+import hue.captains.singapura.js.homing.ui.monitors.FocusStyles;
 import hue.captains.singapura.js.homing.workspace.widgets.SelfContainedWidget;
 
 import java.util.List;

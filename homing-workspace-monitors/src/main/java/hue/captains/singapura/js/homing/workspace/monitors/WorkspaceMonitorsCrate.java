@@ -6,7 +6,7 @@ import hue.captains.singapura.js.homing.core.StandardJsModuleType;
 import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
 import hue.captains.singapura.js.homing.design.DesignCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
-import hue.captains.singapura.js.homing.ui.focus.UiFocusCrate;
+import hue.captains.singapura.js.homing.ui.monitors.UiMonitorsCrate;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetDeclaration;
 import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceWidgetsCrate;
 
@@ -37,7 +37,7 @@ public final class WorkspaceMonitorsCrate implements Crate {
                 // the focus party, the steward, the keys' convention, the css manager
                 ServerCrate.INSTANCE,
                 // the focus tree and the steward's lamp, and the rows the trees and the log wear
-                UiFocusCrate.INSTANCE,
+                UiMonitorsCrate.INSTANCE,
                 // the design words the monitors' sheet wears
                 DesignCrate.INSTANCE,
                 // what a widget fills its container by

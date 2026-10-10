@@ -35,7 +35,7 @@
         <!-- The focus tree and the steward's lamp, as components: a monitor widget wraps them. -->
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-ui-focus</artifactId>
+            <artifactId>homing-ui-monitors</artifactId>
             <version>${homing.components.version}</version>
         </dependency>
         <!-- The parties a monitor reads, and its own; the keys. -->

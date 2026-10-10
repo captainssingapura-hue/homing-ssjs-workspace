@@ -11,7 +11,7 @@ import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.ui.elements.StatesAndEventsModule;
 import hue.captains.singapura.js.homing.ui.elements.PlainButtonModule;
-import hue.captains.singapura.js.homing.ui.focus.FocusStyles;
+import hue.captains.singapura.js.homing.ui.monitors.FocusStyles;
 import hue.captains.singapura.js.homing.workspace.parties.MessagingPartyModule;
 
 import java.util.List;

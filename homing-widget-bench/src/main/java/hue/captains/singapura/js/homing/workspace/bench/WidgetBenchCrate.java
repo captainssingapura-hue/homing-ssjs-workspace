@@ -10,7 +10,7 @@ import hue.captains.singapura.js.homing.design.DesignCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
 import hue.captains.singapura.js.homing.ui.docking.UiDockingCrate;
 import hue.captains.singapura.js.homing.ui.elements.UiElementsCrate;
-import hue.captains.singapura.js.homing.ui.focus.UiFocusCrate;
+import hue.captains.singapura.js.homing.ui.monitors.UiMonitorsCrate;
 import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyFixedModule;
 import hue.captains.singapura.js.homing.workspace.content.WorkspaceContentCrate;
 import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyStyles;
@@ -59,7 +59,7 @@ public final class WidgetBenchCrate implements Crate {
                 WorkspacePartiesCrate.INSTANCE,
                 // the simulator's button, and its log's lines as the monitors' rows
                 UiElementsCrate.INSTANCE,
-                UiFocusCrate.INSTANCE,
+                UiMonitorsCrate.INSTANCE,
                 // the workspace of one pane: its headless core, and the parties beside it
                 WorkspaceCoreCrate.INSTANCE,
                 // its layers of the log, live; and the log it keeps: the store, the load, the lock
