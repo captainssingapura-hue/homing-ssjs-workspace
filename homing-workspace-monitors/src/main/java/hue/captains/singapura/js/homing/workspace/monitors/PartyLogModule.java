@@ -2,6 +2,8 @@ package hue.captains.singapura.js.homing.workspace.monitors;
 
 import hue.captains.singapura.js.homing.component.keyboard.KeyBinding;
 import hue.captains.singapura.js.homing.component.keyboard.NeedKeyboard;
+import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
+import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -15,6 +17,8 @@ import hue.captains.singapura.js.homing.workspace.widgets.SelfContainedWidget;
 import java.util.List;
 
 /** What the page's parties say, a monitor widget: {@code new PartyLog(container, params)}, the last {@code keep} lines. */
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+        reason = "It makes its own elements, places elements, wears classes of its own, writes attributes and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record PartyLogModule() implements DomModule<PartyLogModule> {
 
     public record PartyLog() implements SelfContainedWidget<PartyLogModule>, NeedKeyboard {

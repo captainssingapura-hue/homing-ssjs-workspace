@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.workspace.bench;
 
+import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
+import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -16,6 +18,8 @@ import java.util.List;
  * content parties, line by line, and a summary of each: its steward, what it holds, waits for and
  * failed, and what each steward fetched and how often the server was asked for it.
  */
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+        reason = "It makes its own elements, places elements, wears classes of its own, writes attributes and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record PartyTrafficModule() implements DomModule<PartyTrafficModule> {
 
     public static final PartyTrafficModule INSTANCE = new PartyTrafficModule();

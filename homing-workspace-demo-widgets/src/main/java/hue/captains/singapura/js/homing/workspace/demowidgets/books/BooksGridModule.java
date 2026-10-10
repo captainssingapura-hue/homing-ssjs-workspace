@@ -6,6 +6,8 @@ import hue.captains.singapura.js.homing.component.keyboard.KeyBinding;
 import hue.captains.singapura.js.homing.component.keyboard.KeysModule;
 import hue.captains.singapura.js.homing.component.keyboard.NeedKeyboard;
 import hue.captains.singapura.js.homing.component.keyboard.focusParties;
+import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
+import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -23,6 +25,8 @@ import java.util.List;
  * A widget that stands on its own - its DomOpsParty and FocusParty roots its
  * own, its data its own - with the browser's native focus inside it.
  */
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+        reason = "It makes its own elements, places elements and wears classes of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record BooksGridModule() implements DomModule<BooksGridModule> {
 
     public record BooksGrid() implements SelfContainedWidget<BooksGridModule>, NeedKeyboard {

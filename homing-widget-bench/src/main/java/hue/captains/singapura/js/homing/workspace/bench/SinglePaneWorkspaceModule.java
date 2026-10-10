@@ -2,6 +2,8 @@ package hue.captains.singapura.js.homing.workspace.bench;
 
 import hue.captains.singapura.js.homing.component.keyboard.FocusPartyModule;
 import hue.captains.singapura.js.homing.component.keyboard.focusParties;
+import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
+import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -26,6 +28,8 @@ import java.util.List;
  * grafted when the page mounts it; its widgets its headless core's, their
  * parties beside it; a single pane showing one of them at a time.
  */
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+        reason = "It makes elements by a companion, makes its own elements, places elements, wears classes of its own, writes attributes and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record SinglePaneWorkspaceModule() implements DomModule<SinglePaneWorkspaceModule> {
 
     public record SinglePaneWorkspace() implements SelfContainedWidget<SinglePaneWorkspaceModule> {

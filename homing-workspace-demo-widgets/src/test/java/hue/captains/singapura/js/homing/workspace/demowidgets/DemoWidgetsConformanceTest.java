@@ -6,12 +6,11 @@ import hue.captains.singapura.js.homing.conformance.engine.ServedModuleRenderer;
 import hue.captains.singapura.js.homing.conformance.rules.CrateClosure;
 import hue.captains.singapura.js.homing.conformance.rules.CrateConformance;
 import hue.captains.singapura.js.homing.conformance.rules.CssConformance;
+import hue.captains.singapura.js.homing.conformance.rules.DeclaredDebts;
 import hue.captains.singapura.js.homing.conformance.rules.DefaultJsRulePolicy;
 import hue.captains.singapura.js.homing.conformance.rules.Finding;
 import hue.captains.singapura.js.homing.conformance.rules.FindingGrader;
 import hue.captains.singapura.js.homing.conformance.rules.GradedFinding;
-import hue.captains.singapura.js.homing.conformance.rules.RuleLedger;
-import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.Crate;
 import hue.captains.singapura.js.homing.core.CssGroup;
 import hue.captains.singapura.js.homing.design.Deployment;
@@ -35,9 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class DemoWidgetsConformanceTest {
 
-    /** The widgets' debt under widget-draws-only-components, recorded when the rule came: only shrinks. */
-    private static final RuleLedger WIDGETS = new RuleLedger(WidgetDrawsOnlyComponentsRule.INSTANCE.id(), "widget-ledger.txt");
-
     private static final List<Crate> TOP = List.of(WorkspaceDemoWidgetsCrate.INSTANCE);
 
     private static Set<String> own() {
@@ -54,9 +50,8 @@ class DemoWidgetsConformanceTest {
     @Test
     void everyServedModuleKeepsItsLane_strictly() {
         List<Finding> raw = new ConformanceEngine(DefaultJsRulePolicy.INSTANCE, new ServedModuleRenderer()).checkCrates(TOP);
-        WIDGETS.recordIfAsked(raw);
-        assertEquals(List.of(), WIDGETS.stale(getClass(), raw), "the widget ledger names debt that is paid: strike these lines");
-        List<GradedFinding> errors = WIDGETS.grader(getClass()).grade(raw).stream().filter(GradedFinding::isError).toList();
+        assertEquals(List.of(), DeclaredDebts.INSTANCE.paid(TOP, raw), "a debt that is paid: remove its @ConformanceDebt");
+        List<GradedFinding> errors = FindingGrader.STRICT.grade(raw).stream().filter(GradedFinding::isError).toList();
         assertEquals(List.of(), errors.stream().map(g -> describe(g.finding())).toList(),
                 "the demo widgets carry no debt - fix these, there is no ledger to file them in");
     }

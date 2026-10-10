@@ -2,6 +2,8 @@ package hue.captains.singapura.js.homing.workspace.bench;
 
 import hue.captains.singapura.js.homing.component.keyboard.FocusPartyModule;
 import hue.captains.singapura.js.homing.component.keyboard.focusParties;
+import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
+import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -19,6 +21,8 @@ import java.util.List;
  * A scope on the content bench: {@code new ContentPanel(container, opts)} - a composed widget
  * with content parties of its own, linked under the ones it is given, its parts made in them.
  */
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+        reason = "It makes its own elements, places elements, wears classes of its own, writes attributes and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record ContentPanelModule() implements DomModule<ContentPanelModule> {
 
     public static final ContentPanelModule INSTANCE = new ContentPanelModule();

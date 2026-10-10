@@ -2,6 +2,8 @@ package hue.captains.singapura.js.homing.workspace.bench;
 
 import hue.captains.singapura.js.homing.component.keyboard.FocusPartyModule;
 import hue.captains.singapura.js.homing.component.keyboard.focusParties;
+import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
+import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -17,6 +19,8 @@ import java.util.List;
  * The content bench's widget: {@code new NoteCard(container, params)} - a note, asked of the
  * note party with the params it was made with, and shown when it comes.
  */
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+        reason = "It makes its own elements, places elements, wears classes of its own, writes attributes and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record NoteCardModule() implements DomModule<NoteCardModule> {
 
     public static final NoteCardModule INSTANCE = new NoteCardModule();

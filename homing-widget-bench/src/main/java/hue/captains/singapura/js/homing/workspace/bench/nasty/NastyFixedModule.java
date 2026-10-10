@@ -6,6 +6,8 @@ import hue.captains.singapura.js.homing.component.keyboard.KeyBinding;
 import hue.captains.singapura.js.homing.component.keyboard.KeysModule;
 import hue.captains.singapura.js.homing.component.keyboard.NeedKeyboard;
 import hue.captains.singapura.js.homing.component.keyboard.focusParties;
+import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
+import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -22,6 +24,8 @@ import java.util.List;
  * changes. Self-contained in every other way. It is the bench's, for the bench
  * to catch - never a widget to stand anywhere else.
  */
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+        reason = "It makes its own elements, places elements, wears classes of its own and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record NastyFixedModule() implements DomModule<NastyFixedModule> {
 
     public record NastyFixed() implements SelfContainedWidget<NastyFixedModule>, NeedKeyboard {

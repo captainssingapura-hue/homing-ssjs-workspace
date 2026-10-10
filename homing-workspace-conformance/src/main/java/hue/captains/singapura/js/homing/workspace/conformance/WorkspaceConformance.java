@@ -4,8 +4,6 @@ import hue.captains.singapura.js.homing.conformance.rules.CrateClosure;
 import hue.captains.singapura.js.homing.conformance.rules.DefaultJsRulePolicy;
 import hue.captains.singapura.js.homing.conformance.rules.FindingGrader;
 import hue.captains.singapura.js.homing.conformance.rules.JsRulePolicy;
-import hue.captains.singapura.js.homing.conformance.rules.RuleLedger;
-import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.Crate;
 import hue.captains.singapura.js.homing.workspace.bench.WidgetBenchCrate;
 import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
@@ -58,11 +56,9 @@ public final class WorkspaceConformance {
     /** The top level and everything it requires, transitively. */
     public static Collection<Crate> closure() { return CrateClosure.of(TOP_LEVEL); }
 
-    /** The framework-strict grader, but for the one ledger: the widget rule's, recorded when the rule came. */
+    /** The framework-strict grader: no debt but what a module declares on its own class ({@code @ConformanceDebt}). */
     public static FindingGrader grader() {
-        return WIDGETS.grader(WorkspaceConformance.class);
+        return FindingGrader.STRICT;
     }
 
-    /** The workspace's widgets' debt under widget-draws-only-components, recorded when the rule came: only shrinks. */
-    public static final RuleLedger WIDGETS = new RuleLedger(WidgetDrawsOnlyComponentsRule.INSTANCE.id(), "workspace-widget-ledger.txt");
 }

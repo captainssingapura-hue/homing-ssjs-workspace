@@ -2,6 +2,8 @@ package hue.captains.singapura.js.homing.workspace.bench;
 
 import hue.captains.singapura.js.homing.component.keyboard.FocusPartyModule;
 import hue.captains.singapura.js.homing.component.keyboard.focusParties;
+import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
+import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -16,6 +18,8 @@ import java.util.List;
  * A stand-in for the tree bench: {@code new ParamsCard(container, params)} - a card of its
  * params, all it knows; it flows, as tall as its content.
  */
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+        reason = "It makes its own elements, places elements, wears classes of its own and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record ParamsCardModule() implements DomModule<ParamsCardModule> {
 
     public static final ParamsCardModule INSTANCE = new ParamsCardModule();
