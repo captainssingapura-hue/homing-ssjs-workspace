@@ -21,7 +21,7 @@ import java.util.List;
  * A scope on the content bench: {@code new ContentPanel(container, opts)} - a composed widget
  * with content parties of its own, linked under the ones it is given, its parts made in them.
  */
-@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 19,
         reason = "It makes its own elements, places elements, wears classes of its own, writes attributes and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record ContentPanelModule() implements DomModule<ContentPanelModule> {
 

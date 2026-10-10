@@ -19,7 +19,7 @@ import java.util.List;
  * The content bench's widget: {@code new NoteCard(container, params)} - a note, asked of the
  * note party with the params it was made with, and shown when it comes.
  */
-@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 18,
         reason = "It makes its own elements, places elements, wears classes of its own, writes attributes and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record NoteCardModule() implements DomModule<NoteCardModule> {
 

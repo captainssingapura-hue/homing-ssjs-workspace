@@ -24,7 +24,7 @@ import java.util.List;
  * changes. Self-contained in every other way. It is the bench's, for the bench
  * to catch - never a widget to stand anywhere else.
  */
-@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 5,
         reason = "It makes its own elements, places elements, wears classes of its own and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record NastyFixedModule() implements DomModule<NastyFixedModule> {
 

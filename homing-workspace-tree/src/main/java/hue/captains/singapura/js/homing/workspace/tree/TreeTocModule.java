@@ -26,7 +26,7 @@ import java.util.List;
  * A tree placement's table of contents: {@code new TreeToc(container, opts)} - its nodes as a
  * relation tree; the cursor the reader's pick, and following the section in view.
  */
-@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 10,
         reason = "It makes its own elements, places elements, wears classes of its own and writes attributes: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record TreeTocModule() implements DomModule<TreeTocModule> {
 

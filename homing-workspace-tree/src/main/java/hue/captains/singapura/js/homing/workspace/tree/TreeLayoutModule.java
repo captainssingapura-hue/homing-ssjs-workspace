@@ -19,7 +19,7 @@ import java.util.List;
  * The tree placement's engine: {@code new TreeLayout(container, opts)} - a tree's arrangement
  * laid out as a reading flow, each widget of a node's leaf made from its type and params.
  */
-@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 49,
         reason = "It makes its own elements, places elements, wears classes of its own, writes styles and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record TreeLayoutModule() implements DomModule<TreeLayoutModule> {
 

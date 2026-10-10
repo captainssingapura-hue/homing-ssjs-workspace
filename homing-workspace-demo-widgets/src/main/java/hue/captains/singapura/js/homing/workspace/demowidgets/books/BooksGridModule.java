@@ -25,7 +25,7 @@ import java.util.List;
  * A widget that stands on its own - its DomOpsParty and FocusParty roots its
  * own, its data its own - with the browser's native focus inside it.
  */
-@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 7,
         reason = "It makes its own elements, places elements and wears classes of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record BooksGridModule() implements DomModule<BooksGridModule> {
 

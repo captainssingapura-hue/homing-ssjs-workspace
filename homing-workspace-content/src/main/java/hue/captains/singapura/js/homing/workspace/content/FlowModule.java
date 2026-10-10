@@ -18,7 +18,7 @@ import java.util.List;
  * The flow widget: {@code new Flow(container, params)} - a column of widgets, its parts asked
  * of the flow party with the params it was made with, each made from its type and params.
  */
-@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 19,
         reason = "It makes its own elements, places elements, wears classes of its own, writes attributes and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record FlowModule() implements DomModule<FlowModule> {
 

@@ -28,7 +28,7 @@ import java.util.List;
  * grafted when the page mounts it; its widgets its headless core's, their
  * parties beside it; a single pane showing one of them at a time.
  */
-@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 27,
         reason = "It makes elements by a companion, makes its own elements, places elements, wears classes of its own, writes attributes and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record SinglePaneWorkspaceModule() implements DomModule<SinglePaneWorkspaceModule> {
 

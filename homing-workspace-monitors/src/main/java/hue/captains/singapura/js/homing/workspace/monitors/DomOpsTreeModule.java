@@ -17,7 +17,7 @@ import hue.captains.singapura.js.homing.workspace.widgets.SelfContainedWidget;
 import java.util.List;
 
 /** The page's DomOps party as a tree, a monitor widget: {@code new DomOpsTree(container, params)}, read from the party's snapshot. */
-@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 19,
         reason = "It makes its own elements, places elements, wears classes of its own, writes attributes, writes styles and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record DomOpsTreeModule() implements DomModule<DomOpsTreeModule> {
 

@@ -31,7 +31,7 @@ import java.util.List;
  * each one's name, when last opened and when made, as the catalogue this browser
  * keeps has them; Enter on one the asking for it to open.
  */
-@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 26,
         reason = "It makes its own elements, places elements, wears classes of its own, writes attributes and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record WorkspaceInstancesModule() implements DomModule<WorkspaceInstancesModule> {
 

@@ -21,7 +21,7 @@ import java.util.List;
  * where they meet in a book selection party of its own: a scope linked to the
  * party it is given, its secretary keeping the edge.
  */
-@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 12,
         reason = "It makes its own elements, places elements, wears classes of its own and writes attributes: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record BookBrowserModule() implements DomModule<BookBrowserModule> {
 

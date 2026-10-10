@@ -18,7 +18,7 @@ import java.util.List;
  * A stand-in for the tree bench: {@code new ParamsCard(container, params)} - a card of its
  * params, all it knows; it flows, as tall as its content.
  */
-@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class,
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 12,
         reason = "It makes its own elements, places elements, wears classes of its own and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record ParamsCardModule() implements DomModule<ParamsCardModule> {
 
