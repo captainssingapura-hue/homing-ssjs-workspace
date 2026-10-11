@@ -50,7 +50,6 @@ class WorkspacePage {
     static main(el, params, manifest, opts) {
         var p = params || {};
         if (!manifest || !manifest.name || !manifest.kinds) throw new Error("[WorkspacePage] a workspace's manifest is required");
-        css.addClass(el, mpa_main_full);
         var backend = new IndexedDbLog();
         var log = new WorkspaceLogStore({ header: WorkspaceLogIdentity.header(manifest.name, p.ws_id || null), backend: backend });
         var key = new LogKey(log.header.kind, log.header.workspaceId);

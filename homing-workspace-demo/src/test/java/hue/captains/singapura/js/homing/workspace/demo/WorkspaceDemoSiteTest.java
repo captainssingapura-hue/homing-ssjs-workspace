@@ -33,7 +33,8 @@ class WorkspaceDemoSiteTest {
         String html = page("/demo", Query.NONE);
         assertTrue(html.contains(DemoWorkspaceApp.class.getCanonicalName()), "the page imports the demo's app and calls its appMain");
         assertTrue(html.contains("appMain(page.main"), "the app is handed the MPA's slot");
-        assertTrue(html.contains("trail: page.trail"), "and the trail, to carry on from its anchor");
+        assertTrue(html.contains("page.trail.extend(more)"), "and the trail, to carry on from its anchor - the page titling the document by its last step");
+        assertTrue(html.contains("fill: true"), "a workspace fills the viewport: its page says so");
         assertTrue(html.contains("\"ws_group\":\"demo\""), "the route's group");
         assertTrue(html.contains("\"ws_server\":\"on\""), "the route says the server keeps its states");
         assertFalse(html.contains("ws_id") || html.contains("ws_kind"), "the kind is the anchor's, the workspace the query's");
