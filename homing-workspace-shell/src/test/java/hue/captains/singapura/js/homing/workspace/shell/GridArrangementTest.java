@@ -54,6 +54,7 @@ class GridArrangementTest extends JsModuleTestBase {
     @BeforeEach
     void load() {
         loadModule(DIR + "ui/splitgrid/SplitGridTreeModule.js");
+        loadModule(DIR + "layout/LayoutModule.js");
         loadModule(DIR + "workspace/shell/GridArrangementModule.js");
         js.eval("js", GridArrangementJs.constant("SIDE_BY_SIDE", SIDE_BY_SIDE));
         js.eval("js", GridArrangementJs.constant("BOOKISH", BOOKISH));
@@ -123,8 +124,10 @@ class GridArrangementTest extends JsModuleTestBase {
     void theConstantIsGeneratedFromItsDeclaration_frozenThrough() {
         String js = GridArrangementJs.constant("SIDE_BY_SIDE", SIDE_BY_SIDE);
         assertTrue(js.startsWith("const SIDE_BY_SIDE = Object.freeze({ engine: \"split-grid\", workspace: \"demo\""), js);
-        assertEquals("true true true", eval("[Object.isFrozen(BOOKISH.frame), Object.isFrozen(BOOKISH.frame.parts[1].frame.parts[0].frame.tabs), Object.isFrozen(BOOKISH.widgets.grid.params)].join(' ')"));
-        assertEquals("browser", eval("BOOKISH.frame.parts[1].frame.parts[0].frame.shown"));
+        assertEquals("true true true true", eval("[Object.isFrozen(BOOKISH.layout), Object.isFrozen(BOOKISH.layout.parts[1].parts), Object.isFrozen(BOOKISH.regions.books.tabs), Object.isFrozen(BOOKISH.widgets.grid.params)].join(' ')"));
+        assertEquals("H(kinds, V(books, chosen))", eval("Layout.text(Layout.from(BOOKISH.layout))"), "the layout as the algebra reads it");
+        assertEquals("browser", eval("BOOKISH.regions.books.shown"));
+        assertEquals("1:2 1:1", eval("BOOKISH.weights['H(kinds, V(books, chosen))'].join(':') + ' ' + BOOKISH.weights['V(books, chosen)'].join(':')"));
         assertThrows(IllegalArgumentException.class, () -> GridArrangementJs.constant("side", SIDE_BY_SIDE));
     }
 }

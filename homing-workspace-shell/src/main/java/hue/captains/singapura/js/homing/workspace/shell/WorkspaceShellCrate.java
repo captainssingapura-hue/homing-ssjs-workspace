@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.shell;
 
+import hue.captains.singapura.js.homing.layout.LayoutCrate;
 import hue.captains.singapura.js.homing.core.Crate;
 import hue.captains.singapura.js.homing.core.CrateEntry;
 import hue.captains.singapura.js.homing.core.StandardJsModuleType;
@@ -40,6 +41,8 @@ public final class WorkspaceShellCrate implements Crate {
         return List.of(
                 CoreJsCrate.INSTANCE,
                 ServerCrate.INSTANCE,
+                // The layout algebra an arrangement's layout is a value of.
+                LayoutCrate.INSTANCE,
                 // The framework page model the workspace is a page of, for the one
                 // word it wears on the slot it is handed.
                 MpaCrate.INSTANCE,

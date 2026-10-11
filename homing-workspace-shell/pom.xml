@@ -33,6 +33,12 @@
     </properties>
 
     <dependencies>
+        <!-- The layout algebra: an arrangement's layout, walked as it is laid out. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-layout</artifactId>
+            <version>${homing.components.version}</version>
+        </dependency>
         <!-- RFC 0066 E3 - the framework page model the workspace is a page OF.
              A widget set's app is an AppModule under a StandardMpa, and the slot
              WorkspacePage fills says it lays itself out by wearing the MPA main-full word. The

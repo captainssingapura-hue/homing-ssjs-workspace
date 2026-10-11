@@ -1,9 +1,12 @@
 package hue.captains.singapura.js.homing.workspace.groups.core.models;
 
+import hue.captains.singapura.js.homing.layout.Axis;
+import hue.captains.singapura.js.homing.layout.Layout;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.SplitGrid.Part;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,11 +46,25 @@ class PlacementsTest {
     }
 
     @Test
+    void theGridsLayout_isTheFramesTerm_itsWeightsBesideIt() {
+        assertEquals("H(kinds, V(books, chosen))", GRID.layout().text());
+        assertEquals(List.of("H(kinds, V(books, chosen))", "V(books, chosen)"), GRID.splits().stream().map(Layout::text).toList(), "the outermost first");
+        assertEquals(List.of(1, 2), GRID.weights().get(GRID.splits().get(0)));
+        assertEquals(List.of(1, 1), GRID.weights().get(GRID.splits().get(1)), "frames alone: equal parts");
+        // made directly, it holds to its layout: the regions its cells, in order; a weight for each part of each split
+        var two = GRID.regions().subList(0, 2);
+        assertThrows(IllegalArgumentException.class, () -> new SplitGrid(GRID.layout(), two, GRID.weights()), "a cell without its region");
+        assertThrows(IllegalArgumentException.class, () -> new SplitGrid(GRID.layout(), GRID.regions(), Map.of(GRID.splits().get(0), List.of(1, 2))), "a split unweighed");
+        assertThrows(IllegalArgumentException.class, () -> new SplitGrid(GRID.layout(), GRID.regions(),
+                Map.of(GRID.splits().get(0), List.of(1, 2), GRID.splits().get(1), List.of(1))), "a part unweighed");
+    }
+
+    @Test
     void aSplitHasTwoPartsOrMore_eachAWholeWeight() {
-        var row = (SplitGrid.Split) GRID.frame();
-        assertEquals(SplitGrid.Axis.HORIZONTAL, row.axis());
+        var row = SplitGrid.row(Part.of(SplitGrid.region("a"), 1), Part.of(SplitGrid.region("b"), 2));
+        assertEquals(Axis.HORIZONTAL, row.axis());
         assertEquals(3, row.weight());
-        assertEquals(SplitGrid.Axis.VERTICAL, SplitGrid.column(SplitGrid.region("a"), SplitGrid.region("b")).axis());
+        assertEquals(Axis.VERTICAL, SplitGrid.column(SplitGrid.region("a"), SplitGrid.region("b")).axis());
         assertEquals(List.of(1, 1), SplitGrid.row(SplitGrid.region("a"), SplitGrid.region("b")).parts().stream().map(Part::weight).toList(), "frames alone: equal parts");
         assertThrows(IllegalArgumentException.class, () -> SplitGrid.row(Part.of(SplitGrid.region("a"))));
         assertThrows(IllegalArgumentException.class, () -> Part.of(SplitGrid.region("a"), 0));

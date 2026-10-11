@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.shell;
 
+import hue.captains.singapura.js.homing.layout.Layout;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.ArrangedWidget;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.Arrangement;
 import hue.captains.singapura.js.homing.workspace.groups.core.models.SplitGrid;
@@ -17,8 +18,9 @@ import java.util.stream.Collectors;
  * <pre>{@code
  * const NAME = Object.freeze({ engine: "split-grid", workspace: "demo",
  *     widgets: Object.freeze({ "left": Object.freeze({ kind: "video", params: Object.freeze({}) }), … }),
- *     frame: Object.freeze({ kind: "split", axis: "horizontal", parts: Object.freeze([
- *         Object.freeze({ weight: 1, frame: Object.freeze({ kind: "region", name: "west", tabs: Object.freeze(["left"]), shown: "left" }) }), … ]) }) });
+ *     layout: Object.freeze({ kind: "horizontal", parts: Object.freeze([Object.freeze({ kind: "whole", id: "west" }), … ]) }),
+ *     regions: Object.freeze({ "west": Object.freeze({ tabs: Object.freeze(["left"]), shown: "left" }), … }),
+ *     weights: Object.freeze({ "H(west, east)": Object.freeze([1, 1]) }) });
  * }</pre>
  */
 public final class GridArrangementJs {
@@ -43,7 +45,11 @@ public final class GridArrangementJs {
         return "Object.freeze({ engine: " + quote(arrangement.engine().value())
                 + ", workspace: " + quote(arrangement.workspace().workspaceKind().value())
                 + ", widgets: Object.freeze({ " + widgets + " })"
-                + ", frame: " + frame(arrangement.placement().frame()) + " })";
+                + ", layout: " + layout(arrangement.placement().layout())
+                + ", regions: Object.freeze({ " + arrangement.placement().regions().stream().map(GridArrangementJs::region).collect(Collectors.joining(", ")) + " })"
+                + ", weights: Object.freeze({ " + arrangement.placement().splits().stream()
+                        .map(s -> quote(s.text()) + ": Object.freeze([" + arrangement.placement().weights().get(s).stream().map(String::valueOf).collect(Collectors.joining(", ")) + "])")
+                        .collect(Collectors.joining(", ")) + " }) })";
     }
 
     private static String widget(ArrangedWidget w) {
@@ -51,15 +57,19 @@ public final class GridArrangementJs {
         return quote(w.ref().value()) + ": Object.freeze({ kind: " + quote(w.kind().value()) + ", params: Object.freeze({" + (params.isEmpty() ? "" : " " + params + " ") + "}) })";
     }
 
-    private static String frame(SplitGrid.Frame frame) {
-        return switch (frame) {
-            case SplitGrid.Region r -> "Object.freeze({ kind: \"region\", name: " + quote(r.name().value())
-                    + ", tabs: Object.freeze([" + r.tabs().stream().map(t -> quote(t.value())).collect(Collectors.joining(", ")) + "])"
-                    + ", shown: " + r.showing().map(WidgetRef::value).map(GridArrangementJs::quote).orElse("null") + " })";
-            case SplitGrid.Split s -> "Object.freeze({ kind: \"split\", axis: " + quote(s.axis().name().toLowerCase())
-                    + ", parts: Object.freeze([" + s.parts().stream().map(p -> "Object.freeze({ weight: " + p.weight() + ", frame: " + frame(p.frame()) + " })")
-                            .collect(Collectors.joining(", ")) + "]) })";
+    /** A layout as data, as the layout algebra's JavaScript reads it: frozen through. */
+    private static String layout(Layout layout) {
+        return switch (layout) {
+            case Layout.Whole w -> "Object.freeze({ kind: \"whole\", id: " + quote(w.id().value()) + " })";
+            case Layout.Horizontal_NSplit h -> "Object.freeze({ kind: \"horizontal\", parts: Object.freeze([" + h.parts().stream().map(GridArrangementJs::layout).collect(Collectors.joining(", ")) + "]) })";
+            case Layout.Vertical_NSplit v -> "Object.freeze({ kind: \"vertical\", parts: Object.freeze([" + v.parts().stream().map(GridArrangementJs::layout).collect(Collectors.joining(", ")) + "]) })";
         };
+    }
+
+    /** A region's dock, by its name: its tabs in order, the one it shows. */
+    private static String region(SplitGrid.Region r) {
+        return quote(r.name().value()) + ": Object.freeze({ tabs: Object.freeze([" + r.tabs().stream().map(t -> quote(t.value())).collect(Collectors.joining(", ")) + "])"
+                + ", shown: " + r.showing().map(WidgetRef::value).map(GridArrangementJs::quote).orElse("null") + " })";
     }
 
     /** A JavaScript string literal: quotes, backslashes, the controls, the line separators and '<' escaped. */

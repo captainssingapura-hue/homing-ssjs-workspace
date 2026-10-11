@@ -30,6 +30,12 @@
     </properties>
 
     <dependencies>
+        <!-- The layout algebra: a split grid's regions are a layout's cells. -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-layout</artifactId>
+            <version>${homing.components.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
