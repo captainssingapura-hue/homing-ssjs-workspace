@@ -27,7 +27,7 @@ function appMain(el, params) {
     css.addClass(shell, tb_shell);
     el.appendChild(shell);
     var grid = new SplitGrid(place.createBranch("grid"), {
-        host: shell, minCellPx: 160, seam: true,
+        host: shell, minCellPx: 160, resizable: true,
         layout: { kind: "split", orientation: "horizontal", children: [
             { node: { kind: "cell", id: "toc" }, ratio: 1 },
             { node: { kind: "cell", id: "tree" }, ratio: 3 } ] }

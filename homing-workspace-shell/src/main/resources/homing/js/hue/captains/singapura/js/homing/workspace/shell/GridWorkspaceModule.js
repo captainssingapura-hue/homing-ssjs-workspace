@@ -67,7 +67,7 @@ class GridWorkspace {
                                                             keyboard: kb, keyboardId: "workspace/desk", menus: this._menus, focusName: "workspace" });
         var kept = o.state ? o.state.grid : null;
         // THE LAYOUT, a split grid - one region, or the one the log kept - and THE DOCKS, the desk's, one residing in each of its cells
-        this.grid = new SplitGrid(branch.createBranch("grid"), { host: floor, minCellPx: 160, seam: true, onEvent: report,
+        this.grid = new SplitGrid(branch.createBranch("grid"), { host: floor, minCellPx: 160, resizable: true, onEvent: report,
                                                                  layout: kept ? WorkspaceProjection.gridLayout(kept.layout) : { kind: "cell", id: "main" } });
         this.docks = this.desk.dock(branch.createBranch("docks"), this.grid, { menus: this._menus, onEvent: report, dock: { addable: true } });
         // THE REGISTER OF PANES, THE PLACEMENT, THE CORE; THE PARTIES, before any widget opens
