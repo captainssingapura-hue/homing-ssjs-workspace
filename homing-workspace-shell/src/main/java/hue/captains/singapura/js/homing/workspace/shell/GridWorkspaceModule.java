@@ -6,7 +6,7 @@ import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.ui.docking.DeskModule;
-import hue.captains.singapura.js.homing.ui.docking.DockGridModule;
+import hue.captains.singapura.js.homing.ui.splitgrid.SplitGridModule;
 import hue.captains.singapura.js.homing.ui.menu.ContextMenuStewardModule;
 import hue.captains.singapura.js.homing.workspace.core.KindAndParamsTitleModule;
 import hue.captains.singapura.js.homing.workspace.core.WorkspaceCoreModule;
@@ -38,7 +38,7 @@ public record GridWorkspaceModule() implements DomModule<GridWorkspaceModule> {
         return ImportsFor.<GridWorkspaceModule>builder()
                 // the whole and its regions, as the gallery's docking page has them, and the page's menus
                 .add(new ModuleImports<>(List.of(new DeskModule.Desk()), DeskModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(new DockGridModule.DockGrid()), DockGridModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new SplitGridModule.SplitGrid()), SplitGridModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new ContextMenuStewardModule.ContextMenuSteward()), ContextMenuStewardModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceMenus.MENUS()), WorkspaceMenus.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceStyles.ws_floor()), WorkspaceStyles.INSTANCE))

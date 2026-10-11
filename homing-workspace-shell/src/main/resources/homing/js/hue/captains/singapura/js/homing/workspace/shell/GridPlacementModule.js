@@ -21,7 +21,7 @@
 // now; a float they leave empty, closed.
 //
 //   new GridPlacement({ desk, docks, tabs, onEvent })
-//     desk, docks   the Desk and its DockGrid
+//     desk, docks   the Desk and its docking: the docks residing in the workspace's split grid
 //     tabs          the register: tabs.tab(id) → the widget's tab-pane
 //     onEvent       the sink the desk and the docks report on
 //   placement.mount(entry, location)   { slotId?, index?, how? }: the first region unless said,
