@@ -6,7 +6,7 @@ import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.server.HrefManager;
-import hue.captains.singapura.js.homing.ui.elements.StatesAndEventsModule;
+import hue.captains.singapura.js.homing.ui.look.StatesAndEventsModule;
 import hue.captains.singapura.js.homing.ui.elements.EdgeStripModule;
 import hue.captains.singapura.js.homing.ui.elements.DangerButtonModule;
 import hue.captains.singapura.js.homing.ui.elements.PlainButtonModule;

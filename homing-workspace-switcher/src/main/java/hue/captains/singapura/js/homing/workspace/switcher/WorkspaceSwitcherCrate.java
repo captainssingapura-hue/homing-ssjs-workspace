@@ -10,6 +10,7 @@ import hue.captains.singapura.js.homing.relgrid.protocol.RelGridProtocolCrate;
 import hue.captains.singapura.js.homing.reltree.RelTreeCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
 import hue.captains.singapura.js.homing.ui.dialog.UiDialogCrate;
+import hue.captains.singapura.js.homing.ui.look.UiLookCrate;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceGroupsCrate;
 import hue.captains.singapura.js.homing.workspace.log.js.WorkspaceLogCodecCrate;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogCrate;
@@ -42,6 +43,7 @@ public final class WorkspaceSwitcherCrate implements Crate {
                 // the DomOps party a widget mints its root from
                 CoreJsCrate.INSTANCE,
                 // its heads' titles in the house's look
+                UiLookCrate.INSTANCE,
                 UiElementsCrate.INSTANCE,
                 // the focus party, the keys' convention, the css manager
                 ServerCrate.INSTANCE,

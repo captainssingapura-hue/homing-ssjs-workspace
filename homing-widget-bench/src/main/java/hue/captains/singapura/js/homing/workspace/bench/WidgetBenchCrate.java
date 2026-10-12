@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.bench;
 
+import hue.captains.singapura.js.homing.ui.look.UiLookCrate;
 import hue.captains.singapura.js.homing.workspace.tree.WorkspaceTreeCrate;
 import hue.captains.singapura.js.homing.ui.splitgrid.UiSplitGridCrate;
 import hue.captains.singapura.js.homing.core.Crate;
@@ -56,6 +57,7 @@ public final class WidgetBenchCrate implements Crate {
                 // the parties a widget joins on the bench: the runtime
                 WorkspacePartiesCrate.INSTANCE,
                 // the simulator's button, and its log's lines as the monitors' rows
+                UiLookCrate.INSTANCE,
                 UiElementsCrate.INSTANCE,
                 UiMonitorsCrate.INSTANCE,
                 // the workspace of one pane: its headless core, and the parties beside it

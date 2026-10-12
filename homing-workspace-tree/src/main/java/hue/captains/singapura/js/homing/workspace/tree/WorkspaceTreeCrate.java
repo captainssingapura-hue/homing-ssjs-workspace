@@ -8,6 +8,7 @@ import hue.captains.singapura.js.homing.relgrid.protocol.RelGridProtocolCrate;
 import hue.captains.singapura.js.homing.reltree.RelTreeCrate;
 import hue.captains.singapura.js.homing.ui.elements.UiElementsCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
+import hue.captains.singapura.js.homing.ui.look.UiLookCrate;
 import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceWidgetsCrate;
 
 import java.util.List;
@@ -36,6 +37,7 @@ public final class WorkspaceTreeCrate implements Crate {
                 // the table of contents' relation tree, and its questions
                 RelTreeCrate.INSTANCE, RelGridProtocolCrate.INSTANCE,
                 // its headings in the house's look
+                UiLookCrate.INSTANCE,
                 UiElementsCrate.INSTANCE);
     }
 

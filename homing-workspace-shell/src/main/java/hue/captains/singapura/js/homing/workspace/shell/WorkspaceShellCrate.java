@@ -10,6 +10,7 @@ import hue.captains.singapura.js.homing.site.mpa.MpaCrate;
 import hue.captains.singapura.js.homing.ui.docking.UiDockingCrate;
 import hue.captains.singapura.js.homing.ui.elements.UiElementsCrate;
 import hue.captains.singapura.js.homing.ui.icons.UiIconsCrate;
+import hue.captains.singapura.js.homing.ui.look.UiLookCrate;
 import hue.captains.singapura.js.homing.ui.menu.UiMenuCrate;
 import hue.captains.singapura.js.homing.ui.panes.UiPanesCrate;
 import hue.captains.singapura.js.homing.ui.splitgrid.UiSplitGridCrate;
@@ -52,6 +53,7 @@ public final class WorkspaceShellCrate implements Crate {
                 UiDockingCrate.INSTANCE,
                 UiMenuCrate.INSTANCE,
                 // The control strip: the edge strip it lies on, its designed buttons, the mark on its switcher.
+                UiLookCrate.INSTANCE,
                 UiElementsCrate.INSTANCE,
                 UiIconsCrate.INSTANCE,
                 WorkspaceLogCodecCrate.INSTANCE,

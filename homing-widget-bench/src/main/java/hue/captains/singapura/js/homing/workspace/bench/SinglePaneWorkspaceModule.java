@@ -12,7 +12,7 @@ import hue.captains.singapura.js.homing.workspace.layers.PaneLayerModule;
 import hue.captains.singapura.js.homing.workspace.layers.RosterLayerModule;
 import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
 import hue.captains.singapura.js.homing.core.js.domOpsParties;
-import hue.captains.singapura.js.homing.ui.elements.StatesAndEventsModule;
+import hue.captains.singapura.js.homing.ui.look.StatesAndEventsModule;
 import hue.captains.singapura.js.homing.ui.elements.PlainButtonModule;
 import hue.captains.singapura.js.homing.workspace.core.KindAndParamsTitleModule;
 import hue.captains.singapura.js.homing.workspace.core.WorkspaceCoreModule;

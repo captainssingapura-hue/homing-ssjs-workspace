@@ -6,6 +6,7 @@ import hue.captains.singapura.js.homing.core.StandardJsModuleType;
 import hue.captains.singapura.js.homing.server.ServerCrate;
 import hue.captains.singapura.js.homing.ui.dialog.UiDialogCrate;
 import hue.captains.singapura.js.homing.ui.elements.UiElementsCrate;
+import hue.captains.singapura.js.homing.ui.look.UiLookCrate;
 
 import java.util.List;
 
@@ -27,6 +28,7 @@ public final class WorkspaceStageCrate implements Crate {
                 // the css manager
                 ServerCrate.INSTANCE,
                 // the elements' buttons
+                UiLookCrate.INSTANCE,
                 UiElementsCrate.INSTANCE,
                 // the dialog's modality: everything else inert while the stage shows
                 UiDialogCrate.INSTANCE);

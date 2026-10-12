@@ -1,7 +1,7 @@
 package hue.captains.singapura.js.homing.workspace.bench;
 
-import hue.captains.singapura.js.homing.ui.elements.LookModule;
-import hue.captains.singapura.js.homing.ui.elements.CastingsModule;
+import hue.captains.singapura.js.homing.ui.look.LookModule;
+import hue.captains.singapura.js.homing.ui.look.CastingsModule;
 import hue.captains.singapura.js.homing.component.keyboard.FocusPartyModule;
 import hue.captains.singapura.js.homing.component.keyboard.focusParties;
 import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
