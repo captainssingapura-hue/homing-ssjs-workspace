@@ -2,27 +2,9 @@ package hue.captains.singapura.js.homing.workspace.bench;
 
 import hue.captains.singapura.js.homing.core.CssClass;
 import hue.captains.singapura.js.homing.core.CssGroup;
-import hue.captains.singapura.js.homing.core.Wearable;
 
 import java.util.List;
 
-import static hue.captains.singapura.js.homing.design.Box.Control;
-import static hue.captains.singapura.js.homing.design.DesignClass.of;
-import static hue.captains.singapura.js.homing.design.Emphasis.Muted;
-import static hue.captains.singapura.js.homing.design.Feedback.Danger;
-import static hue.captains.singapura.js.homing.design.Interaction.Current;
-import static hue.captains.singapura.js.homing.design.Interaction.Interactive;
-import static hue.captains.singapura.js.homing.design.Layer.Raised;
-import static hue.captains.singapura.js.homing.design.Text.Caption;
-import static hue.captains.singapura.js.homing.design.Text.Code;
-import static hue.captains.singapura.js.homing.design.Target.Affordance;
-import static hue.captains.singapura.js.homing.design.Target.Color;
-import static hue.captains.singapura.js.homing.design.Target.Motion;
-import static hue.captains.singapura.js.homing.design.Target.Shape;
-import static hue.captains.singapura.js.homing.design.Target.Type;
-import static hue.captains.singapura.js.homing.design.Text.Body;
-import static hue.captains.singapura.js.homing.design.Text.Heading;
-import static hue.captains.singapura.js.homing.design.Text.Label;
 
 /**
  * The bench's sheet: its page - the monitors' bar, and the container it gives
@@ -114,12 +96,6 @@ public record WidgetBenchStyles() implements CssGroup<WidgetBenchStyles> {
      * as the design draws one, raised in body ink while its monitor is closed.
      */
     public record wb_toggle() implements CssClass<WidgetBenchStyles> {
-        @Override public List<? extends Wearable> wears() {
-            return List.of(of(Control.Button.Base.class, Shape.Rule.class), of(Control.Button.Base.class, Shape.Corner.class), of(Control.Button.Base.class, Color.Edge.class),
-                           of(Raised.class, Color.Surface.class), of(Body.class, Color.Ink.class),
-                           of(Label.class, Type.Scale.class), of(Heading.class, Type.Face.class),
-                           of(Interactive.class, Affordance.Cursor.class), of(Interactive.class, Motion.Ease.class));
-        }
         @Override public String body() { return """
             display: inline-flex;
             align-items: center;
@@ -135,7 +111,6 @@ public record WidgetBenchStyles() implements CssGroup<WidgetBenchStyles> {
 
     /** A toggle whose monitor is open: the current thing's surface and edge, as a tab's shown chip wears them. */
     public record wb_toggle_on() implements CssClass<WidgetBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Current.class, Color.Surface.class), of(Current.class, Color.Edge.class)); }
         @Override public String body() { return ""; }
     }
 
@@ -165,13 +140,11 @@ public record WidgetBenchStyles() implements CssGroup<WidgetBenchStyles> {
 
     /** Who is in the party: a line, quietly. */
     public record wb_sim_note() implements CssClass<WidgetBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Muted.class, Color.Ink.class), of(Caption.class, Type.Scale.class)); }
         @Override public String body() { return "flex: 0 0 auto;"; }
     }
 
     /** What passed in the party, line by line: the rest of the simulator, its own scroller. */
     public record wb_sim_log() implements CssClass<WidgetBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Code.class, Type.Face.class), of(Caption.class, Type.Scale.class)); }
         @Override public String body() { return """
             flex: 1 1 auto;
             min-height: 0;
@@ -185,8 +158,6 @@ public record WidgetBenchStyles() implements CssGroup<WidgetBenchStyles> {
 
     /** The box a message is typed in, as JSON. */
     public record wb_sim_input() implements CssClass<WidgetBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Code.class, Type.Face.class), of(Caption.class, Type.Scale.class),
-                                                                          of(Raised.class, Color.Surface.class), of(Body.class, Color.Ink.class), of(Control.class, Color.Edge.class)); }
         @Override public String body() { return """
             flex: 0 0 auto;
             height: 64px;
@@ -214,7 +185,6 @@ public record WidgetBenchStyles() implements CssGroup<WidgetBenchStyles> {
 
     /** The templates' picker. */
     public record wb_sim_pick() implements CssClass<WidgetBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Raised.class, Color.Surface.class), of(Body.class, Color.Ink.class), of(Control.class, Color.Edge.class)); }
         @Override public String body() { return """
             flex: 0 0 auto;
             padding: 2px 4px;
@@ -227,7 +197,6 @@ public record WidgetBenchStyles() implements CssGroup<WidgetBenchStyles> {
 
     /** What was said of the last message: nothing when it went, why not when it did not. */
     public record wb_sim_said() implements CssClass<WidgetBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Caption.class, Type.Scale.class)); }
         @Override public String body() { return """
             flex: 1 1 auto;
             min-width: 0;
@@ -238,7 +207,6 @@ public record WidgetBenchStyles() implements CssGroup<WidgetBenchStyles> {
 
     /** It did not go: the danger's rule before the reason. */
     public record wb_sim_error() implements CssClass<WidgetBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Danger.class, Color.Edge.class)); }
         @Override public String body() { return """
             border-inline-start-width: 3px;
             border-inline-start-style: solid;
@@ -273,13 +241,11 @@ public record WidgetBenchStyles() implements CssGroup<WidgetBenchStyles> {
 
     /** A word before a control on the bar. */
     public record wb_ws_label() implements CssClass<WidgetBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Muted.class, Color.Ink.class), of(Caption.class, Type.Scale.class)); }
         @Override public String body() { return "flex: 0 0 auto;"; }
     }
 
     /** A name for the widget shown, typed on the bar and asked for by Rename. */
     public record wb_ws_name() implements CssClass<WidgetBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Raised.class, Color.Surface.class), of(Body.class, Color.Ink.class), of(Control.class, Color.Edge.class)); }
         @Override public String body() { return """
             flex: 0 0 auto;
             width: 12em;

@@ -87,12 +87,6 @@
             <artifactId>homing-site-mpa-standard</artifactId>
             <version>${homing.components.version}</version>
         </dependency>
-        <!-- The designs the page wears: a theme registry is a SITE's choice; this one is HomingDesigns.REGISTRY. -->
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-designs</artifactId>
-            <version>${homing.core.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

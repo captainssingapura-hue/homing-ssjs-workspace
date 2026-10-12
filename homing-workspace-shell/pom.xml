@@ -184,12 +184,6 @@
             <version>${homing.core.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
-            <artifactId>homing-designs</artifactId>
-            <version>${homing.core.version}</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
 </project>

@@ -2,18 +2,9 @@ package hue.captains.singapura.js.homing.workspace.bench;
 
 import hue.captains.singapura.js.homing.core.CssClass;
 import hue.captains.singapura.js.homing.core.CssGroup;
-import hue.captains.singapura.js.homing.core.Wearable;
 
 import java.util.List;
 
-import static hue.captains.singapura.js.homing.design.DesignClass.of;
-import static hue.captains.singapura.js.homing.design.Emphasis.Muted;
-import static hue.captains.singapura.js.homing.design.Layer.Raised;
-import static hue.captains.singapura.js.homing.design.Target.Color;
-import static hue.captains.singapura.js.homing.design.Target.Shape;
-import static hue.captains.singapura.js.homing.design.Target.Type;
-import static hue.captains.singapura.js.homing.design.Text.Body;
-import static hue.captains.singapura.js.homing.design.Text.Label;
 
 /**
  * The tree bench's sheet: its page - a split grid, the contents on the left and the tree on
@@ -69,10 +60,6 @@ public record TreeBenchStyles() implements CssGroup<TreeBenchStyles> {
 
     /** The stand-in card: raised, its params listed. */
     public record tb_card() implements CssClass<TreeBenchStyles> {
-        @Override public List<? extends Wearable> wears() {
-            return List.of(of(Raised.class, Color.Surface.class), of(Raised.class, Shape.Corner.class),
-                           of(Body.class, Type.Face.class), of(Body.class, Color.Ink.class));
-        }
         @Override public String body() { return """
             display: grid;
             grid-template-columns: max-content 1fr;
@@ -85,7 +72,6 @@ public record TreeBenchStyles() implements CssGroup<TreeBenchStyles> {
 
     /** A param's name. */
     public record tb_key() implements CssClass<TreeBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Label.class, Type.Scale.class), of(Label.class, Type.Weight.class), of(Muted.class, Color.Ink.class)); }
         @Override public String body() { return "margin: 0;\n"; }
     }
 

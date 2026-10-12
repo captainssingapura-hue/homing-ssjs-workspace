@@ -3,26 +3,10 @@ package hue.captains.singapura.js.homing.workspace.tree;
 import hue.captains.singapura.js.homing.core.CssClass;
 import hue.captains.singapura.js.homing.core.CssGroup;
 import hue.captains.singapura.js.homing.core.CssVar;
-import hue.captains.singapura.js.homing.core.Wearable;
 
 import java.util.List;
 import java.util.Set;
 
-import static hue.captains.singapura.js.homing.design.DesignClass.of;
-import static hue.captains.singapura.js.homing.design.Emphasis.Muted;
-import static hue.captains.singapura.js.homing.design.Emphasis.Primary;
-import static hue.captains.singapura.js.homing.design.Emphasis.Secondary;
-import static hue.captains.singapura.js.homing.design.Interaction.Current;
-import static hue.captains.singapura.js.homing.design.Interaction.Selectable;
-import static hue.captains.singapura.js.homing.design.Layer.Base;
-import static hue.captains.singapura.js.homing.design.Structure.Hairline;
-import static hue.captains.singapura.js.homing.design.Target.Color;
-import static hue.captains.singapura.js.homing.design.Target.Motion;
-import static hue.captains.singapura.js.homing.design.Target.Shape;
-import static hue.captains.singapura.js.homing.design.Target.Type;
-import static hue.captains.singapura.js.homing.design.Text.Body;
-import static hue.captains.singapura.js.homing.design.Text.Heading;
-import static hue.captains.singapura.js.homing.design.Text.Label;
 
 /**
  * The tree layout's sheet, in the design's words and nothing of its own: a reading
@@ -37,7 +21,6 @@ public record TreeStyles() implements CssGroup<TreeStyles> {
 
     /** The column the tree is read in. */
     public record tl_column() implements CssClass<TreeStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Body.class, Type.Face.class), of(Body.class, Color.Ink.class)); }
         @Override public String body() { return """
             display: flex;
             flex-direction: column;
@@ -51,7 +34,6 @@ public record TreeStyles() implements CssGroup<TreeStyles> {
 
     /** The table of contents: the tree, in the body's face, scrolling on its own. */
     public record tl_toc() implements CssClass<TreeStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Body.class, Type.Face.class), of(Body.class, Color.Ink.class)); }
         @Override public String body() { return """
             padding: 8px 4px;
             box-sizing: border-box;
@@ -74,7 +56,6 @@ public record TreeStyles() implements CssGroup<TreeStyles> {
      * it is the current section, the change eased as the design eases a selectable's.
      */
     public record tl_own() implements CssClass<TreeStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Selectable.class, Motion.Ease.class)); }
         @Override public String body() { return """
             display: flex;
             flex-direction: column;
@@ -91,10 +72,6 @@ public record TreeStyles() implements CssGroup<TreeStyles> {
      * secondary, the base surface or the body's ink.
      */
     public record tl_current() implements CssClass<TreeStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Current.class, Color.Surface.class), of(Current.class, Shape.Shadow.class)); }
-        @Override public List<? extends Wearable> reads() {
-            return List.of(of(Primary.class, Color.Surface.class), of(Secondary.class, Color.Surface.class), of(Base.class, Color.Surface.class), of(Body.class, Color.Ink.class));
-        }
         @Override public String body() { return ""; }
     }
 
@@ -114,7 +91,6 @@ public record TreeStyles() implements CssGroup<TreeStyles> {
      * design's; only its side, width and style are the sheet's.
      */
     public record tl_nested() implements CssClass<TreeStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Hairline.class, Color.Edge.class)); }
         @Override public String body() { return """
             margin-left: 4px;
             padding-left: 16px;
@@ -131,15 +107,11 @@ public record TreeStyles() implements CssGroup<TreeStyles> {
 
     /** The root's heading and the first level's. */
     public record tl_heading() implements CssClass<TreeStyles> {
-        @Override public List<? extends Wearable> wears() {
-            return List.of(of(Heading.class, Type.Face.class), of(Heading.class, Type.Scale.class), of(Heading.class, Type.Weight.class), of(Heading.class, Color.Ink.class));
-        }
         @Override public String body() { return "margin: 8px 0 0;\n"; }
     }
 
     /** A heading below the first level. */
     public record tl_subheading() implements CssClass<TreeStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Label.class, Type.Scale.class), of(Label.class, Type.Weight.class)); }
         @Override public String body() { return "margin: 4px 0 0;\n"; }
     }
 
@@ -170,14 +142,12 @@ public record TreeStyles() implements CssGroup<TreeStyles> {
 
     /** Where the host offers no widget of the type asked. */
     public record tl_missing() implements CssClass<TreeStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Muted.class, Color.Ink.class)); }
         @Override public String body() { return "margin: 0;\n"; }
     }
 
     /** Where a widget lent to the stage was: its height held, so nothing moves while it is away; a dashed hairline, and a word for where it went. */
     public record tl_held() implements CssClass<TreeStyles> {
         @Override public Set<CssVar> runtimeVars() { return Set.of(new CssVar("--tl-held")); }
-        @Override public List<? extends Wearable> wears() { return List.of(of(Hairline.class, Color.Edge.class), of(Muted.class, Color.Ink.class)); }
         @Override public String body() {
             return "box-sizing: border-box;\nmin-height: var(--tl-held);\nmargin: 0;\ndisplay: flex;\nalign-items: center;\njustify-content: center;\n"
                     + "border-width: 1px;\nborder-style: dashed;\nfont-style: italic;\n";

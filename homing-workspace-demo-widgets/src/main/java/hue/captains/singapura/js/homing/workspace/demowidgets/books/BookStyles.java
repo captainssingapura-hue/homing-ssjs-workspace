@@ -2,18 +2,9 @@ package hue.captains.singapura.js.homing.workspace.demowidgets.books;
 
 import hue.captains.singapura.js.homing.core.CssClass;
 import hue.captains.singapura.js.homing.core.CssGroup;
-import hue.captains.singapura.js.homing.core.Wearable;
 
 import java.util.List;
 
-import static hue.captains.singapura.js.homing.design.DesignClass.of;
-import static hue.captains.singapura.js.homing.design.Emphasis.Muted;
-import static hue.captains.singapura.js.homing.design.Layer.Recessed;
-import static hue.captains.singapura.js.homing.design.Target.Color;
-import static hue.captains.singapura.js.homing.design.Target.Type;
-import static hue.captains.singapura.js.homing.design.Text.Display;
-import static hue.captains.singapura.js.homing.design.Text.Heading;
-import static hue.captains.singapura.js.homing.design.Text.Lede;
 
 /**
  * The books widgets' own sheet: the jumbotron's stage and its lines. The
@@ -50,7 +41,6 @@ public record BookStyles() implements CssGroup<BookStyles> {
 
     /** The chosen book's title: as big as the stage allows, in the design's display voice. */
     public record bj_title() implements CssClass<BookStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Heading.class, Type.Face.class), of(Display.class, Type.Weight.class), of(Display.class, Color.Ink.class)); }
         @Override public String body() { return """
             font-size: clamp(20px, 11cqmin, 120px);
             line-height: 1.1;
@@ -61,7 +51,6 @@ public record BookStyles() implements CssGroup<BookStyles> {
 
     /** Its author, under it: smaller, in a lede's colour. */
     public record bj_author() implements CssClass<BookStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Lede.class, Color.Ink.class)); }
         @Override public String body() { return """
             font-size: clamp(14px, 5.5cqmin, 56px);
             line-height: 1.2;
@@ -72,7 +61,6 @@ public record BookStyles() implements CssGroup<BookStyles> {
 
     /** What it says with no book chosen: quietly. */
     public record bj_none() implements CssClass<BookStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Muted.class, Color.Ink.class)); }
         @Override public String body() { return "font-size: clamp(14px, 5cqmin, 40px);"; }
     }
 
@@ -114,7 +102,6 @@ public record BookStyles() implements CssGroup<BookStyles> {
 
     /** The box the browser lends its jumbotron: the rest, set a layer back. */
     public record bb_chosen() implements CssClass<BookStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Recessed.class, Color.Surface.class)); }
         @Override public String body() { return """
             position: relative;
             flex: 2 1 220px;

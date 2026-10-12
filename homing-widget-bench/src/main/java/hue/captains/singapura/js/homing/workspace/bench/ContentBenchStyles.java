@@ -2,20 +2,9 @@ package hue.captains.singapura.js.homing.workspace.bench;
 
 import hue.captains.singapura.js.homing.core.CssClass;
 import hue.captains.singapura.js.homing.core.CssGroup;
-import hue.captains.singapura.js.homing.core.Wearable;
 
 import java.util.List;
 
-import static hue.captains.singapura.js.homing.design.DesignClass.of;
-import static hue.captains.singapura.js.homing.design.Emphasis.Muted;
-import static hue.captains.singapura.js.homing.design.Layer.Base;
-import static hue.captains.singapura.js.homing.design.Layer.Raised;
-import static hue.captains.singapura.js.homing.design.Structure.Hairline;
-import static hue.captains.singapura.js.homing.design.Target.Color;
-import static hue.captains.singapura.js.homing.design.Target.Shape;
-import static hue.captains.singapura.js.homing.design.Target.Type;
-import static hue.captains.singapura.js.homing.design.Text.Body;
-import static hue.captains.singapura.js.homing.design.Text.Label;
 
 /**
  * The content bench's sheet: its page - a word on what it shows, two panels side by side, the
@@ -28,7 +17,6 @@ public record ContentBenchStyles() implements CssGroup<ContentBenchStyles> {
 
     /** The MPA's slot, as the content bench lays it out: a column that scrolls. Unlayered, so it outranks the slot's own column. */
     public record cb_page() implements CssClass<ContentBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Body.class, Type.Face.class), of(Body.class, Color.Ink.class)); }
         @Override public String body() { return """
             flex: 1 1 auto;
             display: flex;
@@ -47,7 +35,6 @@ public record ContentBenchStyles() implements CssGroup<ContentBenchStyles> {
 
     /** What the page shows, said. */
     public record cb_intro() implements CssClass<ContentBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Muted.class, Color.Ink.class)); }
         @Override public String body() { return "margin: 0;\nmax-width: 64rem;\n"; }
     }
 
@@ -64,7 +51,6 @@ public record ContentBenchStyles() implements CssGroup<ContentBenchStyles> {
 
     /** A panel: raised, its title, then its parts in a column. */
     public record cb_panel() implements CssClass<ContentBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Raised.class, Color.Surface.class), of(Raised.class, Shape.Corner.class)); }
         @Override public String body() { return """
             display: flex;
             flex-direction: column;
@@ -78,13 +64,11 @@ public record ContentBenchStyles() implements CssGroup<ContentBenchStyles> {
 
     /** A panel's title. */
     public record cb_panel_title() implements CssClass<ContentBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Label.class, Type.Scale.class), of(Label.class, Type.Weight.class)); }
         @Override public String body() { return "margin: 0;\n"; }
     }
 
     /** A part that makes parts of its own - a flow: its caption, then its parts, a hairline down its side. */
     public record cb_group() implements CssClass<ContentBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Hairline.class, Color.Edge.class)); }
         @Override public String body() { return """
             display: flex;
             flex-direction: column;
@@ -98,7 +82,6 @@ public record ContentBenchStyles() implements CssGroup<ContentBenchStyles> {
 
     /** A note card: on the base, edged with the hairline. */
     public record cb_card() implements CssClass<ContentBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Base.class, Color.Surface.class), of(Hairline.class, Color.Edge.class)); }
         @Override public String body() { return """
             display: flex;
             flex-direction: column;
@@ -113,13 +96,11 @@ public record ContentBenchStyles() implements CssGroup<ContentBenchStyles> {
 
     /** What a card or a line names an item by: its key. */
     public record cb_key() implements CssClass<ContentBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Label.class, Type.Scale.class), of(Muted.class, Color.Ink.class)); }
         @Override public String body() { return "margin: 0;\nfont-family: monospace;\n"; }
     }
 
     /** A note's title. */
     public record cb_title() implements CssClass<ContentBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Label.class, Type.Weight.class)); }
         @Override public String body() { return "margin: 0;\n"; }
     }
 
@@ -130,13 +111,11 @@ public record ContentBenchStyles() implements CssGroup<ContentBenchStyles> {
 
     /** What a card says while it waits, or when its note is unavailable. */
     public record cb_waiting() implements CssClass<ContentBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Muted.class, Color.Ink.class)); }
         @Override public String body() { return "font-style: italic;\n"; }
     }
 
     /** The traffic: raised, its summary over its lines. */
     public record cb_traffic() implements CssClass<ContentBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Raised.class, Color.Surface.class), of(Raised.class, Shape.Corner.class)); }
         @Override public String body() { return """
             display: flex;
             flex-direction: column;
@@ -150,7 +129,6 @@ public record ContentBenchStyles() implements CssGroup<ContentBenchStyles> {
 
     /** Lines of text, as they are: the summary, the log. */
     public record cb_lines() implements CssClass<ContentBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Label.class, Type.Scale.class)); }
         @Override public String body() { return """
             margin: 0;
             font-family: monospace;
@@ -162,7 +140,6 @@ public record ContentBenchStyles() implements CssGroup<ContentBenchStyles> {
 
     /** The log's lines: a box of their own height, scrolling. */
     public record cb_log() implements CssClass<ContentBenchStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Base.class, Color.Surface.class), of(Hairline.class, Color.Edge.class)); }
         @Override public String body() { return """
             max-height: 20rem;
             overflow: auto;

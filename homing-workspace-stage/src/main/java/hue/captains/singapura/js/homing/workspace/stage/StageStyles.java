@@ -2,25 +2,9 @@ package hue.captains.singapura.js.homing.workspace.stage;
 
 import hue.captains.singapura.js.homing.core.CssClass;
 import hue.captains.singapura.js.homing.core.CssGroup;
-import hue.captains.singapura.js.homing.core.Wearable;
 
 import java.util.List;
 
-import static hue.captains.singapura.js.homing.design.Box.Container;
-import static hue.captains.singapura.js.homing.design.DesignClass.of;
-import static hue.captains.singapura.js.homing.design.Emphasis.Primary;
-import static hue.captains.singapura.js.homing.design.Layer.Base;
-import static hue.captains.singapura.js.homing.design.Layer.Inverted;
-import static hue.captains.singapura.js.homing.design.Layer.Overlay;
-import static hue.captains.singapura.js.homing.design.Layer.Raised;
-import static hue.captains.singapura.js.homing.design.Layer.Recessed;
-import static hue.captains.singapura.js.homing.design.Structure.Hairline;
-import static hue.captains.singapura.js.homing.design.Target.Color;
-import static hue.captains.singapura.js.homing.design.Target.Effect;
-import static hue.captains.singapura.js.homing.design.Target.Shape;
-import static hue.captains.singapura.js.homing.design.Target.Type;
-import static hue.captains.singapura.js.homing.design.Text.Body;
-import static hue.captains.singapura.js.homing.design.Text.Heading;
 
 /**
  * The stage's sheet, in the design's words and nothing of its own but layout: one layer over the
@@ -44,21 +28,11 @@ public record StageStyles() implements CssGroup<StageStyles> {
 
     /** The scrim: the page behind, put back. */
     public record sg_scrim() implements CssClass<StageStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Overlay.class, Effect.Filter.class)); }
         @Override public String body() { return "position: absolute;\ninset: 0;\n"; }
     }
 
     /** The frame: a floating pane's corner and edge, raised over the scrim; a column of the head and the seat. */
     public record sg_frame() implements CssClass<StageStyles> {
-        @Override public List<? extends Wearable> wears() {
-            return List.of(of(Container.Pane.Floating.class, Shape.Corner.class), of(Container.Pane.Floating.class, Shape.Rule.class),
-                    of(Container.Pane.Floating.class, Color.Edge.class), of(Raised.class, Color.Surface.class), of(Raised.class, Color.Edge.class),
-                    of(Body.class, Color.Ink.class), of(Body.class, Type.Face.class), of(Overlay.class, Shape.Shadow.class));
-        }
-        /** What an overlay's shadow is cast from, design by design - the inverted, recessed, primary or base surface: read by reference, so bound wherever the frame is worn. */
-        @Override public List<? extends Wearable> reads() {
-            return List.of(of(Inverted.class, Color.Surface.class), of(Recessed.class, Color.Surface.class), of(Primary.class, Color.Surface.class), of(Base.class, Color.Surface.class));
-        }
         @Override public String body() {
             return "position: relative;\nflex: 1 1 auto;\ndisplay: flex;\nflex-direction: column;\nmin-width: 0;\nmin-height: 0;\noverflow: hidden;\n";
         }
@@ -66,7 +40,6 @@ public record StageStyles() implements CssGroup<StageStyles> {
 
     /** The head: the title, then the close, over a hairline. */
     public record sg_head() implements CssClass<StageStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Hairline.class, Color.Edge.class)); }
         @Override public String body() {
             return "flex: none;\ndisplay: flex;\nalign-items: center;\ngap: 8px;\npadding: 8px 12px;\nborder-bottom-width: 1px;\nborder-bottom-style: solid;\n";
         }
@@ -74,7 +47,6 @@ public record StageStyles() implements CssGroup<StageStyles> {
 
     /** The title: what is on the stage, on one line. */
     public record sg_title() implements CssClass<StageStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Heading.class, Type.Face.class), of(Heading.class, Type.Weight.class)); }
         @Override public String body() { return "flex: 1 1 auto;\nmin-width: 0;\nmargin: 0;\nfont-size: inherit;\noverflow: hidden;\ntext-overflow: ellipsis;\nwhite-space: nowrap;\n"; }
     }
 

@@ -13,9 +13,6 @@ import hue.captains.singapura.js.homing.conformance.rules.FindingGrader;
 import hue.captains.singapura.js.homing.conformance.rules.GradedFinding;
 import hue.captains.singapura.js.homing.core.Crate;
 import hue.captains.singapura.js.homing.core.CssGroup;
-import hue.captains.singapura.js.homing.design.Deployment;
-import hue.captains.singapura.js.homing.design.Design;
-import hue.captains.singapura.js.homing.designs.HomingDesigns;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -29,8 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * The tree layout's gate: the framework's conformance over {@code homing-workspace-tree},
  * as the monitors' gate runs it - crate integrity; every served
- * module graded strictly, with no baseline; the CSS graph laws; every design
- * binding what the tree layout's sheet wears; and the keys, through the party.
+ * module graded strictly, with no baseline; the CSS graph laws; and the keys, through the party.
  */
 class TreeConformanceTest {
 
@@ -62,18 +58,6 @@ class TreeConformanceTest {
         List<Finding> css = CssConformance.check(new ArrayList<>(CrateClosure.of(TOP)))
                 .stream().filter(f -> own.contains(f.moduleClass())).toList();
         assertEquals(List.of(), css.stream().map(TreeConformanceTest::describe).toList());
-    }
-
-    @Test
-    void everyDesignBindsEveryPairTheTreeWears() {
-        var groups = new ArrayList<CssGroup<?>>();
-        for (var e : WorkspaceTreeCrate.INSTANCE.entries()) if (e.module() instanceof CssGroup<?> g) groups.add(g);
-        assertTrue(groups.size() >= 1, "the tree layout's sheet; found " + groups.size());
-        var worn = Deployment.wornBy(groups);
-        for (var t : HomingDesigns.REGISTRY.themes()) {
-            var r = Deployment.of(worn, Deployment.scaledBy(groups), Deployment.grownBy(groups), (Design) t).resolve();
-            assertEquals(List.of(), r.findings(), () -> ((Design) t).slug() + ": " + r.findings());
-        }
     }
 
     /** The tree layout takes its keys through the party: none listens undeclared, none captures on the document. */
