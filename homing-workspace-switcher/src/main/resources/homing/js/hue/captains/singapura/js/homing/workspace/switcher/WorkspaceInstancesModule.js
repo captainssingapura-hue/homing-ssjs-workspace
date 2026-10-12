@@ -103,7 +103,7 @@ class WorkspaceInstances {
                                          onRename: function (row, text) { self._rename(row, text); },
                                          onNewName: function (kind, text) { self._openNew(kind, text); } });
         this._grid = new RelGrid({
-            container: this._box, branch: this._dom.createBranch("grid"), label: "Workspaces of the chosen kind",
+            container: this._box, branch: this._dom.createBranch("grid"), design: HouseGrid, label: "Workspaces of the chosen kind",
             header: { show: true, sticky: true }, relation: this._rows,
             onEdge: function (direction) { if (direction === "left" && self._edge) self._edge("left"); }
         });

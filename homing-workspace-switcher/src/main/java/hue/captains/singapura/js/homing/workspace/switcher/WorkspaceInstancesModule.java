@@ -18,6 +18,7 @@ import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
 import hue.captains.singapura.js.homing.core.js.domOpsParties;
 import hue.captains.singapura.js.homing.relgrid.RelGridModule;
 import hue.captains.singapura.js.homing.relgrid.protocol.RelGridProtocolModule;
+import hue.captains.singapura.js.homing.relgrid.house.HouseGridModule;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceChoiceModule;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceDirectoryModule;
 import hue.captains.singapura.js.homing.workspace.log.js.LogIdsModule;
@@ -61,6 +62,7 @@ public record WorkspaceInstancesModule() implements DomModule<WorkspaceInstances
                 .add(new ModuleImports<>(List.of(new KeysModule.Keys()), KeysModule.INSTANCE))
                 // the relation grid, its stock cell, and what tells it the rows changed
                 .add(new ModuleImports<>(List.of(new RelGridModule.RelGrid()), RelGridModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new HouseGridModule.HouseGrid()), HouseGridModule.INSTANCE))   // the design its grid is made with
                 // its relation: the rows, their cells, the new row
                 .add(new ModuleImports<>(List.of(new WorkspaceRowsModule.WorkspaceRows()), WorkspaceRowsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new RelGridProtocolModule.RelGridViewChanged()), RelGridProtocolModule.INSTANCE))

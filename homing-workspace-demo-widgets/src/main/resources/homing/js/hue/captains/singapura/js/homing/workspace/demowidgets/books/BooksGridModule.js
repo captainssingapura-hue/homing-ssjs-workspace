@@ -65,7 +65,7 @@ class BooksGrid {
         this._chosen = null;
         this._joined = false;
         this._firstColumn = (columns || this._store.columns())[0];
-        this._grid = new RelGrid({ container: box, branch: this._dom.createBranch("grid"), relation: this._relation,
+        this._grid = new RelGrid({ container: box, branch: this._dom.createBranch("grid"), relation: this._relation, design: HouseGrid,
                                    header: { show: true, sticky: true }, rowNumbers: p.numbers === "on",
                                    columnView: columns, label: "Books",
                                    onCursorMoved: function (pk) { if (self._selection && pk !== self._chosen) self._tell(pk); } });
