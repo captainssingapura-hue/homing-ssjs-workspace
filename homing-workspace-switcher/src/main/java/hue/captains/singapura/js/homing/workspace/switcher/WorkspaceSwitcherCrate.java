@@ -8,6 +8,7 @@ import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
 import hue.captains.singapura.js.homing.relgrid.RelGridCrate;
 import hue.captains.singapura.js.homing.relgrid.protocol.RelGridProtocolCrate;
 import hue.captains.singapura.js.homing.relgrid.house.RelGridHouseCrate;
+import hue.captains.singapura.js.homing.relgrid.cells.RelGridCellsCrate;
 import hue.captains.singapura.js.homing.reltree.RelTreeCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
 import hue.captains.singapura.js.homing.ui.dialog.UiDialogCrate;
@@ -50,7 +51,7 @@ public final class WorkspaceSwitcherCrate implements Crate {
                 ServerCrate.INSTANCE,
                 // the kinds' tree, the workspaces' table, their stock cells and their protocol
                 RelTreeCrate.INSTANCE,
-                RelGridCrate.INSTANCE, RelGridHouseCrate.INSTANCE,
+                RelGridCrate.INSTANCE, RelGridHouseCrate.INSTANCE, RelGridCellsCrate.INSTANCE,
                 RelGridProtocolCrate.INSTANCE,
                 // the system dialog the switcher is summoned in
                 UiDialogCrate.INSTANCE,

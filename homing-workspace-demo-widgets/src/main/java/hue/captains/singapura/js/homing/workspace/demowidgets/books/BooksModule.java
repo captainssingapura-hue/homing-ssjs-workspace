@@ -5,7 +5,8 @@ import hue.captains.singapura.js.homing.core.Exportable;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
-import hue.captains.singapura.js.homing.relgrid.RelGridStockCellsModule;
+import hue.captains.singapura.js.homing.relgrid.cells.RelGridStockCellsModule;
+import hue.captains.singapura.js.homing.relgrid.cells.RelGridLabelsModule;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ public record BooksModule() implements DomModule<BooksModule> {
     public ImportsFor<BooksModule> imports() {
         return ImportsFor.<BooksModule>builder()
                 .add(new ModuleImports<>(List.of(new RelGridStockCellsModule.RelGridTextCell()), RelGridStockCellsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new RelGridLabelsModule.RelGridLabels()), RelGridLabelsModule.INSTANCE))   // its header: label header cells
                 .build();
     }
 

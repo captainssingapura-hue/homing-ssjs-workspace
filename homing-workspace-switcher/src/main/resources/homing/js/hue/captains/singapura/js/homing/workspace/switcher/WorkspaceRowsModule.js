@@ -12,7 +12,7 @@
 // shows. What is committed is the owner's to have done: onRename, onNewName.
 //
 //   new WorkspaceRows({ branch, onRename(row, text), onNewName(kind, text) })
-//   rows.view(intent)  rows.columns()  rows.readOnlyColumns()  rows.labels()  rows.cellFor(pk, column)
+//   rows.view(intent)  rows.columns()  rows.readOnlyColumns()  rows.labels()  rows.headerFor(column)  rows.cellFor(pk, column)
 //   rows.show(kind, entries)   the kind's WorkspaceEntries, and the new row; a cell still
 //                              shown takes its value
 //   rows.clear()     no rows
@@ -50,6 +50,12 @@ class WorkspaceRows {
 
     view(intent) { return intent ? null : this._list.map(function (r) { return r.pk; }); }
     columns() { return WorkspaceRows.COLUMNS.slice(); }
+
+    /** The header cell for a column: a stock label header, made once on a branch of the relation's own. */
+    headerFor(col) {
+        if (!this._heads) this._heads = new RelGridLabels({ branch: this._branch.createBranch("heads"), labels: WorkspaceRows.LABELS });
+        return this._heads.headerFor(col);
+    }
     readOnlyColumns() { return WorkspaceRows.DERIVED.slice(); }
     labels() { return WorkspaceRows.LABELS; }
 

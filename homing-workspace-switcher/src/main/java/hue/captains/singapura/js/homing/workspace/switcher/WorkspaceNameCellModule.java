@@ -5,7 +5,7 @@ import hue.captains.singapura.js.homing.core.Exportable;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
-import hue.captains.singapura.js.homing.relgrid.RelGridStockCellsModule;
+import hue.captains.singapura.js.homing.relgrid.cells.RelGridStockCellsModule;
 
 import java.util.List;
 
