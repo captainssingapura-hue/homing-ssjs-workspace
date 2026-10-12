@@ -33,6 +33,12 @@
             <artifactId>homing-workspace-widgets</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <!-- its headings in the house's look, each its level's -->
+        <dependency>
+            <groupId>io.github.captainssingapura-hue.homing.js</groupId>
+            <artifactId>homing-ui-elements</artifactId>
+            <version>${homing.components.version}</version>
+        </dependency>
         <dependency>
             <groupId>io.github.captainssingapura-hue.homing.js</groupId>
             <artifactId>homing-core-js</artifactId>

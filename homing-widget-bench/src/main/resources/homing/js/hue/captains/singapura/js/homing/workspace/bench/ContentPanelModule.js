@@ -23,6 +23,8 @@
 // =============================================================================
 
 const _contentPanelOwner = Object.freeze({ toString: () => "contentPanel" });
+/** Its title: the house's heading of a widget's title - the fourth level - on its own tag. */
+const _TITLE_HEADING = Object.freeze({ LEAF: "heading4" });
 var _contentPanels = 0;
 
 class ContentPanel {
@@ -35,8 +37,9 @@ class ContentPanel {
         var root = this._dom.createElement("root", "section");
         css.addClass(root, cb_panel);
         root.setAttribute("aria-label", o.title || "A scope");
-        var title = this._dom.createElement("title", "h2");
+        var title = this._dom.createElement("title", "h4");
         css.addClass(title, cb_panel_title);
+        new Look(_TITLE_HEADING, ROLE.STANDALONE).wear(title);
         title.textContent = o.title || "A scope";
         root.appendChild(title);
         container.appendChild(root);

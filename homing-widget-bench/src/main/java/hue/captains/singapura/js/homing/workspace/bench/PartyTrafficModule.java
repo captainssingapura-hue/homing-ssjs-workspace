@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.workspace.bench;
 
+import hue.captains.singapura.js.homing.ui.elements.LookModule;
+import hue.captains.singapura.js.homing.ui.elements.CastingsModule;
 import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
 import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.DomModule;
@@ -31,6 +33,9 @@ public record PartyTrafficModule() implements DomModule<PartyTrafficModule> {
     @Override
     public ImportsFor<PartyTrafficModule> imports() {
         return ImportsFor.<PartyTrafficModule>builder()
+                // its title, the house's heading of its level
+                .add(new ModuleImports<>(List.of(new LookModule.Look()), LookModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new CastingsModule.ROLE()), CastingsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new domOpsParties()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new ContentParamsModule.ContentParams()), ContentParamsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new ContentBenchStyles.cb_traffic(), new ContentBenchStyles.cb_panel_title(), new ContentBenchStyles.cb_lines(),

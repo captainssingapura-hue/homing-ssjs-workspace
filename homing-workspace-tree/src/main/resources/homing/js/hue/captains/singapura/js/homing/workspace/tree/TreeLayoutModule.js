@@ -64,6 +64,8 @@
 // =============================================================================
 
 const _treeLayoutOwner = Object.freeze({ toString: () => "treeLayout" });
+/** The house's headings, a leaf a level: a section's heading worn as its depth's. */
+const _TREE_HEADINGS = Object.freeze([1, 2, 3, 4, 5, 6].map(function (n) { return Object.freeze({ LEAF: "heading" + n }); }));
 var _treeLayouts = 0;
 var _RUN_TAGS = Object.freeze({ text: "span", code: "code", strong: "strong", emphasis: "em" });
 
@@ -208,6 +210,8 @@ class TreeLayout {
         if (node.label && node.label.text) {
             mark = branch.createElement("heading", "h" + Math.min(depth + 1, 6));
             css.addClass(mark, depth < 2 ? tl_heading : tl_subheading);
+            // the house's heading of its level, realized on the native one: its label may hold links and code
+            new Look(_TREE_HEADINGS[Math.min(depth + 1, 6) - 1], ROLE.STANDALONE).wear(mark);
             this._label(branch, mark, node.label);
             own.appendChild(mark);
         }

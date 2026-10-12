@@ -17,6 +17,8 @@
 // =============================================================================
 
 const _stageLayerOwner = Object.freeze({ toString: () => "stage" });
+/** Its title: the house's heading of a widget's title - the fourth level - on its own tag. */
+const _TITLE_HEADING = Object.freeze({ LEAF: "heading4" });
 
 /** The stage's close pressed: the stage closed. */
 class StageLayerClose {
@@ -46,8 +48,9 @@ class StageLayer {
         css.addClass(frame, sg_frame);
         var head = branch.createElement("head", "div");
         css.addClass(head, sg_head);
-        this._title = branch.createElement("title", "h2");
+        this._title = branch.createElement("title", "h4");
         css.addClass(this._title, sg_title);
+        new Look(_TITLE_HEADING, ROLE.STANDALONE).wear(this._title);
         this._title.setAttribute("id", "stage-title");
         layer.setAttribute("aria-labelledby", "stage-title");
         head.appendChild(this._title);

@@ -52,6 +52,8 @@
 // =============================================================================
 
 const _workspaceInstancesOwner = Object.freeze({ toString: () => "workspaceInstances" });
+/** Its title: the house's heading of a widget's title - the fourth level - on its own tag. */
+const _TITLE_HEADING = Object.freeze({ LEAF: "heading4" });
 var _workspaceInstancesMade = 0;
 
 class WorkspaceInstances {
@@ -67,8 +69,9 @@ class WorkspaceInstances {
         root.setAttribute("aria-label", "Workspaces of the chosen kind");
         var head = this._dom.createElement("head", "div");
         css.addClass(head, sw_head);
-        this._title = this._dom.createElement("title", "div");
+        this._title = this._dom.createElement("title", "h4");
         css.addClass(this._title, sw_title);
+        new Look(_TITLE_HEADING, ROLE.STANDALONE).wear(this._title);
         this._count = this._dom.createElement("count", "div");
         css.addClass(this._count, sw_count);
         head.appendChild(this._title);

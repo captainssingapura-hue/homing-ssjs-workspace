@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.switcher;
 
+import hue.captains.singapura.js.homing.ui.elements.UiElementsCrate;
 import hue.captains.singapura.js.homing.core.Crate;
 import hue.captains.singapura.js.homing.core.CrateEntry;
 import hue.captains.singapura.js.homing.core.StandardJsModuleType;
@@ -40,6 +41,8 @@ public final class WorkspaceSwitcherCrate implements Crate {
         return List.of(
                 // the DomOps party a widget mints its root from
                 CoreJsCrate.INSTANCE,
+                // its heads' titles in the house's look
+                UiElementsCrate.INSTANCE,
                 // the focus party, the keys' convention, the css manager
                 ServerCrate.INSTANCE,
                 // the kinds' tree, the workspaces' table, their stock cells and their protocol

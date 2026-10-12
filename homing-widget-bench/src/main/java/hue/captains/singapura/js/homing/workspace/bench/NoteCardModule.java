@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.workspace.bench;
 
+import hue.captains.singapura.js.homing.ui.elements.LookModule;
+import hue.captains.singapura.js.homing.ui.elements.CastingsModule;
 import hue.captains.singapura.js.homing.component.keyboard.FocusPartyModule;
 import hue.captains.singapura.js.homing.component.keyboard.focusParties;
 import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
@@ -32,6 +34,9 @@ public record NoteCardModule() implements DomModule<NoteCardModule> {
     @Override
     public ImportsFor<NoteCardModule> imports() {
         return ImportsFor.<NoteCardModule>builder()
+                // its title, the house's heading of its level
+                .add(new ModuleImports<>(List.of(new LookModule.Look()), LookModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new CastingsModule.ROLE()), CastingsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new domOpsParties()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new BenchNoteModule.BENCH_NOTE()), BenchNoteModule.INSTANCE))
