@@ -61,10 +61,7 @@ public final class WorkspaceShellCrate implements Crate {
                 // layer of the log; what a widget is to a workspace, and the holder its tab lends it.
                 WorkspaceCoreCrate.INSTANCE,
                 WorkspaceLayersCrate.INSTANCE,
-                WorkspaceWidgetsCrate.INSTANCE,
-                // The design substrate its sheets wear words of. No legacy palette:
-                // nothing here reads a --color-* or a legacy font token.
-                hue.captains.singapura.js.homing.design.DesignCrate.INSTANCE);
+                WorkspaceWidgetsCrate.INSTANCE);
     }
 
     @Override

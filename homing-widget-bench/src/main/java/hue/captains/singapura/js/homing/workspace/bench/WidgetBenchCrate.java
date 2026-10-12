@@ -6,7 +6,6 @@ import hue.captains.singapura.js.homing.core.Crate;
 import hue.captains.singapura.js.homing.core.CrateEntry;
 import hue.captains.singapura.js.homing.core.StandardJsModuleType;
 import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
-import hue.captains.singapura.js.homing.design.DesignCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
 import hue.captains.singapura.js.homing.ui.docking.UiDockingCrate;
 import hue.captains.singapura.js.homing.ui.elements.UiElementsCrate;
@@ -54,7 +53,6 @@ public final class WidgetBenchCrate implements Crate {
                 // the desk the monitors' floats lie on
                 UiDockingCrate.INSTANCE,
                 // the design words the toggles wear
-                DesignCrate.INSTANCE,
                 // the parties a widget joins on the bench: the runtime
                 WorkspacePartiesCrate.INSTANCE,
                 // the simulator's button, and its log's lines as the monitors' rows
