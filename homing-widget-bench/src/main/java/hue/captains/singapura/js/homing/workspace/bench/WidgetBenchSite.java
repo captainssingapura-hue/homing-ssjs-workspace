@@ -6,9 +6,9 @@ import hue.captains.singapura.js.homing.site.Router;
 import hue.captains.singapura.js.homing.site.Site;
 import hue.captains.singapura.js.homing.site.Trail;
 import hue.captains.singapura.js.homing.site.mpa.AppPage;
-import hue.captains.singapura.js.homing.site.mpa.HouseThemes;
 import hue.captains.singapura.js.homing.site.mpa.Brand;
 import hue.captains.singapura.js.homing.site.mpa.StandardMpa;
+import hue.captains.singapura.js.homing.ui.styles.HouseStyles;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetDeclaration;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetParams;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetQuery;
@@ -28,7 +28,7 @@ public record WidgetBenchSite() implements Site {
     public static final WidgetBenchSite INSTANCE = new WidgetBenchSite();
 
     /** The one declaration this site makes: the brand, the designs, the crate it serves. */
-    public static final StandardMpa MPA = StandardMpa.of(Brand.of("Widget bench"), HouseThemes.INSTANCE, WidgetBenchCrate.INSTANCE);
+    public static final StandardMpa MPA = StandardMpa.of(Brand.of("Widget bench"), HouseStyles.INSTANCE.styling(), WidgetBenchCrate.INSTANCE);
 
     /** A kind's page, its params at their defaults: what the query reads to when it says nothing. */
     static final Map<String, AppPage<?, ?>> PAGES = WidgetBench.KINDS.stream().collect(Collectors.toMap(WidgetDeclaration::kind,
