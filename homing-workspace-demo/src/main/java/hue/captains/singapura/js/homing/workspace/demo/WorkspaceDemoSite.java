@@ -1,10 +1,13 @@
 package hue.captains.singapura.js.homing.workspace.demo;
 
+import hue.captains.singapura.js.homing.relgrid.house.GridFrameBaseModule;
 import hue.captains.singapura.js.homing.site.Router;
 import hue.captains.singapura.js.homing.site.Site;
 import hue.captains.singapura.js.homing.site.mpa.Brand;
 import hue.captains.singapura.js.homing.site.mpa.StandardMpa;
 import hue.captains.singapura.js.homing.ui.styles.HouseStyles;
+
+import java.util.List;
 
 /**
  * The demo's workspaces, standing up on their own: a site of grouped workspaces,
@@ -18,7 +21,7 @@ public record WorkspaceDemoSite() implements Site {
     public static final WorkspaceDemoSite INSTANCE = new WorkspaceDemoSite();
 
     /** The one declaration this site makes: the brand, the designs, the crate it serves. */
-    public static final StandardMpa MPA = StandardMpa.of(Brand.of("Workspace"), HouseStyles.INSTANCE.styling(), WorkspaceDemoCrate.INSTANCE);
+    public static final StandardMpa MPA = StandardMpa.of(Brand.of("Workspace"), HouseStyles.INSTANCE.styling(List.of(GridFrameBaseModule.INSTANCE)), WorkspaceDemoCrate.INSTANCE);
 
     private static final Router ROUTER = DemoGroups.SITE.router(MPA, DemoWorkspaceApp.INSTANCE, true);
 
