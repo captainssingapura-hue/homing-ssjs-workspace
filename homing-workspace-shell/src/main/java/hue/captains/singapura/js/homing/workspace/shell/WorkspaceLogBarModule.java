@@ -12,6 +12,7 @@ import hue.captains.singapura.js.homing.ui.elements.DangerButtonModule;
 import hue.captains.singapura.js.homing.ui.elements.PlainButtonModule;
 import hue.captains.singapura.js.homing.ui.elements.WarningButtonModule;
 import hue.captains.singapura.js.homing.ui.icons.IconModule;
+import hue.captains.singapura.js.homing.ui.look.IconsModule;
 import hue.captains.singapura.js.homing.workspace.log.js.WriteLockModule;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogExportModule;
 import hue.captains.singapura.js.homing.workspace.log.store.WorkspaceLogIdentityModule;
@@ -45,6 +46,7 @@ public record WorkspaceLogBarModule() implements DomModule<WorkspaceLogBarModule
                 .add(new ModuleImports<>(List.of(new WarningButtonModule.WarningButton(), new WarningButtonModule.WarningButtonFactory()), WarningButtonModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new DangerButtonModule.DangerButton(), new DangerButtonModule.DangerButtonFactory()), DangerButtonModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new IconModule.Icon()), IconModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new IconsModule.ICON()), IconsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceStyles.ws_logbar_name(), new WorkspaceStyles.ws_logbar_count(), new WorkspaceStyles.ws_logbar_note(),
                                                  new WorkspaceStyles.ws_logbar_fresh(), new WorkspaceStyles.ws_logbar_link()), WorkspaceStyles.INSTANCE))
                 .build();

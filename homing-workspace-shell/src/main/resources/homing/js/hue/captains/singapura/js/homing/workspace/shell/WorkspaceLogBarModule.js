@@ -84,7 +84,7 @@ class WorkspaceLogBar {
         this._switch = this._button("switch", PlainButton, PlainButtonFactory, "");
         this._switchName = branch.createElement("switchName", "span");
         var mark = branch.createElement("switchMark", Icon.TAG);
-        new Icon(mark, { name: "disclose" });
+        new Icon(mark, ICON.DISCLOSE_ICON);   // the mark that it opens: the disclose icon
         this._switch.el.appendChild(this._switchName);
         this._switch.el.appendChild(mark);
         this._counted = branch.createElement("count", "span");
