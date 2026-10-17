@@ -19,6 +19,13 @@
 
 const _simulatorOwner = Object.freeze({ toString: () => "partySimulator" });
 
+/** The send pressed: what is written sent to all. */
+class PartySimulatorSend {
+    constructor(simulator, input) { this._simulator = simulator; this._input = input; }
+    canHandle(type) { return type === EVENT.CLICK; }
+    handle() { this._simulator.send(this._input.value); }
+}
+
 class PartySimulator {
     constructor(branch, tab, party) {
         if (!branch || !tab || !tab.focus) throw new Error("[PartySimulator] a branch and a tab are required");
@@ -54,8 +61,8 @@ class PartySimulator {
         pick.appendChild(PartySimulator._option(branch, "pick-none", "", "Template…"));
         Object.keys(party.type.kinds).forEach(function (k) { pick.appendChild(PartySimulator._option(branch, "pick-" + k, k, k)); });
         pick.addEventListener("change", function () { if (pick.value) input.value = JSON.stringify(PartySimulator.template(party.type, pick.value)); pick.value = ""; });
-        var b = new ButtonBuilder();
-        var send = b.label("Send to all").plain().size(-1).onClick(function () { self.send(input.value); }).build(branch.createElement("send", b.tag));
+        var send = new PlainButton(PlainButtonFactory.create(branch, "send"), { label: "Send to all", size: -1 });
+        send.setOnClick(new PartySimulatorSend(self, input));
         this._said = branch.createElement("said", "div");
         css.addClass(this._said, wb_sim_said);
         this._said.setAttribute("role", "status");

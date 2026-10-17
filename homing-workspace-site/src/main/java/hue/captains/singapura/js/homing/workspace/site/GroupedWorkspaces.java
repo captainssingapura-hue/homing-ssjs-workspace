@@ -124,7 +124,7 @@ public record GroupedWorkspaces(WorkspaceGroups groups, List<WorkspaceDeclaratio
      */
     public <M extends AppModule<GroupedWorkspacePageModule.Params, M>> Router router(StandardMpa mpa, M app, boolean server) {
         Map<String, AppPage<GroupedWorkspacePageModule.Params, M>> pages = new LinkedHashMap<>();
-        for (var g : groups.groups()) pages.put(g.id().value(), mpa.page(app, new GroupedWorkspacePageModule.Params(g.id().value(), server)));
+        for (var g : groups.groups()) pages.put(g.id().value(), mpa.fillingPage(app, new GroupedWorkspacePageModule.Params(g.id().value(), server)));
         String home = address(home());
         return path -> {
             if (path.isRoot()) return Optional.of(q -> sentTo(home, q));

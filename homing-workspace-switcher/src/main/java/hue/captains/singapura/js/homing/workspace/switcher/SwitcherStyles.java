@@ -2,17 +2,9 @@ package hue.captains.singapura.js.homing.workspace.switcher;
 
 import hue.captains.singapura.js.homing.core.CssClass;
 import hue.captains.singapura.js.homing.core.CssGroup;
-import hue.captains.singapura.js.homing.core.Wearable;
 
 import java.util.List;
 
-import static hue.captains.singapura.js.homing.design.DesignClass.of;
-import static hue.captains.singapura.js.homing.design.Emphasis.Muted;
-import static hue.captains.singapura.js.homing.design.Layer.Recessed;
-import static hue.captains.singapura.js.homing.design.Target.Color;
-import static hue.captains.singapura.js.homing.design.Target.Type;
-import static hue.captains.singapura.js.homing.design.Text.Caption;
-import static hue.captains.singapura.js.homing.design.Text.Heading;
 
 /**
  * The switcher's sheet, in the design's words and nothing of its own: the
@@ -49,7 +41,6 @@ public record SwitcherStyles() implements CssGroup<SwitcherStyles> {
 
     /** What it shows, in the design's heading voice, on one line. */
     public record sw_title() implements CssClass<SwitcherStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Heading.class, Type.Face.class), of(Heading.class, Type.Weight.class), of(Heading.class, Color.Ink.class)); }
         @Override public String body() { return """
             margin: 0;
             min-width: 0;
@@ -62,7 +53,6 @@ public record SwitcherStyles() implements CssGroup<SwitcherStyles> {
 
     /** How many, quietly; its figures of one width, so the heading beside it never moves. */
     public record sw_count() implements CssClass<SwitcherStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Caption.class, Type.Scale.class), of(Muted.class, Color.Ink.class)); }
         @Override public String body() { return """
             flex: 0 0 auto;
             font-variant-numeric: tabular-nums;
@@ -72,7 +62,6 @@ public record SwitcherStyles() implements CssGroup<SwitcherStyles> {
 
     /** What it says where there is nothing to show - or how to go on - quietly. */
     public record sw_note() implements CssClass<SwitcherStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Caption.class, Type.Scale.class), of(Muted.class, Color.Ink.class)); }
         @Override public String body() { return """
             flex: 0 0 auto;
             margin: 0;
@@ -114,7 +103,6 @@ public record SwitcherStyles() implements CssGroup<SwitcherStyles> {
 
     /** The box the switcher lends its kinds: the narrower, set a layer back. */
     public record sw_kinds() implements CssClass<SwitcherStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Recessed.class, Color.Surface.class)); }
         @Override public String body() { return """
             position: relative;
             flex: 1 1 200px;

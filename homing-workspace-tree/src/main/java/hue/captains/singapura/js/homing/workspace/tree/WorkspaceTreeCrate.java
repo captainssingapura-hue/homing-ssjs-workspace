@@ -4,10 +4,11 @@ import hue.captains.singapura.js.homing.core.Crate;
 import hue.captains.singapura.js.homing.core.CrateEntry;
 import hue.captains.singapura.js.homing.core.StandardJsModuleType;
 import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
-import hue.captains.singapura.js.homing.design.DesignCrate;
 import hue.captains.singapura.js.homing.relgrid.protocol.RelGridProtocolCrate;
 import hue.captains.singapura.js.homing.reltree.RelTreeCrate;
+import hue.captains.singapura.js.homing.ui.elements.UiElementsCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
+import hue.captains.singapura.js.homing.ui.look.UiLookCrate;
 import hue.captains.singapura.js.homing.workspace.widgets.WorkspaceWidgetsCrate;
 
 import java.util.List;
@@ -31,12 +32,13 @@ public final class WorkspaceTreeCrate implements Crate {
                 CoreJsCrate.INSTANCE,
                 // the focus party, the css manager
                 ServerCrate.INSTANCE,
-                // the design words the sheet wears
-                DesignCrate.INSTANCE,
                 // what a widget is: the sheet it fills its container by
                 WorkspaceWidgetsCrate.INSTANCE,
                 // the table of contents' relation tree, and its questions
-                RelTreeCrate.INSTANCE, RelGridProtocolCrate.INSTANCE);
+                RelTreeCrate.INSTANCE, RelGridProtocolCrate.INSTANCE,
+                // its headings in the house's look
+                UiLookCrate.INSTANCE,
+                UiElementsCrate.INSTANCE);
     }
 
     @Override

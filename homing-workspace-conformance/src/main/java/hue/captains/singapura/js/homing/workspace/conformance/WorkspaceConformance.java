@@ -56,8 +56,9 @@ public final class WorkspaceConformance {
     /** The top level and everything it requires, transitively. */
     public static Collection<Crate> closure() { return CrateClosure.of(TOP_LEVEL); }
 
-    /** The framework-strict grader: no ledger to hold a finding as debt. */
+    /** The framework-strict grader: no debt but what a module declares on its own class ({@code @ConformanceDebt}). */
     public static FindingGrader grader() {
         return FindingGrader.STRICT;
     }
+
 }

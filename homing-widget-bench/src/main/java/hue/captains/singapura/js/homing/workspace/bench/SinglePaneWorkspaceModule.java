@@ -2,6 +2,8 @@ package hue.captains.singapura.js.homing.workspace.bench;
 
 import hue.captains.singapura.js.homing.component.keyboard.FocusPartyModule;
 import hue.captains.singapura.js.homing.component.keyboard.focusParties;
+import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
+import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -10,7 +12,8 @@ import hue.captains.singapura.js.homing.workspace.layers.PaneLayerModule;
 import hue.captains.singapura.js.homing.workspace.layers.RosterLayerModule;
 import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
 import hue.captains.singapura.js.homing.core.js.domOpsParties;
-import hue.captains.singapura.js.homing.ui.elements.Elements;
+import hue.captains.singapura.js.homing.ui.look.StatesAndEventsModule;
+import hue.captains.singapura.js.homing.ui.elements.PlainButtonModule;
 import hue.captains.singapura.js.homing.workspace.core.KindAndParamsTitleModule;
 import hue.captains.singapura.js.homing.workspace.core.WorkspaceCoreModule;
 import hue.captains.singapura.js.homing.workspace.core.WorkspacePartiesModule;
@@ -25,6 +28,8 @@ import java.util.List;
  * grafted when the page mounts it; its widgets its headless core's, their
  * parties beside it; a single pane showing one of them at a time.
  */
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 27,
+        reason = "It makes elements by a companion, makes its own elements, places elements, wears classes of its own, writes attributes and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record SinglePaneWorkspaceModule() implements DomModule<SinglePaneWorkspaceModule> {
 
     public record SinglePaneWorkspace() implements SelfContainedWidget<SinglePaneWorkspaceModule> {
@@ -36,6 +41,7 @@ public record SinglePaneWorkspaceModule() implements DomModule<SinglePaneWorkspa
     @Override
     public ImportsFor<SinglePaneWorkspaceModule> imports() {
         return ImportsFor.<SinglePaneWorkspaceModule>builder()
+                .add(new ModuleImports<>(List.of(new StatesAndEventsModule.EVENT()), StatesAndEventsModule.INSTANCE))
                 // its own roots
                 .add(new ModuleImports<>(List.of(new domOpsParties(), new DomOpsPartyModule.MobileDomOpsParty()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))
@@ -51,7 +57,7 @@ public record SinglePaneWorkspaceModule() implements DomModule<SinglePaneWorkspa
                 // its placement, and its bar
                 .add(new ModuleImports<>(List.of(new PaneSlotsModule.PaneSlots()), PaneSlotsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new SinglePaneModule.SinglePane()), SinglePaneModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(new Elements.ButtonBuilder()), Elements.INSTANCE))
+                .add(new ModuleImports<>(List.of(new PlainButtonModule.PlainButton(), new PlainButtonModule.PlainButtonFactory()), PlainButtonModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WidgetBenchStyles.wb_ws(), new WidgetBenchStyles.wb_ws_bar(), new WidgetBenchStyles.wb_ws_label(), new WidgetBenchStyles.wb_ws_name(),
                         new WidgetBenchStyles.wb_bench(), new WidgetBenchStyles.wb_sim_pick()), WidgetBenchStyles.INSTANCE))
                 .build();

@@ -2,6 +2,10 @@ package hue.captains.singapura.js.homing.workspace.tree;
 
 import hue.captains.singapura.js.homing.component.keyboard.FocusPartyModule;
 import hue.captains.singapura.js.homing.component.keyboard.focusParties;
+import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
+import hue.captains.singapura.js.homing.ui.look.CastingsModule;
+import hue.captains.singapura.js.homing.ui.look.LookModule;
+import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -17,6 +21,8 @@ import java.util.List;
  * The tree placement's engine: {@code new TreeLayout(container, opts)} - a tree's arrangement
  * laid out as a reading flow, each widget of a node's leaf made from its type and params.
  */
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 49,
+        reason = "It makes its own elements, places elements, wears classes of its own, writes styles and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record TreeLayoutModule() implements DomModule<TreeLayoutModule> {
 
     public static final TreeLayoutModule INSTANCE = new TreeLayoutModule();
@@ -30,6 +36,9 @@ public record TreeLayoutModule() implements DomModule<TreeLayoutModule> {
     @Override
     public ImportsFor<TreeLayoutModule> imports() {
         return ImportsFor.<TreeLayoutModule>builder()
+                // its headings, each in its level's look
+                .add(new ModuleImports<>(List.of(new LookModule.Look()), LookModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new CastingsModule.ROLE()), CastingsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new domOpsParties()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WidgetStyles.wg_fill(), new WidgetStyles.wg_scroll()), WidgetStyles.INSTANCE))

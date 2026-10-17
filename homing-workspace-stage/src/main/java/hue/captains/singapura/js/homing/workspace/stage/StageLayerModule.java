@@ -1,5 +1,7 @@
 package hue.captains.singapura.js.homing.workspace.stage;
 
+import hue.captains.singapura.js.homing.ui.look.LookModule;
+import hue.captains.singapura.js.homing.ui.look.CastingsModule;
 import hue.captains.singapura.js.homing.component.BranchComponent;
 import hue.captains.singapura.js.homing.component.keyboard.Key;
 import hue.captains.singapura.js.homing.component.keyboard.KeyBinding;
@@ -9,7 +11,8 @@ import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.ui.dialog.ModalityModule;
-import hue.captains.singapura.js.homing.ui.elements.Elements;
+import hue.captains.singapura.js.homing.ui.look.StatesAndEventsModule;
+import hue.captains.singapura.js.homing.ui.elements.PlainButtonModule;
 
 import java.util.List;
 
@@ -33,8 +36,12 @@ public record StageLayerModule() implements DomModule<StageLayerModule> {
     @Override
     public ImportsFor<StageLayerModule> imports() {
         return ImportsFor.<StageLayerModule>builder()
+                // its title, the house's heading of its level
+                .add(new ModuleImports<>(List.of(new LookModule.Look()), LookModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new CastingsModule.ROLE()), CastingsModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new StatesAndEventsModule.EVENT()), StatesAndEventsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new ModalityModule.Modality()), ModalityModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(new Elements.ButtonBuilder()), Elements.INSTANCE))
+                .add(new ModuleImports<>(List.of(new PlainButtonModule.PlainButton(), new PlainButtonModule.PlainButtonFactory()), PlainButtonModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new StageStyles.sg_layer(), new StageStyles.sg_hidden(), new StageStyles.sg_scrim(),
                         new StageStyles.sg_frame(), new StageStyles.sg_head(), new StageStyles.sg_title(), new StageStyles.sg_seat()), StageStyles.INSTANCE))
                 .build();

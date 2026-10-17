@@ -17,6 +17,15 @@
 // =============================================================================
 
 const _stageLayerOwner = Object.freeze({ toString: () => "stage" });
+/** Its title: the house's heading of a widget's title - the fourth level - on its own tag. */
+const _TITLE_HEADING = Object.freeze({ LEAF: "heading4" });
+
+/** The stage's close pressed: the stage closed. */
+class StageLayerClose {
+    constructor(layer) { this._layer = layer; }
+    canHandle(type) { return type === EVENT.CLICK; }
+    handle() { this._layer._onClose(); }
+}
 
 class StageLayer {
     constructor(branch, opts) {
@@ -39,13 +48,14 @@ class StageLayer {
         css.addClass(frame, sg_frame);
         var head = branch.createElement("head", "div");
         css.addClass(head, sg_head);
-        this._title = branch.createElement("title", "h2");
+        this._title = branch.createElement("title", "h4");
         css.addClass(this._title, sg_title);
+        new Look(_TITLE_HEADING, ROLE.STANDALONE).wear(this._title);
         this._title.setAttribute("id", "stage-title");
         layer.setAttribute("aria-labelledby", "stage-title");
         head.appendChild(this._title);
-        var b = new ButtonBuilder().label("Close").plain().size(-1).onClick(function () { self._onClose(); });
-        var close = b.build(branch.createElement("close", b.tag));
+        var close = new PlainButton(PlainButtonFactory.create(branch, "close"), { label: "Close", size: -1 });
+        close.setOnClick(new StageLayerClose(self));
         close.el.setAttribute("aria-label", "Close the stage");
         head.appendChild(close.el);
         frame.appendChild(head);

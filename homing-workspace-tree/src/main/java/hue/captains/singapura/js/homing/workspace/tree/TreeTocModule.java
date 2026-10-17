@@ -6,6 +6,8 @@ import hue.captains.singapura.js.homing.component.keyboard.KeyBinding;
 import hue.captains.singapura.js.homing.component.keyboard.KeysModule;
 import hue.captains.singapura.js.homing.component.keyboard.NeedKeyboard;
 import hue.captains.singapura.js.homing.component.keyboard.focusParties;
+import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
+import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -24,6 +26,8 @@ import java.util.List;
  * A tree placement's table of contents: {@code new TreeToc(container, opts)} - its nodes as a
  * relation tree; the cursor the reader's pick, and following the section in view.
  */
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 10,
+        reason = "It makes its own elements, places elements, wears classes of its own and writes attributes: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record TreeTocModule() implements DomModule<TreeTocModule> {
 
     public static final TreeTocModule INSTANCE = new TreeTocModule();

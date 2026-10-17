@@ -64,6 +64,10 @@
 // =============================================================================
 
 const _treeLayoutOwner = Object.freeze({ toString: () => "treeLayout" });
+/** The house's headings, a leaf a level: a section's heading worn as its depth's. */
+/** A section of a doc: the house's section, washed while the reader is in it. */
+const _TREE_SECTION = Object.freeze({ LEAF: "section" });
+const _TREE_HEADINGS = Object.freeze([1, 2, 3, 4, 5, 6].map(function (n) { return Object.freeze({ LEAF: "heading" + n }); }));
 var _treeLayouts = 0;
 var _RUN_TAGS = Object.freeze({ text: "span", code: "code", strong: "strong", emphasis: "em" });
 
@@ -203,11 +207,15 @@ class TreeLayout {
         if (depth > 0) css.addClass(section, tl_nested);
         var own = branch.createElement("own", "div");
         css.addClass(own, tl_own);
+        // a section of the doc's room: washed while the reader is in it (aria-current) - its colour alone; its room is the layout's
+        new Look(_TREE_SECTION, ROLE.STANDALONE).wear(own, { only: ["color-background"] });
         section.appendChild(own);
         var mark = own, folds = [];
         if (node.label && node.label.text) {
             mark = branch.createElement("heading", "h" + Math.min(depth + 1, 6));
             css.addClass(mark, depth < 2 ? tl_heading : tl_subheading);
+            // the house's heading of its level, realized on the native one: its label may hold links and code
+            new Look(_TREE_HEADINGS[Math.min(depth + 1, 6) - 1], ROLE.STANDALONE).wear(mark);
             this._label(branch, mark, node.label);
             own.appendChild(mark);
         }
@@ -284,9 +292,9 @@ class TreeLayout {
             }
         }
         if (at === this._shown) return;
-        if (this._shown !== null) css.toggleClass(this._byPath.get(this._shown).own, tl_current, false);
+        if (this._shown !== null) { var was = this._byPath.get(this._shown).own; css.toggleClass(was, tl_current, false); was.removeAttribute("aria-current"); }
         this._shown = at;
-        if (at !== null) css.toggleClass(this._byPath.get(at).own, tl_current, true);
+        if (at !== null) { var now = this._byPath.get(at).own; css.toggleClass(now, tl_current, true); now.setAttribute("aria-current", "true"); }
         this._onShown(at);
     }
 }

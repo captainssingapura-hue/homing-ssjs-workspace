@@ -14,6 +14,20 @@
 
 const _panePickerOwner = Object.freeze({ toString: () => "panePicker" });
 
+/** A kind's button pressed: the kind picked. */
+class PanePickerPick {
+    constructor(opts, kind) { this._opts = opts; this._kind = kind; }
+    canHandle(type) { return type === EVENT.CLICK; }
+    handle() { this._opts.onPick(this._kind); }
+}
+
+/** The cancel pressed: nothing picked. */
+class PanePickerCancel {
+    constructor(opts) { this._opts = opts; }
+    canHandle(type) { return type === EVENT.CLICK; }
+    handle() { this._opts.onCancel(); }
+}
+
 class PanePicker {
     constructor(branch, opts) {
         var o = opts || {};
@@ -29,11 +43,13 @@ class PanePicker {
         heading.textContent = "Open a widget";
         root.appendChild(heading);
         (o.kinds || []).forEach(function (k, i) {
-            var b = new ButtonBuilder();
-            root.appendChild(b.label(k.title || k.id).plain().onClick(function () { o.onPick(k.id); }).build(branch.createElement("kind-" + i, b.tag)).el);
+            var pick = new PlainButton(PlainButtonFactory.create(branch, "kind-" + i), { label: k.title || k.id });
+            pick.setOnClick(new PanePickerPick(o, k.id));
+            root.appendChild(pick.el);
         });
-        var c = new ButtonBuilder();
-        root.appendChild(c.label("Cancel").plain().size(-1).onClick(function () { o.onCancel(); }).build(branch.createElement("cancel", c.tag)).el);
+        var cancel = new PlainButton(PlainButtonFactory.create(branch, "cancel"), { label: "Cancel", size: -1 });
+        cancel.setOnClick(new PanePickerCancel(o));
+        root.appendChild(cancel.el);
         this.root = root;
     }
 }

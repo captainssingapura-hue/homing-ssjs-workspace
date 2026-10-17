@@ -1,11 +1,15 @@
 package hue.captains.singapura.js.homing.workspace.switcher;
 
+import hue.captains.singapura.js.homing.ui.look.LookModule;
+import hue.captains.singapura.js.homing.ui.look.CastingsModule;
 import hue.captains.singapura.js.homing.component.keyboard.FocusPartyModule;
 import hue.captains.singapura.js.homing.component.keyboard.Key;
 import hue.captains.singapura.js.homing.component.keyboard.KeyBinding;
 import hue.captains.singapura.js.homing.component.keyboard.KeysModule;
 import hue.captains.singapura.js.homing.component.keyboard.NeedKeyboard;
 import hue.captains.singapura.js.homing.component.keyboard.focusParties;
+import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
+import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -27,6 +31,8 @@ import java.util.List;
  * the page's directory, its sections and the kinds filed in them; its cursor the
  * choice, Enter on a kind the asking for it to open.
  */
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 26,
+        reason = "It makes its own elements, places elements, wears classes of its own, writes attributes and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record WorkspaceKindsModule() implements DomModule<WorkspaceKindsModule> {
 
     public record WorkspaceKinds() implements SelfContainedWidget<WorkspaceKindsModule>, NeedKeyboard {
@@ -42,6 +48,9 @@ public record WorkspaceKindsModule() implements DomModule<WorkspaceKindsModule> 
     @Override
     public ImportsFor<WorkspaceKindsModule> imports() {
         return ImportsFor.<WorkspaceKindsModule>builder()
+                // its title, the house's heading of its level
+                .add(new ModuleImports<>(List.of(new LookModule.Look()), LookModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new CastingsModule.ROLE()), CastingsModule.INSTANCE))
                 // its own DomOps party and focus party, each from its party of parties
                 .add(new ModuleImports<>(List.of(new domOpsParties()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))

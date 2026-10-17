@@ -4,7 +4,6 @@ import hue.captains.singapura.js.homing.core.Crate;
 import hue.captains.singapura.js.homing.core.CrateEntry;
 import hue.captains.singapura.js.homing.core.StandardJsModuleType;
 import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
-import hue.captains.singapura.js.homing.design.DesignCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
 import hue.captains.singapura.js.homing.workspace.parties.WorkspacePartiesCrate;
 
@@ -30,7 +29,6 @@ public final class WorkspaceContentCrate implements Crate {
                 // the focus party, the css manager
                 ServerCrate.INSTANCE,
                 // the design words the sheet wears
-                DesignCrate.INSTANCE,
                 // the parties' runtime a content party is an instance of
                 WorkspacePartiesCrate.INSTANCE);
     }

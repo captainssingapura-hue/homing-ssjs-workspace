@@ -2,6 +2,8 @@ package hue.captains.singapura.js.homing.workspace.demowidgets.books;
 
 import hue.captains.singapura.js.homing.component.keyboard.FocusPartyModule;
 import hue.captains.singapura.js.homing.component.keyboard.focusParties;
+import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
+import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -19,6 +21,8 @@ import java.util.List;
  * where they meet in a book selection party of its own: a scope linked to the
  * party it is given, its secretary keeping the edge.
  */
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 12,
+        reason = "It makes its own elements, places elements, wears classes of its own and writes attributes: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record BookBrowserModule() implements DomModule<BookBrowserModule> {
 
     public record BookBrowser() implements SelfContainedWidget<BookBrowserModule> {

@@ -1,11 +1,15 @@
 package hue.captains.singapura.js.homing.workspace.switcher;
 
+import hue.captains.singapura.js.homing.ui.look.LookModule;
+import hue.captains.singapura.js.homing.ui.look.CastingsModule;
 import hue.captains.singapura.js.homing.component.keyboard.FocusPartyModule;
 import hue.captains.singapura.js.homing.component.keyboard.Key;
 import hue.captains.singapura.js.homing.component.keyboard.KeyBinding;
 import hue.captains.singapura.js.homing.component.keyboard.KeysModule;
 import hue.captains.singapura.js.homing.component.keyboard.NeedKeyboard;
 import hue.captains.singapura.js.homing.component.keyboard.focusParties;
+import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
+import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -14,6 +18,7 @@ import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
 import hue.captains.singapura.js.homing.core.js.domOpsParties;
 import hue.captains.singapura.js.homing.relgrid.RelGridModule;
 import hue.captains.singapura.js.homing.relgrid.protocol.RelGridProtocolModule;
+import hue.captains.singapura.js.homing.relgrid.house.HouseGridModule;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceChoiceModule;
 import hue.captains.singapura.js.homing.workspace.groups.WorkspaceDirectoryModule;
 import hue.captains.singapura.js.homing.workspace.log.js.LogIdsModule;
@@ -29,6 +34,8 @@ import java.util.List;
  * each one's name, when last opened and when made, as the catalogue this browser
  * keeps has them; Enter on one the asking for it to open.
  */
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 26,
+        reason = "It makes its own elements, places elements, wears classes of its own, writes attributes and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record WorkspaceInstancesModule() implements DomModule<WorkspaceInstancesModule> {
 
     public record WorkspaceInstances() implements SelfContainedWidget<WorkspaceInstancesModule>, NeedKeyboard {
@@ -47,11 +54,15 @@ public record WorkspaceInstancesModule() implements DomModule<WorkspaceInstances
     @Override
     public ImportsFor<WorkspaceInstancesModule> imports() {
         return ImportsFor.<WorkspaceInstancesModule>builder()
+                // its title, the house's heading of its level
+                .add(new ModuleImports<>(List.of(new LookModule.Look()), LookModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new CastingsModule.ROLE()), CastingsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new domOpsParties()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new KeysModule.Keys()), KeysModule.INSTANCE))
                 // the relation grid, its stock cell, and what tells it the rows changed
                 .add(new ModuleImports<>(List.of(new RelGridModule.RelGrid()), RelGridModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new HouseGridModule.HouseGrid()), HouseGridModule.INSTANCE))   // the design its grid is made with
                 // its relation: the rows, their cells, the new row
                 .add(new ModuleImports<>(List.of(new WorkspaceRowsModule.WorkspaceRows()), WorkspaceRowsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new RelGridProtocolModule.RelGridViewChanged()), RelGridProtocolModule.INSTANCE))

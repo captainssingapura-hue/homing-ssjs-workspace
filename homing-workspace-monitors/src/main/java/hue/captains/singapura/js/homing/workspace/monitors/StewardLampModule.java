@@ -1,17 +1,18 @@
 package hue.captains.singapura.js.homing.workspace.monitors;
 
+import hue.captains.singapura.js.homing.component.WidgetSlotModule;
 import hue.captains.singapura.js.homing.component.keyboard.KeyBinding;
 import hue.captains.singapura.js.homing.component.keyboard.NeedKeyboard;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
-import hue.captains.singapura.js.homing.ui.focus.StewardMonitorModule;
+import hue.captains.singapura.js.homing.ui.monitors.StewardMonitorModule;
 import hue.captains.singapura.js.homing.workspace.widgets.SelfContainedWidget;
 
 import java.util.List;
 
-/** Where the keys are, a monitor widget: {@code new StewardLamp(container, params)}, the StewardMonitor component in a widget of its own. */
+/** Where the keys are, a monitor widget: {@code new StewardLamp(container, params)}, the StewardMonitor widget shown in a slot over its box. */
 public record StewardLampModule() implements DomModule<StewardLampModule> {
 
     public record StewardLamp() implements SelfContainedWidget<StewardLampModule>, NeedKeyboard {
@@ -26,6 +27,7 @@ public record StewardLampModule() implements DomModule<StewardLampModule> {
         return ImportsFor.<StewardLampModule>builder()
                 .add(new ModuleImports<>(List.of(new MonitorModule.Monitor()), MonitorModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new StewardMonitorModule.StewardMonitor()), StewardMonitorModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new WidgetSlotModule.WidgetSlot()), WidgetSlotModule.INSTANCE))
                 .build();
     }
 

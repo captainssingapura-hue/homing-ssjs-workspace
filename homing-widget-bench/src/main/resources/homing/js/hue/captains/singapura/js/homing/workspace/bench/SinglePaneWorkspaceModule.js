@@ -32,6 +32,13 @@
 // =============================================================================
 
 const _spwOwner = Object.freeze({ toString: () => "singlePaneWorkspace" });
+
+/** A press on one of the bench's bar buttons: the workspace told which. */
+class SinglePanePress {
+    constructor(workspace, act, kinds) { this._workspace = workspace; this._act = act; this._kinds = kinds; }
+    canHandle(type) { return type === EVENT.CLICK; }
+    handle() { this._workspace._pressed(this._act, this._kinds); }
+}
 var _spWorkspaces = 0;
 
 class SinglePaneWorkspace {
@@ -144,19 +151,27 @@ class SinglePaneWorkspace {
         this._showing.addEventListener("change", function () { self.show(self._showing.value || null); });
         this._options = null;
         this._refills = 0;
-        var b = new ButtonBuilder(), c = new ButtonBuilder(), r = new ButtonBuilder();
         this._name = d.createElement("name", "input");
         this._name.type = "text";
         this._name.placeholder = "A name";
         this._name.setAttribute("aria-label", "A name for the widget shown - none takes its name back");
         css.addClass(this._name, wb_ws_name);
-        var rename = r.label("Rename").plain().size(-1).onClick(function () { var id = self.pane.shown(); if (id) self.rename(id, self._name.value); self._name.value = ""; })
-                      .build(d.createElement("rename", r.tag));
-        var open = b.label("Open…").plain().size(-1).onClick(function () { self.pane.pick(kinds, function (kind) { self.open(kind, {}, "shown"); }); })
-                    .build(d.createElement("open", b.tag));
-        var close = c.label("Close").plain().size(-1).onClick(function () { var id = self.pane.shown(); if (id) self.close(id); }).build(d.createElement("close", c.tag));
+        var rename = new PlainButton(PlainButtonFactory.create(d, "rename"), { label: "Rename", size: -1 });
+        rename.setOnClick(new SinglePanePress(self, "rename", kinds));
+        var open = new PlainButton(PlainButtonFactory.create(d, "open"), { label: "Open…", size: -1 });
+        open.setOnClick(new SinglePanePress(self, "open", kinds));
+        var close = new PlainButton(PlainButtonFactory.create(d, "close"), { label: "Close", size: -1 });
+        close.setOnClick(new SinglePanePress(self, "close", kinds));
         [open.el, this._label("showing-label", "Showing"), this._showing, this._name, rename.el, close.el].forEach(function (el) { bar.appendChild(el); });
         return bar;
+    }
+
+    /** One of the bar's buttons pressed, by its name. */
+    _pressed(act, kinds) {
+        var self = this, id = this.pane.shown();
+        if (act === "rename") { if (id) this.rename(id, this._name.value); this._name.value = ""; }
+        else if (act === "open") this.pane.pick(kinds, function (kind) { self.open(kind, {}, "shown"); });
+        else if (act === "close") { if (id) this.close(id); }
     }
 
     static _option(branch, name, value, text) {

@@ -10,7 +10,6 @@ import hue.captains.singapura.js.homing.core.ParamCodec;
 import hue.captains.singapura.js.homing.core.QueryString;
 import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
 import hue.captains.singapura.js.homing.core.js.domOpsParty;
-import hue.captains.singapura.js.homing.site.mpa.MpaStyles;
 import hue.captains.singapura.js.homing.workspace.log.LogIds.WorkspaceInstanceId;
 import hue.captains.singapura.js.homing.workspace.log.js.LogKeyModule;
 import hue.captains.singapura.js.homing.workspace.log.store.IndexedDbLogModule;
@@ -78,8 +77,6 @@ public record WorkspacePageModule() implements DomModule<WorkspacePageModule> {
     public ImportsFor<WorkspacePageModule> imports() {
         return ImportsFor.<WorkspacePageModule>builder()
                 .add(new ModuleImports<>(List.of(new domOpsParty()), DomOpsPartyModule.INSTANCE))
-                // the slot is a reading column until an app says otherwise; a shell of panes says otherwise
-                .add(new ModuleImports<>(List.of(new MpaStyles.mpa_main_full()), MpaStyles.INSTANCE))
                 .add(new ModuleImports<>(List.of(new GridWorkspaceModule.GridWorkspace()), GridWorkspaceModule.INSTANCE))
                 // a split grid's arrangement, laid out on a log that holds nothing yet
                 .add(new ModuleImports<>(List.of(new GridArrangementModule.GridArrangement()), GridArrangementModule.INSTANCE))

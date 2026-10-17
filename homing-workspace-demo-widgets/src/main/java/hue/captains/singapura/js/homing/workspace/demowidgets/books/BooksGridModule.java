@@ -6,6 +6,8 @@ import hue.captains.singapura.js.homing.component.keyboard.KeyBinding;
 import hue.captains.singapura.js.homing.component.keyboard.KeysModule;
 import hue.captains.singapura.js.homing.component.keyboard.NeedKeyboard;
 import hue.captains.singapura.js.homing.component.keyboard.focusParties;
+import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
+import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -13,6 +15,7 @@ import hue.captains.singapura.js.homing.core.ModuleImports;
 import hue.captains.singapura.js.homing.core.js.DomOpsPartyModule;
 import hue.captains.singapura.js.homing.core.js.domOpsParties;
 import hue.captains.singapura.js.homing.relgrid.RelGridModule;
+import hue.captains.singapura.js.homing.relgrid.house.HouseGridModule;
 import hue.captains.singapura.js.homing.workspace.widgets.SelfContainedWidget;
 import hue.captains.singapura.js.homing.workspace.widgets.WidgetStyles;
 
@@ -23,6 +26,8 @@ import java.util.List;
  * A widget that stands on its own - its DomOpsParty and FocusParty roots its
  * own, its data its own - with the browser's native focus inside it.
  */
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 7,
+        reason = "It makes its own elements, places elements and wears classes of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record BooksGridModule() implements DomModule<BooksGridModule> {
 
     public record BooksGrid() implements SelfContainedWidget<BooksGridModule>, NeedKeyboard {
@@ -42,6 +47,7 @@ public record BooksGridModule() implements DomModule<BooksGridModule> {
                 .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new KeysModule.Keys()), KeysModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new RelGridModule.RelGrid()), RelGridModule.INSTANCE))
+                .add(new ModuleImports<>(List.of(new HouseGridModule.HouseGrid()), HouseGridModule.INSTANCE))   // the design its grid is made with
                 .add(new ModuleImports<>(List.of(new BooksModule.BooksStore(), new BooksModule.BooksRelation()), BooksModule.INSTANCE))
                 // the type it joins, by which it is given a party: its cursor is the choice
                 .add(new ModuleImports<>(List.of(new BookSelectionModule.BOOK_SELECTION()), BookSelectionModule.INSTANCE))

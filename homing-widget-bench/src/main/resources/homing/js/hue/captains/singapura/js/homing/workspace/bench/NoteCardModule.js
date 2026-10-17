@@ -13,6 +13,8 @@
 // =============================================================================
 
 const _noteCardOwner = Object.freeze({ toString: () => "noteCard" });
+/** Its title: the house's heading of a widget's title - the fourth level - on its own tag. */
+const _TITLE_HEADING = Object.freeze({ LEAF: "heading4" });
 var _noteCards = 0;
 
 class NoteCard {
@@ -32,8 +34,9 @@ class NoteCard {
         var key = this._dom.createElement("key", "p");
         css.addClass(key, cb_key);
         key.textContent = ContentParams.key(this._params);
-        this._title = this._dom.createElement("title", "p");
+        this._title = this._dom.createElement("title", "h4");
         css.addClass(this._title, cb_title);
+        new Look(_TITLE_HEADING, ROLE.STANDALONE).wear(this._title);
         this._text = this._dom.createElement("text", "p");
         css.addClass(this._text, cb_text);
         root.appendChild(key);

@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.shell;
 
+import hue.captains.singapura.js.homing.layout.LayoutCrate;
 import hue.captains.singapura.js.homing.core.Crate;
 import hue.captains.singapura.js.homing.core.CrateEntry;
 import hue.captains.singapura.js.homing.core.StandardJsModuleType;
@@ -9,6 +10,7 @@ import hue.captains.singapura.js.homing.site.mpa.MpaCrate;
 import hue.captains.singapura.js.homing.ui.docking.UiDockingCrate;
 import hue.captains.singapura.js.homing.ui.elements.UiElementsCrate;
 import hue.captains.singapura.js.homing.ui.icons.UiIconsCrate;
+import hue.captains.singapura.js.homing.ui.look.UiLookCrate;
 import hue.captains.singapura.js.homing.ui.menu.UiMenuCrate;
 import hue.captains.singapura.js.homing.ui.panes.UiPanesCrate;
 import hue.captains.singapura.js.homing.ui.splitgrid.UiSplitGridCrate;
@@ -40,6 +42,8 @@ public final class WorkspaceShellCrate implements Crate {
         return List.of(
                 CoreJsCrate.INSTANCE,
                 ServerCrate.INSTANCE,
+                // The layout algebra an arrangement's layout is a value of.
+                LayoutCrate.INSTANCE,
                 // The framework page model the workspace is a page of, for the one
                 // word it wears on the slot it is handed.
                 MpaCrate.INSTANCE,
@@ -49,6 +53,7 @@ public final class WorkspaceShellCrate implements Crate {
                 UiDockingCrate.INSTANCE,
                 UiMenuCrate.INSTANCE,
                 // The control strip: the edge strip it lies on, its designed buttons, the mark on its switcher.
+                UiLookCrate.INSTANCE,
                 UiElementsCrate.INSTANCE,
                 UiIconsCrate.INSTANCE,
                 WorkspaceLogCodecCrate.INSTANCE,
@@ -58,10 +63,7 @@ public final class WorkspaceShellCrate implements Crate {
                 // layer of the log; what a widget is to a workspace, and the holder its tab lends it.
                 WorkspaceCoreCrate.INSTANCE,
                 WorkspaceLayersCrate.INSTANCE,
-                WorkspaceWidgetsCrate.INSTANCE,
-                // The design substrate its sheets wear words of. No legacy palette:
-                // nothing here reads a --color-* or a legacy font token.
-                hue.captains.singapura.js.homing.design.DesignCrate.INSTANCE);
+                WorkspaceWidgetsCrate.INSTANCE);
     }
 
     @Override

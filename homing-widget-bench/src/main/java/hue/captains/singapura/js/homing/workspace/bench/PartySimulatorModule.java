@@ -9,8 +9,9 @@ import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
 import hue.captains.singapura.js.homing.core.ModuleImports;
-import hue.captains.singapura.js.homing.ui.elements.Elements;
-import hue.captains.singapura.js.homing.ui.focus.FocusStyles;
+import hue.captains.singapura.js.homing.ui.look.StatesAndEventsModule;
+import hue.captains.singapura.js.homing.ui.elements.PlainButtonModule;
+import hue.captains.singapura.js.homing.ui.monitors.FocusStyles;
 import hue.captains.singapura.js.homing.workspace.parties.MessagingPartyModule;
 
 import java.util.List;
@@ -33,10 +34,11 @@ public record PartySimulatorModule() implements DomModule<PartySimulatorModule> 
     @Override
     public ImportsFor<PartySimulatorModule> imports() {
         return ImportsFor.<PartySimulatorModule>builder()
+                .add(new ModuleImports<>(List.of(new StatesAndEventsModule.EVENT()), StatesAndEventsModule.INSTANCE))
                 // the check a typed message passes before it goes down
                 .add(new ModuleImports<>(List.of(new MessagingPartyModule.MessagingParty()), MessagingPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new KeysModule.Keys()), KeysModule.INSTANCE))
-                .add(new ModuleImports<>(List.of(new Elements.ButtonBuilder()), Elements.INSTANCE))
+                .add(new ModuleImports<>(List.of(new PlainButtonModule.PlainButton(), new PlainButtonModule.PlainButtonFactory()), PlainButtonModule.INSTANCE))
                 // the log's lines, as the monitors' rows
                 .add(new ModuleImports<>(List.of(new FocusStyles.fm_row(), new FocusStyles.fm_kind(), new FocusStyles.fm_name(), new FocusStyles.fm_component()), FocusStyles.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WidgetBenchStyles.wb_sim(), new WidgetBenchStyles.wb_sim_note(), new WidgetBenchStyles.wb_sim_log(),

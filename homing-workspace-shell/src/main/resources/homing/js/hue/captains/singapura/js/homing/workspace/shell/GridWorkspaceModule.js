@@ -65,9 +65,11 @@ class GridWorkspace {
         function report(ev) { if (self.recorder && ev.kind !== "TabRenamed") self.recorder.hear(ev); self._answer(ev); }
         this.desk = new Desk(branch.createBranch("desk"), { host: floor, budget: o.budget == null ? 16 : o.budget, onEvent: report,
                                                             keyboard: kb, keyboardId: "workspace/desk", menus: this._menus, focusName: "workspace" });
-        var grid = o.state ? o.state.grid : null;
-        this.docks = new DockGrid(branch.createBranch("docks"), { host: floor, desk: this.desk, menus: this._menus, onEvent: report, dock: { addable: true },
-                                                                  layout: grid ? WorkspaceProjection.gridLayout(grid.layout) : undefined });
+        var kept = o.state ? o.state.grid : null;
+        // THE LAYOUT, a split grid - one region, or the one the log kept - and THE DOCKS, the desk's, one residing in each of its cells
+        this.grid = new SplitGrid(branch.createBranch("grid"), { host: floor, minCellPx: 160, resizable: true, onEvent: report,
+                                                                 layout: kept ? WorkspaceProjection.gridLayout(kept.layout) : { kind: "cell", id: "main" } });
+        this.docks = this.desk.dock(branch.createBranch("docks"), this.grid, { menus: this._menus, onEvent: report, dock: { addable: true } });
         // THE REGISTER OF PANES, THE PLACEMENT, THE CORE; THE PARTIES, before any widget opens
         this.tabs = new WidgetTabs(this.desk, { title: function (e) { return self.titleOf(e); }, onClose: function (id) { self.close(id); } });
         this.placement = new GridPlacement({ desk: this.desk, docks: this.docks, tabs: this.tabs, onEvent: report });
@@ -183,6 +185,7 @@ class GridWorkspace {
         this.parties.dispose();
         this.desk.dispose();
         this.docks.dispose();
+        this.grid.dispose();
         if (this.logBar) this.logBar.dispose();
         if (this._ownMenus) this._ownMenus.dispose();
         if (this.root.parentNode) this.root.parentNode.removeChild(this.root);

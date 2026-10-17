@@ -1,6 +1,6 @@
 // =============================================================================
 // StewardLamp — where the keys are, as one lamp, a monitor widget (Monitor):
-// the StewardMonitor component in a widget of its own. Held by a member, lent
+// the StewardMonitor widget, shown in a slot over its box. Held by a member, lent
 // by it to a native control of its own, or away; the member a walk offers the
 // keys to; and the first of the steward's invariants broken, in the danger
 // colour while one is. Redrawn on every event of the steward and every move
@@ -9,16 +9,20 @@
 //   new StewardLamp(container, params)   params: none
 // =============================================================================
 
+const _stewardLampOwner = Object.freeze({ toString: () => "stewardLamp" });
 var _stewardLamps = 0;
 
 class StewardLamp extends Monitor {
     constructor(container, params) {
         super(container, "stewardLamp-" + (++_stewardLamps), "Keyboard steward");
-        this._it = new StewardMonitor(this._dom.createBranch("monitor"), { host: this.box });
+        var shown = this._dom.createBranch("monitor");
+        shown.activate(_stewardLampOwner);
+        this._slot = new WidgetSlot({ branch: shown, host: this.box });
+        this._it = this._slot.show("steward", StewardMonitor, {});
     }
 
     dispose() {
-        this._it.dispose();
+        this._slot.disposeAll();
         super.dispose();
     }
 }

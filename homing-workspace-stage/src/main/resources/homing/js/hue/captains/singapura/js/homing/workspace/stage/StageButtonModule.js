@@ -12,6 +12,13 @@
 
 const _stageButtonOwner = Object.freeze({ toString: () => "stage-button" });
 
+/** The button pressed: the stage button's press. */
+class StageButtonPress {
+    constructor(stageButton) { this._stageButton = stageButton; }
+    canHandle(type) { return type === EVENT.CLICK; }
+    handle() { this._stageButton._press(); }
+}
+
 class StageButton {
     constructor(branch, opts) {
         var o = opts || {}, self = this;
@@ -24,8 +31,8 @@ class StageButton {
         this._widget = String(o.widget);
         this._member = null;
         this._shown = false;
-        var b = new ButtonBuilder().label("Focus").plain().size(-1).onClick(function () { self._press(); });
-        this._button = b.build(branch.createElement("stage", b.tag));
+        this._button = new PlainButton(PlainButtonFactory.create(branch, "stage"), { label: "Focus", size: -1 });
+        this._button.setOnClick(new StageButtonPress(self));
         this._button.el.setAttribute("aria-label", "Show it on the stage");
         this.root = this._button.el;
     }
@@ -53,7 +60,7 @@ class StageButton {
 
     _at(shown) {
         this._shown = shown;
-        this._button.label(shown ? "Back" : "Focus");
+        this._button.label = shown ? "Back" : "Focus";
         this._button.el.setAttribute("aria-label", shown ? "Bring it back from the stage" : "Show it on the stage");
     }
 

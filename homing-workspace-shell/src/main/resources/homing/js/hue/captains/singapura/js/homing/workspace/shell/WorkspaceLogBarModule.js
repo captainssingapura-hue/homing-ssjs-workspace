@@ -54,6 +54,13 @@
 
 const _logBarOwner = Object.freeze({ toString: () => "workspaceLogBar" });
 
+/** A press on one of the strip's buttons: the bar told which. */
+class LogBarPress {
+    constructor(bar, act) { this._bar = bar; this._act = act; }
+    canHandle(type) { return type === EVENT.CLICK; }
+    handle() { this._bar._pressed(this._act); }
+}
+
 class WorkspaceLogBar {
     constructor(branch, opts) {
         var o = opts || {};
@@ -68,16 +75,16 @@ class WorkspaceLogBar {
         this._readOnly = false;
         this._latest = null;
         var self = this;
-        this.strip = new EdgeStripBuilder().label("Workspace").host(o.host).build(branch.createBranch("strip"));
+        this.strip = new EdgeStrip(branch.createBranch("strip"), { label: "Workspace", host: o.host });
         this.root = this.strip.root;
         // what the workspace is called: said, or offered as the way to another - its name and the mark that it opens
         this._named = branch.createElement("named", "strong");
         css.addClass(this._named, ws_logbar_name);
         this._switchTo = null;
-        this._switch = this._button("switch", "plain", "", function () { if (self._switchTo) self._switchTo(); });
+        this._switch = this._button("switch", PlainButton, PlainButtonFactory, "");
         this._switchName = branch.createElement("switchName", "span");
         var mark = branch.createElement("switchMark", Icon.TAG);
-        new Icon(mark, { name: "disclose" });
+        new Icon(mark, ICON.DISCLOSE_ICON);   // the mark that it opens: the disclose icon
         this._switch.el.appendChild(this._switchName);
         this._switch.el.appendChild(mark);
         this._counted = branch.createElement("count", "span");
@@ -85,20 +92,20 @@ class WorkspaceLogBar {
         this._noticed = this._line("notice");
         // who writes the log: said while it is not this page, with the way to take it over
         this._locked = this._line("locked");
-        this._takeOver = this._button("takeOver", "warning", "Take over", function () { if (self._onTakeOver) self._onTakeOver(); });
+        this._takeOver = this._button("takeOver", WarningButton, WarningButtonFactory, "Take over");
         // this page's own workspace, while another page writes this one: a new one of the kind
         this._fresh = branch.createElement("fresh", "a");
         css.addClass(this._fresh, ws_logbar_fresh);
         this._fresh.textContent = "Open a new workspace of this kind";
         // the workspace back to how it starts: the page's, offered, and only to the page that writes it
         this._resetTo = null;
-        this._reset = this._button("reset", "plain", "Reset…", function () { if (self._resetTo) self._resetTo(); });
-        var exportLog = this._button("export", "plain", "Export log", function () { self.export(); });
-        var exportState = this._button("exportState", "plain", "Export state", function () { self.exportState(); });
+        this._reset = this._button("reset", PlainButton, PlainButtonFactory, "Reset…");
+        var exportLog = this._button("export", PlainButton, PlainButtonFactory, "Export log");
+        var exportState = this._button("exportState", PlainButton, PlainButtonFactory, "Export state");
         // a stored log the page could not read: said, exported, discarded
         this._aside = this._line("aside");
-        this._exportAside = this._button("exportAside", "plain", "Export set-aside log", function () { self.exportAside(); });
-        this._discardAside = this._button("discardAside", "danger", "Discard set-aside", function () { self.discardAsides(); });
+        this._exportAside = this._button("exportAside", PlainButton, PlainButtonFactory, "Export set-aside log");
+        this._discardAside = this._button("discardAside", DangerButton, DangerButtonFactory, "Discard set-aside");
         // the file is handed over by a link the bar keeps, never shown
         this._link = branch.createElement("link", "a");
         css.addClass(this._link, ws_logbar_link);
@@ -116,10 +123,24 @@ class WorkspaceLogBar {
         this.asides();
     }
 
-    /** A designed button on the strip: small, in a colour word, pressed to act. */
-    _button(name, colour, label, onClick) {
-        var b = new ButtonBuilder();
-        return b.label(label).colour(colour).size(-1).onClick(onClick).build(this.branch.createElement(name, b.tag));
+    /** A designed button on the strip: small, one of the button leaves, pressed to act. */
+    _button(name, Kind, Factory, label) {
+        var button = new Kind(Factory.create(this.branch, name), { label: label, size: -1 });
+        button.setOnClick(new LogBarPress(this, name));
+        return button;
+    }
+
+    /** One of the strip's buttons pressed, by its name. */
+    _pressed(act) {
+        switch (act) {
+            case "switch": if (this._switchTo) this._switchTo(); break;
+            case "takeOver": if (this._onTakeOver) this._onTakeOver(); break;
+            case "reset": if (this._resetTo) this._resetTo(); break;
+            case "export": this.export(); break;
+            case "exportState": this.exportState(); break;
+            case "exportAside": this.exportAside(); break;
+            case "discardAside": this.discardAsides(); break;
+        }
     }
 
     /** A line of text on the strip that says something, and says nothing while it is empty. */

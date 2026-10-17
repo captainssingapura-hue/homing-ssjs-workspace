@@ -6,6 +6,8 @@ import hue.captains.singapura.js.homing.component.keyboard.KeyBinding;
 import hue.captains.singapura.js.homing.component.keyboard.KeysModule;
 import hue.captains.singapura.js.homing.component.keyboard.NeedKeyboard;
 import hue.captains.singapura.js.homing.component.keyboard.focusParties;
+import hue.captains.singapura.js.homing.conformance.rules.ConformanceDebt;
+import hue.captains.singapura.js.homing.conformance.rules.WidgetDrawsOnlyComponentsRule;
 import hue.captains.singapura.js.homing.core.DomModule;
 import hue.captains.singapura.js.homing.core.ExportsOf;
 import hue.captains.singapura.js.homing.core.ImportsFor;
@@ -22,6 +24,8 @@ import java.util.List;
  * title and its author, sized by the box it is lent. It holds no books; what
  * it shows is what the book selection party says, joined after it is made.
  */
+@ConformanceDebt(rule = WidgetDrawsOnlyComponentsRule.class, findings = 24,
+        reason = "It makes its own elements, places elements, wears classes of its own, writes attributes and writes text of its own: it waits for the designed containers, the widget slot and the content components to draw only components.")
 public record BookJumbotronModule() implements DomModule<BookJumbotronModule> {
 
     public record BookJumbotron() implements SelfContainedWidget<BookJumbotronModule>, NeedKeyboard {

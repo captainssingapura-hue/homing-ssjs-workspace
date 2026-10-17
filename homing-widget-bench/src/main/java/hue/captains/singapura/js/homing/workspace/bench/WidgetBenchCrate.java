@@ -1,16 +1,16 @@
 package hue.captains.singapura.js.homing.workspace.bench;
 
+import hue.captains.singapura.js.homing.ui.look.UiLookCrate;
 import hue.captains.singapura.js.homing.workspace.tree.WorkspaceTreeCrate;
 import hue.captains.singapura.js.homing.ui.splitgrid.UiSplitGridCrate;
 import hue.captains.singapura.js.homing.core.Crate;
 import hue.captains.singapura.js.homing.core.CrateEntry;
 import hue.captains.singapura.js.homing.core.StandardJsModuleType;
 import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
-import hue.captains.singapura.js.homing.design.DesignCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
 import hue.captains.singapura.js.homing.ui.docking.UiDockingCrate;
 import hue.captains.singapura.js.homing.ui.elements.UiElementsCrate;
-import hue.captains.singapura.js.homing.ui.focus.UiFocusCrate;
+import hue.captains.singapura.js.homing.ui.monitors.UiMonitorsCrate;
 import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyFixedModule;
 import hue.captains.singapura.js.homing.workspace.content.WorkspaceContentCrate;
 import hue.captains.singapura.js.homing.workspace.bench.nasty.NastyStyles;
@@ -54,12 +54,12 @@ public final class WidgetBenchCrate implements Crate {
                 // the desk the monitors' floats lie on
                 UiDockingCrate.INSTANCE,
                 // the design words the toggles wear
-                DesignCrate.INSTANCE,
                 // the parties a widget joins on the bench: the runtime
                 WorkspacePartiesCrate.INSTANCE,
                 // the simulator's button, and its log's lines as the monitors' rows
+                UiLookCrate.INSTANCE,
                 UiElementsCrate.INSTANCE,
-                UiFocusCrate.INSTANCE,
+                UiMonitorsCrate.INSTANCE,
                 // the workspace of one pane: its headless core, and the parties beside it
                 WorkspaceCoreCrate.INSTANCE,
                 // its layers of the log, live; and the log it keeps: the store, the load, the lock

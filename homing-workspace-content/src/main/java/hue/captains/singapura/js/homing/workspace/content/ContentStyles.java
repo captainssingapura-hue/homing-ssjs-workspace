@@ -2,13 +2,9 @@ package hue.captains.singapura.js.homing.workspace.content;
 
 import hue.captains.singapura.js.homing.core.CssClass;
 import hue.captains.singapura.js.homing.core.CssGroup;
-import hue.captains.singapura.js.homing.core.Wearable;
 
 import java.util.List;
 
-import static hue.captains.singapura.js.homing.design.DesignClass.of;
-import static hue.captains.singapura.js.homing.design.Emphasis.Muted;
-import static hue.captains.singapura.js.homing.design.Target.Color;
 
 /**
  * The flow's sheet, in the design's words and nothing of its own: a column of parts, each a
@@ -52,7 +48,6 @@ public record ContentStyles() implements CssGroup<ContentStyles> {
 
     /** What a flow says when it has nothing to show: waiting, unavailable, a type not offered. */
     public record fl_note() implements CssClass<ContentStyles> {
-        @Override public List<? extends Wearable> wears() { return List.of(of(Muted.class, Color.Ink.class)); }
         @Override public String body() { return "margin: 0;\n"; }
     }
 

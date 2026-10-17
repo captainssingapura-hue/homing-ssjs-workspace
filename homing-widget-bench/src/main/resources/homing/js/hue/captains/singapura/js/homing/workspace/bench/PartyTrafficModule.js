@@ -14,6 +14,8 @@
 // =============================================================================
 
 const _partyTrafficOwner = Object.freeze({ toString: () => "partyTraffic" });
+/** Its title: the house's heading of a widget's title - the fourth level - on its own tag. */
+const _TITLE_HEADING = Object.freeze({ LEAF: "heading4" });
 var _partyTraffics = 0;
 
 class PartyTraffic {
@@ -26,8 +28,9 @@ class PartyTraffic {
         var root = this._dom.createElement("root", "section");
         css.addClass(root, cb_traffic);
         root.setAttribute("aria-label", "Party traffic");
-        var title = this._dom.createElement("title", "h2");
+        var title = this._dom.createElement("title", "h4");
         css.addClass(title, cb_panel_title);
+        new Look(_TITLE_HEADING, ROLE.STANDALONE).wear(title);
         title.textContent = "Traffic";
         this._summaryEl = this._dom.createElement("summary", "p");
         css.addClass(this._summaryEl, cb_lines);

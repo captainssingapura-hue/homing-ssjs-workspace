@@ -4,8 +4,9 @@ import hue.captains.singapura.js.homing.core.Crate;
 import hue.captains.singapura.js.homing.core.CrateEntry;
 import hue.captains.singapura.js.homing.core.StandardJsModuleType;
 import hue.captains.singapura.js.homing.core.js.CoreJsCrate;
-import hue.captains.singapura.js.homing.design.DesignCrate;
 import hue.captains.singapura.js.homing.relgrid.RelGridCrate;
+import hue.captains.singapura.js.homing.relgrid.house.RelGridHouseCrate;
+import hue.captains.singapura.js.homing.relgrid.cells.RelGridCellsCrate;
 import hue.captains.singapura.js.homing.server.ServerCrate;
 import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookBrowserDeclaration;
 import hue.captains.singapura.js.homing.workspace.demowidgets.books.BookBrowserModule;
@@ -49,9 +50,8 @@ public final class WorkspaceDemoWidgetsCrate implements Crate {
                 // the focus party, the keys' convention, the css manager
                 ServerCrate.INSTANCE,
                 // the books widget's grid and its stock cells
-                RelGridCrate.INSTANCE,
+                RelGridCrate.INSTANCE, RelGridHouseCrate.INSTANCE, RelGridCellsCrate.INSTANCE,
                 // the design words the books' sheet wears
-                DesignCrate.INSTANCE,
                 // the messaging parties' runtime: a composed widget's own scope
                 WorkspacePartiesCrate.INSTANCE,
                 // what a widget is: the sheet it fills its container by
