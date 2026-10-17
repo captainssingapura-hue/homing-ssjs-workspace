@@ -1,0 +1,8 @@
+/* The tree section in the base layer: a section of a document laid out as a tree - its own part, its heading and its leaf - clear on the page, and washed in the accent while the reader is in it. Its room is the layout's. Whole: every property its look has (D9). */
+$casting {
+    background-color: transparent;
+
+    &$current {
+        background-color: var(--fp-accent-wash-light);
+    }
+}

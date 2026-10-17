@@ -66,15 +66,6 @@ public record TreeStyles() implements CssGroup<TreeStyles> {
         }
     }
 
-    /**
-     * The current section's own part: the design's current surface and its mark - the section the
-     * contents' cursor is on. The mark is drawn in a colour of the design's: the primary, the
-     * secondary, the base surface or the body's ink.
-     */
-    public record tl_current() implements CssClass<TreeStyles> {
-        @Override public String body() { return ""; }
-    }
-
     /** A section's leaf, and its children: each folds away under its heading. */
     public record tl_body() implements CssClass<TreeStyles> {
         @Override public String body() { return """
@@ -156,7 +147,7 @@ public record TreeStyles() implements CssGroup<TreeStyles> {
 
     @Override
     public List<CssClass<TreeStyles>> cssClasses() {
-        return List.of(new tl_toc(), new tl_column(), new tl_section(), new tl_own(), new tl_current(), new tl_body(), new tl_nested(), new tl_hidden(), new tl_heading(), new tl_subheading(), new tl_code(),
+        return List.of(new tl_toc(), new tl_column(), new tl_section(), new tl_own(), new tl_body(), new tl_nested(), new tl_hidden(), new tl_heading(), new tl_subheading(), new tl_code(),
                 new tl_leaf(), new tl_leaf_fill(), new tl_missing(), new tl_held());
     }
 }
