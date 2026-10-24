@@ -21,7 +21,7 @@
          standalone workspace application. -->
     <groupId>io.github.captainssingapura-hue.homing.js.ws</groupId>
     <artifactId>homing.js.ws</artifactId>
-    <version>LOCAL-SNAPSHOT</version>
+    <version>LOCAL-SNAPSHOT-T1</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -83,13 +83,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <!-- The substrate, from the core repo. Its own version, not ours:
              this repo releases on its own clock. -->
-        <homing.core.version>LOCAL-SNAPSHOT</homing.core.version>
+        <homing.core.version>LOCAL-SNAPSHOT-T1</homing.core.version>
         <!-- The ui-components (and the MPA's standard implementation), from the
              homing-ssjs-ui-components repo: moved out of core, same coordinates,
              their own version. -->
-        <homing.components.version>LOCAL-SNAPSHOT</homing.components.version>
+        <homing.components.version>LOCAL-SNAPSHOT-T1</homing.components.version>
         <!-- The relation grid family (a repo of its own), for the demo's views. -->
-        <homing.relgrid.version>LOCAL-SNAPSHOT</homing.relgrid.version>
+        <homing.relgrid.version>LOCAL-SNAPSHOT-T1</homing.relgrid.version>
         <junit.version>5.11.3</junit.version>
         <jacoco.version>0.8.14</jacoco.version>
         <graalvm.version>24.1.1</graalvm.version>
