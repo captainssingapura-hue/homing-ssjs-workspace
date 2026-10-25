@@ -64,9 +64,19 @@
 // =============================================================================
 
 const _treeLayoutOwner = Object.freeze({ toString: () => "treeLayout" });
+/** A section of a doc: the tree's own component, its state whether the reader is in it - reflected, and its class. */
+const _TREE_SECTION = Object.freeze({
+    LEAF: "tree-section",
+    AXES: Object.freeze({
+        current: Object.freeze({
+            values: Object.freeze([false, true]),
+            rest: false,
+            reflect: function (el, on) { if (on) el.setAttribute("aria-current", "true"); else el.removeAttribute("aria-current"); },
+            state: STATE.CURRENT
+        })
+    })
+});
 /** The house's headings, a leaf a level: a section's heading worn as its depth's. */
-/** A section of a doc: the house's section, washed while the reader is in it. */
-const _TREE_SECTION = Object.freeze({ LEAF: "section" });
 const _TREE_HEADINGS = Object.freeze([1, 2, 3, 4, 5, 6].map(function (n) { return Object.freeze({ LEAF: "heading" + n }); }));
 var _treeLayouts = 0;
 var _RUN_TAGS = Object.freeze({ text: "span", code: "code", strong: "strong", emphasis: "em" });
@@ -107,6 +117,7 @@ class TreeLayout {
         this._nodes = 0;
         this._widgets = 0;
         this._shown = null;
+        this._sectionLook = new Look(_TREE_SECTION, ROLE.STANDALONE);
         this._pinned = null;
         this._section(a.root, "", 0, column, null);
         container.appendChild(root);
@@ -207,8 +218,8 @@ class TreeLayout {
         if (depth > 0) css.addClass(section, tl_nested);
         var own = branch.createElement("own", "div");
         css.addClass(own, tl_own);
-        // a section of the doc's room: washed while the reader is in it (aria-current) - its colour alone; its room is the layout's
-        new Look(_TREE_SECTION, ROLE.STANDALONE).wear(own, { only: ["color-background"] });
+        // a section of the doc's room, the tree's own component worn whole: washed while the reader is in it; its room is the layout's
+        this._sectionLook.wear(own);
         section.appendChild(own);
         var mark = own, folds = [];
         if (node.label && node.label.text) {
@@ -292,9 +303,9 @@ class TreeLayout {
             }
         }
         if (at === this._shown) return;
-        if (this._shown !== null) { var was = this._byPath.get(this._shown).own; css.toggleClass(was, tl_current, false); was.removeAttribute("aria-current"); }
+        if (this._shown !== null) this._sectionLook.show(this._byPath.get(this._shown).own, { current: false });
         this._shown = at;
-        if (at !== null) { var now = this._byPath.get(at).own; css.toggleClass(now, tl_current, true); now.setAttribute("aria-current", "true"); }
+        if (at !== null) this._sectionLook.show(this._byPath.get(at).own, { current: true });
         this._onShown(at);
     }
 }
