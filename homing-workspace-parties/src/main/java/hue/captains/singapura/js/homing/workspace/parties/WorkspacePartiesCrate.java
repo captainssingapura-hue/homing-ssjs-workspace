@@ -19,6 +19,6 @@ public final class WorkspacePartiesCrate implements Crate {
 
     @Override
     public List<CrateEntry> entries() {
-        return List.of(CrateEntry.of(MessagingPartyModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
+        return List.of(new CrateEntry(MessagingPartyModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
     }
 }

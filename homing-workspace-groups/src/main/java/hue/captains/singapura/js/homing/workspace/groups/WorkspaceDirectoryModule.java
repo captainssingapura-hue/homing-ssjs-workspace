@@ -18,7 +18,7 @@ public record WorkspaceDirectoryModule() implements EsModule<WorkspaceDirectoryM
 
     public static final WorkspaceDirectoryModule INSTANCE = new WorkspaceDirectoryModule();
 
-    @Override public ImportsFor<WorkspaceDirectoryModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<WorkspaceDirectoryModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<WorkspaceDirectoryModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new WorkspaceDirectory())); }

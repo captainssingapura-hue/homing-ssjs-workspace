@@ -20,7 +20,7 @@ public record WorkspaceChoiceSecretaryModule() implements EsModule<WorkspaceChoi
 
     public static final WorkspaceChoiceSecretaryModule INSTANCE = new WorkspaceChoiceSecretaryModule();
 
-    @Override public ImportsFor<WorkspaceChoiceSecretaryModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<WorkspaceChoiceSecretaryModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<WorkspaceChoiceSecretaryModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new WorkspaceChoiceSecretary())); }

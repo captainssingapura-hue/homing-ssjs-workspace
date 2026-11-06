@@ -36,8 +36,8 @@ public final class WorkspaceWidgetsCrate implements Crate {
     @Override
     public List<CrateEntry> entries() {
         return List.of(
-                CrateEntry.of(WidgetStyles.INSTANCE),
+                new CrateEntry(WidgetStyles.INSTANCE),
                 // a widget where a component would stand: the host's side of the graft
-                CrateEntry.of(HostedWidgetModule.INSTANCE, StandardJsModuleType.CONSUMER));
+                new CrateEntry(HostedWidgetModule.INSTANCE, StandardJsModuleType.CONSUMER));
     }
 }

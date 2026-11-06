@@ -20,7 +20,7 @@ public record BooksModule() implements DomModule<BooksModule> {
 
     @Override
     public ImportsFor<BooksModule> imports() {
-        return ImportsFor.<BooksModule>builder()
+        return new ImportsFor._Builder<BooksModule>()
                 .add(new ModuleImports<>(List.of(new RelGridStockCellsModule.RelGridTextCell()), RelGridStockCellsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new RelGridLabelsModule.RelGridLabels()), RelGridLabelsModule.INSTANCE))   // its header: label header cells
                 .build();

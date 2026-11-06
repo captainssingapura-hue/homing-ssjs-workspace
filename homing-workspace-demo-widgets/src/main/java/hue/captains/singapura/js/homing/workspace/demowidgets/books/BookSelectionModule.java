@@ -20,7 +20,7 @@ public record BookSelectionModule() implements EsModule<BookSelectionModule>, Se
 
     public record BOOK_SELECTION() implements Exportable._Constant<BookSelectionModule> {}
 
-    @Override public ImportsFor<BookSelectionModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<BookSelectionModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<BookSelectionModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new BOOK_SELECTION())); }

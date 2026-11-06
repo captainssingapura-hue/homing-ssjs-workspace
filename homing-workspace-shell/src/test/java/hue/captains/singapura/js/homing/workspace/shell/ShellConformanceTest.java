@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.shell;
 
+import hue.captains.singapura.js.homing.component.keyboard.CrateKeys;
 import hue.captains.singapura.js.homing.component.keyboard.KeyboardRegistry;
 import hue.captains.singapura.js.homing.conformance.engine.ConformanceEngine;
 import hue.captains.singapura.js.homing.conformance.engine.ServedModuleRenderer;
@@ -47,7 +48,7 @@ class ShellConformanceTest {
 
     @Test
     void theCrateIsStructurallyComplete() {
-        var result = CrateConformance.evaluate(new ArrayList<>(CrateClosure.of(TOP))).crates().get(WorkspaceShellCrate.INSTANCE.name());
+        var result = CrateConformance.INSTANCE.evaluate(new ArrayList<>(CrateClosure.INSTANCE.of(TOP))).crates().get(WorkspaceShellCrate.INSTANCE.name());
         assertEquals(List.of(), result.orphans(), "every served module must be declared");
         assertEquals(List.of(), result.illegalImports(), "every cross-crate import must be declared in requires()");
     }
@@ -63,7 +64,7 @@ class ShellConformanceTest {
     @Test
     void theCssGraphKeepsItsLaws() {
         Set<String> own = own();
-        List<Finding> css = CssConformance.check(new ArrayList<>(CrateClosure.of(TOP)))
+        List<Finding> css = CssConformance.INSTANCE.check(new ArrayList<>(CrateClosure.INSTANCE.of(TOP)))
                 .stream().filter(f -> own.contains(f.moduleClass())).toList();
         assertEquals(List.of(), css.stream().map(ShellConformanceTest::describe).toList());
     }
@@ -73,9 +74,9 @@ class ShellConformanceTest {
     void keysComeThroughTheParty() {
         Set<String> ownNames = WorkspaceShellCrate.INSTANCE.entries().stream()
                 .map(e -> e.module().getClass().getSimpleName()).collect(Collectors.toSet());
-        assertEquals(List.of(), KeyboardRegistry.undeclaredListeners(TOP).stream().filter(ownNames::contains).toList(),
+        assertEquals(List.of(), CrateKeys.INSTANCE.undeclaredListeners(TOP).stream().filter(ownNames::contains).toList(),
                 "a module that listens for keys declares them (NeedKeyboard)");
-        assertEquals(List.of(), KeyboardRegistry.validate(TOP).stream()
+        assertEquals(List.of(), CrateKeys.INSTANCE.validate(TOP).stream()
                 .filter(s -> ownNames.stream().anyMatch(s::contains)).toList(),
                 "only the steward captures keys on the document");
     }

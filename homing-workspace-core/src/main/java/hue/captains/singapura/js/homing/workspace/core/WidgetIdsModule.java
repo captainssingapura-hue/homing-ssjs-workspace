@@ -14,7 +14,7 @@ public record WidgetIdsModule() implements EsModule<WidgetIdsModule> {
 
     public static final WidgetIdsModule INSTANCE = new WidgetIdsModule();
 
-    @Override public ImportsFor<WidgetIdsModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<WidgetIdsModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<WidgetIdsModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new WidgetIds())); }

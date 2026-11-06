@@ -27,9 +27,9 @@ class WorkspaceLogCodecGateTest extends JsModuleTestBase {
 
     @Test
     void theCrateDeclaresEveryModuleAndImportsWithinItself() {
-        assertEquals(List.of(), OrphanCheck.check(WorkspaceLogCodecCrate.INSTANCE),
+        assertEquals(List.of(), OrphanCheck.INSTANCE.check(WorkspaceLogCodecCrate.INSTANCE),
                 "every served JS module in homing-workspace-log-codec must be declared in its crate");
-        assertEquals(List.of(), CrateDependencyRule.check(WorkspaceLogCodecCrate.INSTANCE),
+        assertEquals(List.of(), CrateDependencyRule.INSTANCE.check(WorkspaceLogCodecCrate.INSTANCE),
                 "every JS import must resolve to the crate itself or one it directly requires");
     }
 

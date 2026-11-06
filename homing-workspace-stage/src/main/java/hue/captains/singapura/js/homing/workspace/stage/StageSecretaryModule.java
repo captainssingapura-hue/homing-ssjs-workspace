@@ -18,7 +18,7 @@ public record StageSecretaryModule() implements EsModule<StageSecretaryModule> {
 
     public record StageSecretary() implements Exportable._Constant<StageSecretaryModule> {}
 
-    @Override public ImportsFor<StageSecretaryModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<StageSecretaryModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<StageSecretaryModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new StageSecretary())); }

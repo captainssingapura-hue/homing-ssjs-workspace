@@ -24,7 +24,7 @@ public record PaneSlotsModule() implements DomModule<PaneSlotsModule> {
 
     @Override
     public ImportsFor<PaneSlotsModule> imports() {
-        return ImportsFor.<PaneSlotsModule>builder()
+        return new ImportsFor._Builder<PaneSlotsModule>()
                 .add(new ModuleImports<>(List.of(new WidgetStyles.wg_slot()), WidgetStyles.INSTANCE))
                 .build();
     }

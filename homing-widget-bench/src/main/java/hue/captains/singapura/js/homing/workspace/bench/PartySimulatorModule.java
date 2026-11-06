@@ -26,14 +26,14 @@ public record PartySimulatorModule() implements DomModule<PartySimulatorModule> 
 
     public record PartySimulator() implements BranchComponent<PartySimulatorModule>, NeedKeyboard {
         @Override public String summary() { return "A messaging party simulated by hand: what passes in it logged, and free-form JSON sent down to its members."; }
-        @Override public List<KeyBinding> keys() { return List.of(KeyBinding.of(Key.ESCAPE, "the keys given back")); }
+        @Override public List<KeyBinding> keys() { return List.of(new KeyBinding(Key.ESCAPE, "the keys given back")); }
     }
 
     public static final PartySimulatorModule INSTANCE = new PartySimulatorModule();
 
     @Override
     public ImportsFor<PartySimulatorModule> imports() {
-        return ImportsFor.<PartySimulatorModule>builder()
+        return new ImportsFor._Builder<PartySimulatorModule>()
                 .add(new ModuleImports<>(List.of(new StatesAndEventsModule.EVENT()), StatesAndEventsModule.INSTANCE))
                 // the check a typed message passes before it goes down
                 .add(new ModuleImports<>(List.of(new MessagingPartyModule.MessagingParty()), MessagingPartyModule.INSTANCE))

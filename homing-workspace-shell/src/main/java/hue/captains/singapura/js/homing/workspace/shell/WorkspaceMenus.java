@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.shell;
 
+import hue.captains.singapura.js.homing.ui.menu.CrateMenus;
 import hue.captains.singapura.js.homing.core.EsModule;
 import hue.captains.singapura.js.homing.core.Exportable;
 import hue.captains.singapura.js.homing.core.ExportsOf;
@@ -27,9 +28,9 @@ public record WorkspaceMenus() implements EsModule<WorkspaceMenus>, SelfContent 
     public record MENUS() implements Exportable._Constant<WorkspaceMenus> {}
 
     /** Derived: the kinds the closure's catalogued components need. */
-    public static final ContextMenuRegistry REGISTRY = ContextMenuRegistry.requiredBy(List.of(WorkspaceShellCrate.INSTANCE));
+    public static final ContextMenuRegistry REGISTRY = CrateMenus.INSTANCE.requiredBy(List.of(WorkspaceShellCrate.INSTANCE));
 
-    @Override public ImportsFor<WorkspaceMenus> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<WorkspaceMenus> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<WorkspaceMenus> exports() {

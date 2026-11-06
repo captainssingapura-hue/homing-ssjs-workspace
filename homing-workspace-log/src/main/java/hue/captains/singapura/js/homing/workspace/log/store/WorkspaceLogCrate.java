@@ -26,27 +26,27 @@ public final class WorkspaceLogCrate implements Crate {
     @Override
     public List<CrateEntry> entries() {
         return List.of(
-                CrateEntry.of(WorkspaceLogStoreModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(IndexedDbLogModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(MemoryLogModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(WorkspaceLogExportModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(WorkspaceLogIdentityModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WorkspaceLogStoreModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(IndexedDbLogModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(MemoryLogModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WorkspaceLogExportModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WorkspaceLogIdentityModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // a log read back to what it folds to, or set aside: the load every placement shares
-                CrateEntry.of(WorkspaceLoadModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WorkspaceLoadModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // the fold: the log's meaning, as the Java fold makes it
-                CrateEntry.of(hue.captains.singapura.js.homing.workspace.log.fold.ExactShareModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(hue.captains.singapura.js.homing.workspace.log.fold.LayoutAlgebraModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(hue.captains.singapura.js.homing.workspace.log.fold.RosterFoldModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(hue.captains.singapura.js.homing.workspace.log.fold.PaneFoldModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(hue.captains.singapura.js.homing.workspace.log.fold.GridFoldModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(hue.captains.singapura.js.homing.workspace.log.fold.WorkspaceFoldModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(hue.captains.singapura.js.homing.workspace.log.fold.ExactShareModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(hue.captains.singapura.js.homing.workspace.log.fold.LayoutAlgebraModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(hue.captains.singapura.js.homing.workspace.log.fold.RosterFoldModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(hue.captains.singapura.js.homing.workspace.log.fold.PaneFoldModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(hue.captains.singapura.js.homing.workspace.log.fold.GridFoldModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(hue.captains.singapura.js.homing.workspace.log.fold.WorkspaceFoldModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // checkpoints: the next one's fold, the worker it runs in, and what takes them as the log goes
-                CrateEntry.of(hue.captains.singapura.js.homing.workspace.log.fold.CheckpointFoldModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(CheckpointWorkerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(WorkspaceCheckpointerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(hue.captains.singapura.js.homing.workspace.log.fold.CheckpointFoldModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(CheckpointWorkerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WorkspaceCheckpointerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // one writer per log
-                CrateEntry.of(WorkspaceWriteLockModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WorkspaceWriteLockModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // the workspaces of each kind, listed
-                CrateEntry.of(WorkspaceCatalogueModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
+                new CrateEntry(WorkspaceCatalogueModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
     }
 }

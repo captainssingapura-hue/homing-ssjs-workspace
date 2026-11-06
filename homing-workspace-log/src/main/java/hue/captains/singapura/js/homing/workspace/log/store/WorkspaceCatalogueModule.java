@@ -20,7 +20,7 @@ public record WorkspaceCatalogueModule() implements DomModule<WorkspaceCatalogue
 
     @Override
     public ImportsFor<WorkspaceCatalogueModule> imports() {
-        return ImportsFor.<WorkspaceCatalogueModule>builder()
+        return new ImportsFor._Builder<WorkspaceCatalogueModule>()
                 .add(new ModuleImports<>(List.of(new LogIdsModule.WorkspaceKind(), new LogIdsModule.WorkspaceName()), LogIdsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new LogKeyModule.LogKey()), LogKeyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceEntryModule.WorkspaceEntry(), new WorkspaceEntryModule.WorkspaceEntryCodec()), WorkspaceEntryModule.INSTANCE))

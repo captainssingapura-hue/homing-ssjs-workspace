@@ -27,7 +27,7 @@ public record WorkspaceAddressesModule() implements EsModule<WorkspaceAddressesM
 
     public record WORKSPACE_ADDRESSES() implements Exportable._Constant<WorkspaceAddressesModule> {}
 
-    @Override public ImportsFor<WorkspaceAddressesModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<WorkspaceAddressesModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<WorkspaceAddressesModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new WORKSPACE_ADDRESSES())); }

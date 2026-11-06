@@ -19,7 +19,7 @@ public record WorkspaceRequestModule() implements EsModule<WorkspaceRequestModul
     public static final WorkspaceRequestModule INSTANCE = new WorkspaceRequestModule();
 
     @Override
-    public ImportsFor<WorkspaceRequestModule> imports() { return ImportsFor.noImports(); }
+    public ImportsFor<WorkspaceRequestModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<WorkspaceRequestModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new WorkspaceRequest())); }

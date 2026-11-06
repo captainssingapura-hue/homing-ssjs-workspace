@@ -70,22 +70,22 @@ public final class WorkspaceShellCrate implements Crate {
     public List<CrateEntry> entries() {
         return List.of(
                 // The addresses a workspace page reaches, stamped.
-                CrateEntry.of(WorkspaceAddressesModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WorkspaceAddressesModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // Its log: the recorder (headless), the restore and read-back, and the bar that exports it.
-                CrateEntry.of(WorkspaceRecorderModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(WorkspaceProjectionModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(WorkspaceLogBarModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(WorkspaceStyles.INSTANCE),
+                new CrateEntry(WorkspaceRecorderModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WorkspaceProjectionModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WorkspaceLogBarModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(WorkspaceStyles.INSTANCE),
                 // What a right-click offers: the tab's, which is the pane's own,
                 // and the room's, which only the workspace can know.
-                CrateEntry.of(WorkspaceMenus.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WorkspaceMenus.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // THE WORKSPACE ON ITS CORE, for any workspace declared in Java: a page a widget set's app
                 // hands its manifest to; the split grid on the core; its register of panes; its placement.
-                CrateEntry.of(WorkspacePageModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(GridWorkspaceModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(WidgetTabsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(GridPlacementModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WorkspacePageModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(GridWorkspaceModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(WidgetTabsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(GridPlacementModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // a split grid's arrangement, laid out on a workspace that has nothing yet
-                CrateEntry.of(GridArrangementModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
+                new CrateEntry(GridArrangementModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
     }
 }

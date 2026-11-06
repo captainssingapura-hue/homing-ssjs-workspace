@@ -19,7 +19,7 @@ public record WorkspaceKeeperModule() implements EsModule<WorkspaceKeeperModule>
 
     public static final WorkspaceKeeperModule INSTANCE = new WorkspaceKeeperModule();
 
-    @Override public ImportsFor<WorkspaceKeeperModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<WorkspaceKeeperModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<WorkspaceKeeperModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new WorkspaceKeeper())); }

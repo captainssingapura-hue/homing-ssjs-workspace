@@ -33,7 +33,7 @@ public record PartyLogDeclaration() implements WidgetDeclaration<PartyLogDeclara
 
         @Override
         public Read<Params> from(Map<String, List<String>> query) {
-            String said = QueryString.first(query, "keep");
+            String said = QueryString.INSTANCE.first(query, "keep");
             if (said == null) return Read.ok(Params.DEFAULT);
             try { return Read.ok(new Params(Integer.parseInt(said))); }
             catch (IllegalArgumentException e) {   // NumberFormatException is one
@@ -43,8 +43,8 @@ public record PartyLogDeclaration() implements WidgetDeclaration<PartyLogDeclara
 
         @Override
         public Map<String, List<String>> to(Params params) {
-            var q = QueryString.params();
-            if (params.keep() != Params.DEFAULT.keep()) QueryString.put(q, "keep", String.valueOf(params.keep()));
+            var q = QueryString.INSTANCE.params();
+            if (params.keep() != Params.DEFAULT.keep()) QueryString.INSTANCE.put(q, "keep", String.valueOf(params.keep()));
             return q;
         }
     }

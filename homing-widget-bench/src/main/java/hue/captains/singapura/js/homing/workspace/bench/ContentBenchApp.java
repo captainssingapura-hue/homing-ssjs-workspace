@@ -30,7 +30,7 @@ public record ContentBenchApp() implements AppModule<ContentBenchApp.Params, Con
 
     record appMain() implements AppModule._AppMain<Params, ContentBenchApp> {}
 
-    public static final ParamCodec<Params> CODEC = ParamCodec.ofEmpty(Params::new);
+    public static final ParamCodec<Params> CODEC = new ParamCodec.Empty<>(Params::new);
 
     @Override public String title()      { return "Content bench"; }
     @Override public String simpleName() { return "content-bench"; }
@@ -39,7 +39,7 @@ public record ContentBenchApp() implements AppModule<ContentBenchApp.Params, Con
 
     @Override
     public ImportsFor<ContentBenchApp> imports() {
-        return ImportsFor.<ContentBenchApp>builder()
+        return new ImportsFor._Builder<ContentBenchApp>()
                 // the page's parties, their types, their one secretary, the stewards they hire
                 .add(new ModuleImports<>(List.of(new MessagingPartyModule.MessagingParty()), MessagingPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new ContentSecretaryModule.ContentSecretary()), ContentSecretaryModule.INSTANCE))

@@ -20,7 +20,7 @@ public record RosterFoldModule() implements DomModule<RosterFoldModule> {
 
     @Override
     public ImportsFor<RosterFoldModule> imports() {
-        return ImportsFor.<RosterFoldModule>builder()
+        return new ImportsFor._Builder<RosterFoldModule>()
                 .add(new ModuleImports<>(List.of(new WidgetIdModule.WidgetId()), WidgetIdModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new RosterEventModule.WidgetOpened(), new RosterEventModule.WidgetRenamed(), new RosterEventModule.WidgetClosed()), RosterEventModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new RosterStateModule.RosterState(), new RosterStateModule.RosterEntry(), new RosterStateModule.PrefixSequence()), RosterStateModule.INSTANCE))

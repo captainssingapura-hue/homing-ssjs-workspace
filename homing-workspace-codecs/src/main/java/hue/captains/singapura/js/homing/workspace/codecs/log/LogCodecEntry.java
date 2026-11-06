@@ -29,7 +29,7 @@ public record LogCodecEntry<T>(Class<T> type, DefinitionCodeGen jsDefinition,
         Objects.requireNonNull(javaFunctions, "LogCodecEntry.javaFunctions");
     }
 
-    public ObjectDefinition<T> definition() { return ObjectDefinition.of(type); }
+    public ObjectDefinition<T> definition() { return new ObjectDefinition<>(type); }
 
     /** A record of one scalar, the scalar alone on the wire. */
     public static <T> LogCodecEntry<T> id(Class<T> type) {

@@ -23,7 +23,7 @@ public record WorkspaceLogStoreModule() implements DomModule<WorkspaceLogStoreMo
 
     @Override
     public ImportsFor<WorkspaceLogStoreModule> imports() {
-        return ImportsFor.<WorkspaceLogStoreModule>builder()
+        return new ImportsFor._Builder<WorkspaceLogStoreModule>()
                 .add(new ModuleImports<>(List.of(new LogIdsModule.EventSeq()), LogIdsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceEventModule.WorkspaceEvent(), new WorkspaceEventModule.WorkspaceEventCodec()), WorkspaceEventModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new LoggedEventModule.LoggedEvent(), new LoggedEventModule.LoggedEventCodec()), LoggedEventModule.INSTANCE))

@@ -22,7 +22,7 @@ public record BenchContentStewardModule() implements EsModule<BenchContentStewar
 
     @Override
     public ImportsFor<BenchContentStewardModule> imports() {
-        return ImportsFor.<BenchContentStewardModule>builder()
+        return new ImportsFor._Builder<BenchContentStewardModule>()
                 .add(new ModuleImports<>(List.of(new ContentParamsModule.ContentParams()), ContentParamsModule.INSTANCE))
                 .build();
     }

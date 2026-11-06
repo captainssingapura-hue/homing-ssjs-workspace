@@ -28,7 +28,7 @@ public record DemoWorkspaceApp() implements AppModule<GroupedWorkspacePageModule
 
     @Override
     public ImportsFor<DemoWorkspaceApp> imports() {
-        return ImportsFor.<DemoWorkspaceApp>builder()
+        return new ImportsFor._Builder<DemoWorkspaceApp>()
                 .add(new ModuleImports<>(List.of(new GroupedWorkspacePageModule.GroupedWorkspacePage()), GroupedWorkspacePageModule.INSTANCE))
                 // what it serves: each workspace's manifest by its kind, and the groups they are filed in
                 .add(new ModuleImports<>(List.of(new DemoWorkspacesModule.DEMO_WORKSPACES()), DemoWorkspacesModule.INSTANCE))

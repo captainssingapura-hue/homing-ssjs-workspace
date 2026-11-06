@@ -33,7 +33,7 @@ public record BookBrowserModule() implements DomModule<BookBrowserModule> {
 
     @Override
     public ImportsFor<BookBrowserModule> imports() {
-        return ImportsFor.<BookBrowserModule>builder()
+        return new ImportsFor._Builder<BookBrowserModule>()
                 .add(new ModuleImports<>(List.of(new domOpsParties()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))
                 // its subordinates

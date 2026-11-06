@@ -20,7 +20,7 @@ public record FlowContentModule() implements EsModule<FlowContentModule>, SelfCo
 
     public record FLOW() implements Exportable._Constant<FlowContentModule> {}
 
-    @Override public ImportsFor<FlowContentModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<FlowContentModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<FlowContentModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new FLOW())); }

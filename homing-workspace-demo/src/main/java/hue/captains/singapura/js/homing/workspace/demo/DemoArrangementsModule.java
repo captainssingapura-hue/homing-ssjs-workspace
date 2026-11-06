@@ -20,7 +20,7 @@ public record DemoArrangementsModule() implements EsModule<DemoArrangementsModul
 
     public record DEMO_ARRANGEMENTS() implements Exportable._Constant<DemoArrangementsModule> {}
 
-    @Override public ImportsFor<DemoArrangementsModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<DemoArrangementsModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<DemoArrangementsModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new DEMO_ARRANGEMENTS())); }

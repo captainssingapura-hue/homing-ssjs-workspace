@@ -22,7 +22,7 @@ public record StageButtonModule() implements DomModule<StageButtonModule> {
 
     @Override
     public ImportsFor<StageButtonModule> imports() {
-        return ImportsFor.<StageButtonModule>builder()
+        return new ImportsFor._Builder<StageButtonModule>()
                 .add(new ModuleImports<>(List.of(new StatesAndEventsModule.EVENT()), StatesAndEventsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new PlainButtonModule.PlainButton(), new PlainButtonModule.PlainButtonFactory()), PlainButtonModule.INSTANCE))
                 .build();

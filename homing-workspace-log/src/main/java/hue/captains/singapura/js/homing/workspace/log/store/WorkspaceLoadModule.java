@@ -23,7 +23,7 @@ public record WorkspaceLoadModule() implements DomModule<WorkspaceLoadModule> {
 
     @Override
     public ImportsFor<WorkspaceLoadModule> imports() {
-        return ImportsFor.<WorkspaceLoadModule>builder()
+        return new ImportsFor._Builder<WorkspaceLoadModule>()
                 .add(new ModuleImports<>(List.of(new WorkspaceFoldModule.WorkspaceFold()), WorkspaceFoldModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new CheckpointModule.Checkpoint()), CheckpointModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceLogStoreModule.WorkspaceLogStore()), WorkspaceLogStoreModule.INSTANCE))

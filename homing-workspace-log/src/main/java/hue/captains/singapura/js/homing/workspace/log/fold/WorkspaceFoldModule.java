@@ -25,7 +25,7 @@ public record WorkspaceFoldModule() implements DomModule<WorkspaceFoldModule> {
 
     @Override
     public ImportsFor<WorkspaceFoldModule> imports() {
-        return ImportsFor.<WorkspaceFoldModule>builder()
+        return new ImportsFor._Builder<WorkspaceFoldModule>()
                 .add(new ModuleImports<>(List.of(new RosterFoldModule.RosterFold()), RosterFoldModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new PaneFoldModule.PaneFold()), PaneFoldModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new GridFoldModule.GridFold()), GridFoldModule.INSTANCE))

@@ -36,10 +36,10 @@ public final class WorkspaceContentCrate implements Crate {
     @Override
     public List<CrateEntry> entries() {
         return List.of(
-                CrateEntry.of(ContentParamsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(ContentSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
-                CrateEntry.of(FlowContentModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(ContentStyles.INSTANCE),
-                CrateEntry.of(FlowModule.INSTANCE, StandardJsModuleType.CONSUMER));
+                new CrateEntry(ContentParamsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(ContentSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
+                new CrateEntry(FlowContentModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(ContentStyles.INSTANCE),
+                new CrateEntry(FlowModule.INSTANCE, StandardJsModuleType.CONSUMER));
     }
 }

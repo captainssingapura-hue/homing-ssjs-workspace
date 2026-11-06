@@ -34,7 +34,7 @@ class DeclaredImportsTest {
 
     @Test
     void everyNameTakenFromAnotherModuleIsImported() throws IOException {
-        var closure = new ArrayList<>(CrateClosure.of(TOP));
+        var closure = new ArrayList<>(CrateClosure.INSTANCE.of(TOP));
         Map<String, String> exporter = new HashMap<>();
         for (Crate c : closure) for (CrateEntry e : c.entries()) {
             for (var x : e.module().exports().exports()) exporter.putIfAbsent(x.getClass().getSimpleName(), e.moduleClass());

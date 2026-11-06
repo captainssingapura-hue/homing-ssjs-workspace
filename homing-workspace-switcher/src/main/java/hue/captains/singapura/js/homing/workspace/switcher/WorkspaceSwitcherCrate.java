@@ -69,19 +69,19 @@ public final class WorkspaceSwitcherCrate implements Crate {
     @Override
     public List<CrateEntry> entries() {
         return List.of(
-                CrateEntry.of(SwitcherStyles.INSTANCE),
+                new CrateEntry(SwitcherStyles.INSTANCE),
                 // the kinds, as a tree: the relation tree's rows natively focused inside a widget
-                CrateEntry.of(WorkspaceKindsModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(WorkspaceKindsModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 // the chosen kind's workspaces, as a table
                 // its rows: the relation, a workspace's name edited only when asked
-                CrateEntry.of(WorkspaceNameCellModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(WorkspaceRowsModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(WorkspaceInstancesModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(WorkspaceNameCellModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(WorkspaceRowsModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(WorkspaceInstancesModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 // the two composed: they meet in a scope of the switcher's own, its secretary keeping the edge
-                CrateEntry.of(WorkspaceSwitcherModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(WorkspaceSwitcherModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 // the switcher summoned by a page, in the system dialog: a page's, kept by no log
-                CrateEntry.of(WorkspaceSwitcherDialogModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(WorkspaceSwitcherDialogModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 // a question before an act on a workspace, in the system dialog: a page's, as the switcher's is
-                CrateEntry.of(WorkspaceConfirmModule.INSTANCE, StandardJsModuleType.CONSUMER));
+                new CrateEntry(WorkspaceConfirmModule.INSTANCE, StandardJsModuleType.CONSUMER));
     }
 }

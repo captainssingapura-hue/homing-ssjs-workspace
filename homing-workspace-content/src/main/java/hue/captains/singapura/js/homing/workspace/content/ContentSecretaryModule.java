@@ -22,7 +22,7 @@ public record ContentSecretaryModule() implements EsModule<ContentSecretaryModul
 
     @Override
     public ImportsFor<ContentSecretaryModule> imports() {
-        return ImportsFor.<ContentSecretaryModule>builder()
+        return new ImportsFor._Builder<ContentSecretaryModule>()
                 .add(new ModuleImports<>(List.of(new ContentParamsModule.ContentParams()), ContentParamsModule.INSTANCE))
                 .build();
     }

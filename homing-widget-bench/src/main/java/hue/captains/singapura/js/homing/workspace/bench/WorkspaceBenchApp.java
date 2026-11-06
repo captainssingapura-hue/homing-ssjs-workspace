@@ -35,7 +35,7 @@ public record WorkspaceBenchApp() implements AppModule<WorkspaceBenchApp.Params,
 
     record appMain() implements AppModule._AppMain<Params, WorkspaceBenchApp> {}
 
-    public static final ParamCodec<Params> CODEC = ParamCodec.ofEmpty(Params::new);
+    public static final ParamCodec<Params> CODEC = new ParamCodec.Empty<>(Params::new);
 
     @Override public String title()      { return "Workspace bench"; }
     @Override public String simpleName() { return "workspace-bench"; }
@@ -44,7 +44,7 @@ public record WorkspaceBenchApp() implements AppModule<WorkspaceBenchApp.Params,
 
     @Override
     public ImportsFor<WorkspaceBenchApp> imports() {
-        return ImportsFor.<WorkspaceBenchApp>builder()
+        return new ImportsFor._Builder<WorkspaceBenchApp>()
                 // the page's directory, provided at boot with the bench's groups
                 .add(new ModuleImports<>(List.of(new BenchGroupsModule.BENCH_GROUPS()), BenchGroupsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceDirectoryModule.WorkspaceDirectory()), WorkspaceDirectoryModule.INSTANCE))

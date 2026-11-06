@@ -45,7 +45,7 @@ public final class WorkspaceManifest {
                 r.steward().ifPresent(all::add);
             }
         }
-        var b = ImportsFor.<M>builder();
+        var b = new ImportsFor._Builder<M>();
         for (ModuleImports<?> i : all) b.add(i);
         return b.build();
     }

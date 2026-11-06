@@ -30,7 +30,7 @@ public record HostedWidgetModule() implements DomModule<HostedWidgetModule> {
 
     @Override
     public ImportsFor<HostedWidgetModule> imports() {
-        return ImportsFor.<HostedWidgetModule>builder()
+        return new ImportsFor._Builder<HostedWidgetModule>()
                 // what a widget offers its host to graft
                 .add(new ModuleImports<>(List.of(new DomOpsPartyModule.MobileDomOpsParty()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new FocusPartyModule.MobileFocusParty()), FocusPartyModule.INSTANCE))

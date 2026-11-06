@@ -28,8 +28,8 @@ public final class WorkspaceLayersCrate implements Crate {
     @Override
     public List<CrateEntry> entries() {
         return List.of(
-                CrateEntry.of(RosterLayerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(PanePlacementModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(PaneLayerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
+                new CrateEntry(RosterLayerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(PanePlacementModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(PaneLayerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
     }
 }

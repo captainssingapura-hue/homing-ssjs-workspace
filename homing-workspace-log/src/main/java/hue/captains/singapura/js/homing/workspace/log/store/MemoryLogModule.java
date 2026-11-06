@@ -16,7 +16,7 @@ public record MemoryLogModule() implements DomModule<MemoryLogModule> {
 
     @Override
     public ImportsFor<MemoryLogModule> imports() {
-        return ImportsFor.noImports();
+        return new ImportsFor<>();
     }
 
     @Override

@@ -19,7 +19,7 @@ public record DemoGroupsModule() implements EsModule<DemoGroupsModule>, SelfCont
 
     public record DEMO_GROUPS() implements Exportable._Constant<DemoGroupsModule> {}
 
-    @Override public ImportsFor<DemoGroupsModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<DemoGroupsModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<DemoGroupsModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new DEMO_GROUPS())); }

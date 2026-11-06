@@ -30,7 +30,7 @@ public record PartyLogModule() implements DomModule<PartyLogModule> {
 
     @Override
     public ImportsFor<PartyLogModule> imports() {
-        return ImportsFor.<PartyLogModule>builder()
+        return new ImportsFor._Builder<PartyLogModule>()
                 .add(new ModuleImports<>(List.of(new MonitorModule.Monitor()), MonitorModule.INSTANCE))
                 // the page's focus party and its steward, listened to; the lines as the focus tree's rows
                 .add(new ModuleImports<>(List.of(new focusParty()), FocusPartyModule.INSTANCE))

@@ -21,7 +21,7 @@ public record WorkspaceLogExportModule() implements DomModule<WorkspaceLogExport
 
     @Override
     public ImportsFor<WorkspaceLogExportModule> imports() {
-        return ImportsFor.<WorkspaceLogExportModule>builder()
+        return new ImportsFor._Builder<WorkspaceLogExportModule>()
                 .add(new ModuleImports<>(List.of(new LoggedEventModule.LoggedEventCodec()), LoggedEventModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new LogHeaderModule.LogHeaderCodec()), LogHeaderModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new FoldedStateModule.FoldedStateCodec()), FoldedStateModule.INSTANCE))

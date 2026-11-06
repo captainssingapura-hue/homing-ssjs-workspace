@@ -13,13 +13,13 @@ class WorkspaceShellCrateConformanceTest {
 
     @Test
     void everyServedModuleIsCrated() {
-        assertEquals(List.of(), OrphanCheck.check(WorkspaceShellCrate.INSTANCE),
+        assertEquals(List.of(), OrphanCheck.INSTANCE.check(WorkspaceShellCrate.INSTANCE),
                 "every served JS module in homing-workspace-shell must be declared in its crate");
     }
 
     @Test
     void importsRespectCrateBoundaries() {
-        assertEquals(List.of(), CrateDependencyRule.check(WorkspaceShellCrate.INSTANCE),
+        assertEquals(List.of(), CrateDependencyRule.INSTANCE.check(WorkspaceShellCrate.INSTANCE),
                 "every JS import must resolve to the crate itself or one it directly requires");
     }
 }

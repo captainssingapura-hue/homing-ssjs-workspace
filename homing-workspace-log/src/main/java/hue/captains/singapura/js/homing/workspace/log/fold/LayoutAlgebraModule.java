@@ -21,7 +21,7 @@ public record LayoutAlgebraModule() implements DomModule<LayoutAlgebraModule> {
 
     @Override
     public ImportsFor<LayoutAlgebraModule> imports() {
-        return ImportsFor.<LayoutAlgebraModule>builder()
+        return new ImportsFor._Builder<LayoutAlgebraModule>()
                 .add(new ModuleImports<>(List.of(new ExactShareModule.ExactShare()), ExactShareModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new LogIdsModule.RegionId()), LogIdsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new ScaledModule.Scaled()), ScaledModule.INSTANCE))

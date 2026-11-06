@@ -21,7 +21,7 @@ public record WorkspaceDemoSite() implements Site {
     public static final WorkspaceDemoSite INSTANCE = new WorkspaceDemoSite();
 
     /** The one declaration this site makes: the brand, the designs, the crate it serves. */
-    public static final StandardMpa MPA = StandardMpa.of(Brand.of("Workspace"), HouseStyles.INSTANCE.styling(List.of(GridFrameBaseModule.INSTANCE)), WorkspaceDemoCrate.INSTANCE);
+    public static final StandardMpa MPA = new StandardMpa(new Brand("Workspace"), HouseStyles.INSTANCE.styling(List.of(GridFrameBaseModule.INSTANCE)), WorkspaceDemoCrate.INSTANCE);
 
     private static final Router ROUTER = DemoGroups.SITE.router(MPA, DemoWorkspaceApp.INSTANCE, true);
 

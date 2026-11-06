@@ -29,19 +29,19 @@ public record MonitorModule() implements DomModule<MonitorModule> {
 
     /** The keys every monitor takes while it holds them: its box scrolled, and the keys given back. */
     public static final List<KeyBinding> KEYS = List.of(
-            KeyBinding.of(Key.ARROW_DOWN, "a line down"),
-            KeyBinding.of(Key.ARROW_UP, "a line up"),
-            KeyBinding.of(Key.PAGE_DOWN, "a page down"),
-            KeyBinding.of(Key.PAGE_UP, "a page up"),
-            KeyBinding.of(Key.HOME, "to the top"),
-            KeyBinding.of(Key.END, "to the end"),
-            KeyBinding.of(Key.ESCAPE, "the keys given back"));
+            new KeyBinding(Key.ARROW_DOWN, "a line down"),
+            new KeyBinding(Key.ARROW_UP, "a line up"),
+            new KeyBinding(Key.PAGE_DOWN, "a page down"),
+            new KeyBinding(Key.PAGE_UP, "a page up"),
+            new KeyBinding(Key.HOME, "to the top"),
+            new KeyBinding(Key.END, "to the end"),
+            new KeyBinding(Key.ESCAPE, "the keys given back"));
 
     public static final MonitorModule INSTANCE = new MonitorModule();
 
     @Override
     public ImportsFor<MonitorModule> imports() {
-        return ImportsFor.<MonitorModule>builder()
+        return new ImportsFor._Builder<MonitorModule>()
                 // its own DomOps party and focus party, each from its party of parties
                 .add(new ModuleImports<>(List.of(new domOpsParties()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))

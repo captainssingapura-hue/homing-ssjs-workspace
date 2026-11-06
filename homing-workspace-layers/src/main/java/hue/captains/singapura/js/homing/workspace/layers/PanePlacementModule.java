@@ -14,7 +14,7 @@ public record PanePlacementModule() implements EsModule<PanePlacementModule> {
 
     public static final PanePlacementModule INSTANCE = new PanePlacementModule();
 
-    @Override public ImportsFor<PanePlacementModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<PanePlacementModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<PanePlacementModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new PanePlacement())); }

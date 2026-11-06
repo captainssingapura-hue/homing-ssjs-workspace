@@ -35,7 +35,7 @@ public record GridWorkspaceModule() implements DomModule<GridWorkspaceModule> {
 
     @Override
     public ImportsFor<GridWorkspaceModule> imports() {
-        return ImportsFor.<GridWorkspaceModule>builder()
+        return new ImportsFor._Builder<GridWorkspaceModule>()
                 // the whole and its regions, as the gallery's docking page has them, and the page's menus
                 .add(new ModuleImports<>(List.of(new DeskModule.Desk()), DeskModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new SplitGridModule.SplitGrid()), SplitGridModule.INSTANCE))

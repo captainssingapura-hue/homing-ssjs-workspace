@@ -19,7 +19,7 @@ public record WorkspaceAnchorModule() implements EsModule<WorkspaceAnchorModule>
 
     public static final WorkspaceAnchorModule INSTANCE = new WorkspaceAnchorModule();
 
-    @Override public ImportsFor<WorkspaceAnchorModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<WorkspaceAnchorModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<WorkspaceAnchorModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new WorkspaceAnchor())); }

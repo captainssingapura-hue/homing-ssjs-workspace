@@ -36,7 +36,7 @@ public record TreeLayoutModule() implements DomModule<TreeLayoutModule> {
 
     @Override
     public ImportsFor<TreeLayoutModule> imports() {
-        return ImportsFor.<TreeLayoutModule>builder()
+        return new ImportsFor._Builder<TreeLayoutModule>()
                 // its sections and its headings, each worn in its look
                 .add(new ModuleImports<>(List.of(new LookModule.Look()), LookModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new CastingsModule.ROLE()), CastingsModule.INSTANCE))

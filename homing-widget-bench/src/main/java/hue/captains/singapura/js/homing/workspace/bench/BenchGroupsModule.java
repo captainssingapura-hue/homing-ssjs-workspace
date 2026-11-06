@@ -20,7 +20,7 @@ public record BenchGroupsModule() implements EsModule<BenchGroupsModule>, SelfCo
 
     public record BENCH_GROUPS() implements Exportable._Constant<BenchGroupsModule> {}
 
-    @Override public ImportsFor<BenchGroupsModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<BenchGroupsModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<BenchGroupsModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new BENCH_GROUPS())); }

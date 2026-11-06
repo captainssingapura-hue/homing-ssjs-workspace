@@ -20,7 +20,7 @@ public record WorkspaceChoiceModule() implements EsModule<WorkspaceChoiceModule>
 
     public record WORKSPACE_CHOICE() implements Exportable._Constant<WorkspaceChoiceModule> {}
 
-    @Override public ImportsFor<WorkspaceChoiceModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<WorkspaceChoiceModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<WorkspaceChoiceModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new WORKSPACE_CHOICE())); }

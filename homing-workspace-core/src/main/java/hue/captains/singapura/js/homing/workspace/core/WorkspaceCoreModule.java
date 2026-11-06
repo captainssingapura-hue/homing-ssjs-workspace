@@ -21,7 +21,7 @@ public record WorkspaceCoreModule() implements EsModule<WorkspaceCoreModule> {
 
     @Override
     public ImportsFor<WorkspaceCoreModule> imports() {
-        return ImportsFor.<WorkspaceCoreModule>builder()
+        return new ImportsFor._Builder<WorkspaceCoreModule>()
                 .add(new ModuleImports<>(List.of(new WidgetIdsModule.WidgetIds()), WidgetIdsModule.INSTANCE))
                 .build();
     }

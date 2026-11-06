@@ -29,13 +29,13 @@ public record StageLayerModule() implements DomModule<StageLayerModule> {
         @Override public String summary() { return "The page's stage: one modal layer, a frame filling the view, its seat sized for what sits in it."; }
 
         /** Its one key, on its own layer while it shows. */
-        public static final List<KeyBinding> KEYS = List.of(KeyBinding.of(Key.ESCAPE, "close the stage: what is on it goes back"));
+        public static final List<KeyBinding> KEYS = List.of(new KeyBinding(Key.ESCAPE, "close the stage: what is on it goes back"));
         @Override public List<KeyBinding> keys() { return KEYS; }
     }
 
     @Override
     public ImportsFor<StageLayerModule> imports() {
-        return ImportsFor.<StageLayerModule>builder()
+        return new ImportsFor._Builder<StageLayerModule>()
                 // its title, the house's heading of its level
                 .add(new ModuleImports<>(List.of(new LookModule.Look()), LookModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new CastingsModule.ROLE()), CastingsModule.INSTANCE))

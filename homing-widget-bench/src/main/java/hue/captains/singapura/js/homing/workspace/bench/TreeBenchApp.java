@@ -34,7 +34,7 @@ public record TreeBenchApp() implements AppModule<TreeBenchApp.Params, TreeBench
 
     record appMain() implements AppModule._AppMain<Params, TreeBenchApp> {}
 
-    public static final ParamCodec<Params> CODEC = ParamCodec.ofEmpty(Params::new);
+    public static final ParamCodec<Params> CODEC = new ParamCodec.Empty<>(Params::new);
 
     @Override public String title()      { return "Tree bench"; }
     @Override public String simpleName() { return "tree-bench"; }
@@ -43,7 +43,7 @@ public record TreeBenchApp() implements AppModule<TreeBenchApp.Params, TreeBench
 
     @Override
     public ImportsFor<TreeBenchApp> imports() {
-        return ImportsFor.<TreeBenchApp>builder()
+        return new ImportsFor._Builder<TreeBenchApp>()
                 // the tree and its engine
                 .add(new ModuleImports<>(List.of(new BenchTreeModule.BENCH_TREE()), BenchTreeModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new TreeLayoutModule.TreeLayout()), TreeLayoutModule.INSTANCE))

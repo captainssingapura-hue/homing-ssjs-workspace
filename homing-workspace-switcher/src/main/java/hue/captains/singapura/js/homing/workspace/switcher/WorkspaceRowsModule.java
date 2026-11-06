@@ -23,7 +23,7 @@ public record WorkspaceRowsModule() implements DomModule<WorkspaceRowsModule> {
 
     @Override
     public ImportsFor<WorkspaceRowsModule> imports() {
-        return ImportsFor.<WorkspaceRowsModule>builder()
+        return new ImportsFor._Builder<WorkspaceRowsModule>()
                 .add(new ModuleImports<>(List.of(new RelGridStockCellsModule.RelGridTextCell()), RelGridStockCellsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new RelGridLabelsModule.RelGridLabels()), RelGridLabelsModule.INSTANCE))   // its header: label header cells
                 .add(new ModuleImports<>(List.of(new WorkspaceNameCellModule.WorkspaceNameCell()), WorkspaceNameCellModule.INSTANCE))

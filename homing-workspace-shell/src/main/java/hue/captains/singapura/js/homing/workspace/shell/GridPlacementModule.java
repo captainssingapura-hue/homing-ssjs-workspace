@@ -24,7 +24,7 @@ public record GridPlacementModule() implements DomModule<GridPlacementModule> {
 
     @Override
     public ImportsFor<GridPlacementModule> imports() {
-        return ImportsFor.<GridPlacementModule>builder()
+        return new ImportsFor._Builder<GridPlacementModule>()
                 .add(new ModuleImports<>(List.of(new PaneEventsModule.PaneEvents()), PaneEventsModule.INSTANCE))
                 .build();
     }

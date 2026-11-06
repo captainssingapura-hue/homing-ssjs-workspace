@@ -19,7 +19,7 @@ public record PaneLayerModule() implements DomModule<PaneLayerModule> {
 
     @Override
     public ImportsFor<PaneLayerModule> imports() {
-        return ImportsFor.<PaneLayerModule>builder()
+        return new ImportsFor._Builder<PaneLayerModule>()
                 .add(new ModuleImports<>(List.of(new WidgetIdModule.WidgetId()), WidgetIdModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new PaneEventModule.PaneShown()), PaneEventModule.INSTANCE))
                 .build();

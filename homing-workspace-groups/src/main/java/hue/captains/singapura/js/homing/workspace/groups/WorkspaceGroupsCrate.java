@@ -27,16 +27,16 @@ public final class WorkspaceGroupsCrate implements Crate {
     public List<CrateEntry> entries() {
         return List.of(
                 // the page's directory, provided once at boot
-                CrateEntry.of(WorkspaceDirectoryModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WorkspaceDirectoryModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // where a kind is in its group, as the page's anchor names it: #ws/<section>/<kind>
-                CrateEntry.of(WorkspaceAnchorModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WorkspaceAnchorModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // the workspace choice party: its type, generated from Java, and its secretaries
-                CrateEntry.of(WorkspaceChoiceModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(WorkspaceChoiceSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
-                CrateEntry.of(WorkspaceSwitcherSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
+                new CrateEntry(WorkspaceChoiceModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WorkspaceChoiceSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
+                new CrateEntry(WorkspaceSwitcherSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
                 // the page's member of it: whoever opens what the party says is asked to open
-                CrateEntry.of(WorkspaceOpenerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WorkspaceOpenerModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // and its member that keeps them: renamed, deleted, and how it went said
-                CrateEntry.of(WorkspaceKeeperModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
+                new CrateEntry(WorkspaceKeeperModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
     }
 }

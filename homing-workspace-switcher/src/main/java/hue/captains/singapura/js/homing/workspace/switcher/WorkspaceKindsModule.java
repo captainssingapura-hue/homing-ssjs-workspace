@@ -38,8 +38,8 @@ public record WorkspaceKindsModule() implements DomModule<WorkspaceKindsModule> 
     public record WorkspaceKinds() implements SelfContainedWidget<WorkspaceKindsModule>, NeedKeyboard {
         @Override public String summary() { return "The kinds of workspace the page's directory files, as a tree: its cursor the choice, Enter the asking to open."; }
         @Override public List<KeyBinding> keys() {
-            return List.of(KeyBinding.of(Key.ARROW_RIGHT, "past a kind: its host told, to hand the keys on"),
-                           KeyBinding.of(Key.ESCAPE, "the keys given back, when the tree did not take it"));
+            return List.of(new KeyBinding(Key.ARROW_RIGHT, "past a kind: its host told, to hand the keys on"),
+                           new KeyBinding(Key.ESCAPE, "the keys given back, when the tree did not take it"));
         }
     }
 
@@ -47,7 +47,7 @@ public record WorkspaceKindsModule() implements DomModule<WorkspaceKindsModule> 
 
     @Override
     public ImportsFor<WorkspaceKindsModule> imports() {
-        return ImportsFor.<WorkspaceKindsModule>builder()
+        return new ImportsFor._Builder<WorkspaceKindsModule>()
                 // its title, the house's heading of its level
                 .add(new ModuleImports<>(List.of(new LookModule.Look()), LookModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new CastingsModule.ROLE()), CastingsModule.INSTANCE))

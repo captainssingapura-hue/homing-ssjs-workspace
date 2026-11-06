@@ -19,7 +19,7 @@ public record PaneFoldModule() implements DomModule<PaneFoldModule> {
 
     @Override
     public ImportsFor<PaneFoldModule> imports() {
-        return ImportsFor.<PaneFoldModule>builder()
+        return new ImportsFor._Builder<PaneFoldModule>()
                 .add(new ModuleImports<>(List.of(new PaneEventModule.PaneShown()), PaneEventModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new PaneStateModule.PaneState()), PaneStateModule.INSTANCE))
                 .build();

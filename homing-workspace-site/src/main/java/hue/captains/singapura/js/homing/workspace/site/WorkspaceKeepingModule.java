@@ -30,7 +30,7 @@ public record WorkspaceKeepingModule() implements DomModule<WorkspaceKeepingModu
 
     @Override
     public ImportsFor<WorkspaceKeepingModule> imports() {
-        return ImportsFor.<WorkspaceKeepingModule>builder()
+        return new ImportsFor._Builder<WorkspaceKeepingModule>()
                 // a workspace by its log's key: its kind, its id - a fresh one, or a kind's own
                 .add(new ModuleImports<>(List.of(new LogKeyModule.LogKey()), LogKeyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new LogIdsModule.WorkspaceKind(), new LogIdsModule.WorkspaceInstanceId()), LogIdsModule.INSTANCE))

@@ -44,8 +44,8 @@ public final class WorkspaceTreeCrate implements Crate {
     @Override
     public List<CrateEntry> entries() {
         return List.of(
-                CrateEntry.of(TreeStyles.INSTANCE),
-                CrateEntry.of(TreeLayoutModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(TreeTocModule.INSTANCE, StandardJsModuleType.CONSUMER));
+                new CrateEntry(TreeStyles.INSTANCE),
+                new CrateEntry(TreeLayoutModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(TreeTocModule.INSTANCE, StandardJsModuleType.CONSUMER));
     }
 }

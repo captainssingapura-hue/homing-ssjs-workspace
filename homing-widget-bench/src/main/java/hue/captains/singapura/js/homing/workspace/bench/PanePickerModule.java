@@ -26,7 +26,7 @@ public record PanePickerModule() implements DomModule<PanePickerModule> {
 
     @Override
     public ImportsFor<PanePickerModule> imports() {
-        return ImportsFor.<PanePickerModule>builder()
+        return new ImportsFor._Builder<PanePickerModule>()
                 .add(new ModuleImports<>(List.of(new StatesAndEventsModule.EVENT()), StatesAndEventsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new PlainButtonModule.PlainButton(), new PlainButtonModule.PlainButtonFactory()), PlainButtonModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WidgetBenchStyles.wb_picker(), new WidgetBenchStyles.wb_ws_label()), WidgetBenchStyles.INSTANCE))

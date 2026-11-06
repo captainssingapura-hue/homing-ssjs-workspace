@@ -19,7 +19,7 @@ class TreeTaxonomyTest {
 
     @Test
     void everyNode_meansSomething_everySectionANodes() {
-        var modules = new ArrayList<ComponentModule>(HouseTaxonomy.MODULES);
+        var modules = new ArrayList<ComponentModule>(HouseTaxonomy.INSTANCE.modules());
         modules.add(TreeComponentModule.INSTANCE);
         var problems = MeaningsCheck.INSTANCE.problems(HouseTaxonomy.INSTANCE.read(modules));
         assertEquals(List.of(), problems.stream().map(Object::toString).toList(),

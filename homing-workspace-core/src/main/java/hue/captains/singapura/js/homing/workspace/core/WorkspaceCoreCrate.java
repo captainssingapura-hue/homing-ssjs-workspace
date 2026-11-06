@@ -25,10 +25,10 @@ public final class WorkspaceCoreCrate implements Crate {
     @Override
     public List<CrateEntry> entries() {
         return List.of(
-                CrateEntry.of(WidgetIdsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(WorkspaceRequestModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(WorkspaceCoreModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(KindAndParamsTitleModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(WorkspacePartiesModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
+                new CrateEntry(WidgetIdsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WorkspaceRequestModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WorkspaceCoreModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(KindAndParamsTitleModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WorkspacePartiesModule.INSTANCE, StandardJsModuleType.PURE_LOGIC));
     }
 }

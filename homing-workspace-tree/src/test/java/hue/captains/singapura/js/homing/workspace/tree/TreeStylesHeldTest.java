@@ -21,7 +21,7 @@ class TreeStylesHeldTest {
 
     @TestFactory
     Stream<DynamicTest> theJar_andEachImplementation_heldAlone() {
-        var modules = new ArrayList<ComponentModule>(HouseTaxonomy.MODULES);
+        var modules = new ArrayList<ComponentModule>(HouseTaxonomy.INSTANCE.modules());
         modules.add(TreeComponentModule.INSTANCE);
         CheckDeclaration.Checked checked = CheckDeclaration.INSTANCE.check(
                 WorkspaceTreeStyleDeclaration.INSTANCE, HouseTaxonomy.INSTANCE.read(modules), BaseColours.TREE);

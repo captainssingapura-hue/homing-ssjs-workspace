@@ -24,7 +24,7 @@ public record WorkspaceConfirmModule() implements DomModule<WorkspaceConfirmModu
 
     @Override
     public ImportsFor<WorkspaceConfirmModule> imports() {
-        return ImportsFor.<WorkspaceConfirmModule>builder()
+        return new ImportsFor._Builder<WorkspaceConfirmModule>()
                 .add(new ModuleImports<>(List.of(new DialogModule.Dialog()), DialogModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new SwitcherStyles.sw_question()), SwitcherStyles.INSTANCE))
                 .build();

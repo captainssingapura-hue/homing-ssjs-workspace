@@ -74,28 +74,28 @@ public record GroupedWorkspacePageModule() implements DomModule<GroupedWorkspace
     public static final ParamCodec<Params> CODEC = new ParamCodec<>() {
 
         @Override public Decoded<Params> from(Map<String, List<String>> query) {
-            String group = QueryString.first(query, "ws_group");
-            if (group == null || group.isBlank()) return Decoded.missing("ws_group");
-            if (!GROUP.matcher(group).matches()) return Decoded.malformed("ws_group", group, "a group's id: letters, digits, hyphen, underscore");
-            String server = QueryString.first(query, "ws_server");
-            if (server != null && !server.equals("on")) return Decoded.malformed("ws_server", server, "on, or absent");
-            String under = QueryString.first(query, "ws_under");
-            if (under != null && !UNDER.matcher(under).matches()) return Decoded.malformed("ws_under", under, "where the groups are: /segments, no trailing slash");
-            return Decoded.ok(new Params(group, server != null, under == null ? "" : under));
+            String group = QueryString.INSTANCE.first(query, "ws_group");
+            if (group == null || group.isBlank()) return new Decoded.Missing<>("ws_group");
+            if (!GROUP.matcher(group).matches()) return new Decoded.Malformed<>("ws_group", group, "a group's id: letters, digits, hyphen, underscore");
+            String server = QueryString.INSTANCE.first(query, "ws_server");
+            if (server != null && !server.equals("on")) return new Decoded.Malformed<>("ws_server", server, "on, or absent");
+            String under = QueryString.INSTANCE.first(query, "ws_under");
+            if (under != null && !UNDER.matcher(under).matches()) return new Decoded.Malformed<>("ws_under", under, "where the groups are: /segments, no trailing slash");
+            return new Decoded.Ok<>(new Params(group, server != null, under == null ? "" : under));
         }
 
         @Override public Map<String, List<String>> to(Params params) {
-            var q = QueryString.params();
-            QueryString.put(q, "ws_group", params.ws_group());
-            if (params.ws_server()) QueryString.put(q, "ws_server", "on");
-            if (!params.ws_under().isEmpty()) QueryString.put(q, "ws_under", params.ws_under());
+            var q = QueryString.INSTANCE.params();
+            QueryString.INSTANCE.put(q, "ws_group", params.ws_group());
+            if (params.ws_server()) QueryString.INSTANCE.put(q, "ws_server", "on");
+            if (!params.ws_under().isEmpty()) QueryString.INSTANCE.put(q, "ws_under", params.ws_under());
             return q;
         }
     };
 
     @Override
     public ImportsFor<GroupedWorkspacePageModule> imports() {
-        return ImportsFor.<GroupedWorkspacePageModule>builder()
+        return new ImportsFor._Builder<GroupedWorkspacePageModule>()
                 // the page a workspace is
                 .add(new ModuleImports<>(List.of(new WorkspacePageModule.WorkspacePage()), WorkspacePageModule.INSTANCE))
                 // the page's directory, and its member of the workspace choice party: the opener

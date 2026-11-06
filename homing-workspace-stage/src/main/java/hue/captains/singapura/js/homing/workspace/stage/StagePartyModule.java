@@ -16,7 +16,7 @@ public record StagePartyModule() implements EsModule<StagePartyModule>, SelfCont
 
     public record STAGE() implements Exportable._Constant<StagePartyModule> {}
 
-    @Override public ImportsFor<StagePartyModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<StagePartyModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<StagePartyModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new STAGE())); }

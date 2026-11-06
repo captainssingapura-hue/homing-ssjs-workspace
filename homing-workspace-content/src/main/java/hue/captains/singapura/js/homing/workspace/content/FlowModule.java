@@ -32,7 +32,7 @@ public record FlowModule() implements DomModule<FlowModule> {
 
     @Override
     public ImportsFor<FlowModule> imports() {
-        return ImportsFor.<FlowModule>builder()
+        return new ImportsFor._Builder<FlowModule>()
                 .add(new ModuleImports<>(List.of(new domOpsParties()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new FlowContentModule.FLOW()), FlowContentModule.INSTANCE))
