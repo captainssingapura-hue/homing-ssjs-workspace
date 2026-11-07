@@ -62,16 +62,16 @@ public final class WorkspaceDemoWidgetsCrate implements Crate {
     public List<CrateEntry> entries() {
         return List.of(
                 // the books, in the relation grid: native focus inside a widget
-                CrateEntry.of(BooksModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(BooksGridModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(BooksModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(BooksGridModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 // the book selection party: its type, generated from Java, and its secretary
-                CrateEntry.of(BookSelectionModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(BookSelectionSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
+                new CrateEntry(BookSelectionModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(BookSelectionSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
                 // the chosen book, big
-                CrateEntry.of(BookStyles.INSTANCE),
-                CrateEntry.of(BookJumbotronModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(BookStyles.INSTANCE),
+                new CrateEntry(BookJumbotronModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 // the two composed: they meet in a scope of the browser's own, its secretary keeping the edge
-                CrateEntry.of(BookBrowserSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
-                CrateEntry.of(BookBrowserModule.INSTANCE, StandardJsModuleType.CONSUMER));
+                new CrateEntry(BookBrowserSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
+                new CrateEntry(BookBrowserModule.INSTANCE, StandardJsModuleType.CONSUMER));
     }
 }

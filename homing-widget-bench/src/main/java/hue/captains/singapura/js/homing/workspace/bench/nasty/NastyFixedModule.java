@@ -30,14 +30,14 @@ public record NastyFixedModule() implements DomModule<NastyFixedModule> {
 
     public record NastyFixed() implements SelfContainedWidget<NastyFixedModule>, NeedKeyboard {
         @Override public String summary() { return "A widget fixed at 640 x 360 that ignores its container: the bench's to catch."; }
-        @Override public List<KeyBinding> keys() { return List.of(KeyBinding.of(Key.ESCAPE, "the keys given back")); }
+        @Override public List<KeyBinding> keys() { return List.of(new KeyBinding(Key.ESCAPE, "the keys given back")); }
     }
 
     public static final NastyFixedModule INSTANCE = new NastyFixedModule();
 
     @Override
     public ImportsFor<NastyFixedModule> imports() {
-        return ImportsFor.<NastyFixedModule>builder()
+        return new ImportsFor._Builder<NastyFixedModule>()
                 .add(new ModuleImports<>(List.of(new domOpsParties()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new KeysModule.Keys()), KeysModule.INSTANCE))

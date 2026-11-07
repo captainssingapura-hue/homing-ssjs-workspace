@@ -20,7 +20,7 @@ public record BenchTreeModule() implements EsModule<BenchTreeModule>, SelfConten
 
     public record BENCH_TREE() implements Exportable._Constant<BenchTreeModule> {}
 
-    @Override public ImportsFor<BenchTreeModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<BenchTreeModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<BenchTreeModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new BENCH_TREE())); }

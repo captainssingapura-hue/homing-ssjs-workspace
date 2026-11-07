@@ -40,7 +40,7 @@ public record SinglePaneWorkspaceModule() implements DomModule<SinglePaneWorkspa
 
     @Override
     public ImportsFor<SinglePaneWorkspaceModule> imports() {
-        return ImportsFor.<SinglePaneWorkspaceModule>builder()
+        return new ImportsFor._Builder<SinglePaneWorkspaceModule>()
                 .add(new ModuleImports<>(List.of(new StatesAndEventsModule.EVENT()), StatesAndEventsModule.INSTANCE))
                 // its own roots
                 .add(new ModuleImports<>(List.of(new domOpsParties(), new DomOpsPartyModule.MobileDomOpsParty()), DomOpsPartyModule.INSTANCE))

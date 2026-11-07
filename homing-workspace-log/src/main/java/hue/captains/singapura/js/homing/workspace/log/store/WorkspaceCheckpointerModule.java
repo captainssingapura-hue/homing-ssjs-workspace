@@ -19,7 +19,7 @@ public record WorkspaceCheckpointerModule() implements DomModule<WorkspaceCheckp
 
     @Override
     public ImportsFor<WorkspaceCheckpointerModule> imports() {
-        return ImportsFor.<WorkspaceCheckpointerModule>builder()
+        return new ImportsFor._Builder<WorkspaceCheckpointerModule>()
                 .add(new ModuleImports<>(List.of(new LogHeaderModule.LogHeaderCodec()), LogHeaderModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new CheckpointModule.Checkpoint(), new CheckpointModule.CheckpointCodec()), CheckpointModule.INSTANCE))
                 .build();

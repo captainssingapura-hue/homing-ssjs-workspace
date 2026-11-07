@@ -18,7 +18,7 @@ public record ContentParamsModule() implements EsModule<ContentParamsModule> {
 
     public record ContentParams() implements Exportable._Class<ContentParamsModule> {}
 
-    @Override public ImportsFor<ContentParamsModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<ContentParamsModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<ContentParamsModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new ContentParams())); }

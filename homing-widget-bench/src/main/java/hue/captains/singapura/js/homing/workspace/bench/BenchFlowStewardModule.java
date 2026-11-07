@@ -17,7 +17,7 @@ public record BenchFlowStewardModule() implements EsModule<BenchFlowStewardModul
 
     @Override
     public ImportsFor<BenchFlowStewardModule> imports() {
-        return ImportsFor.<BenchFlowStewardModule>builder()
+        return new ImportsFor._Builder<BenchFlowStewardModule>()
                 .add(new ModuleImports<>(List.of(new BenchContentStewardModule.BenchContentSteward()), BenchContentStewardModule.INSTANCE))
                 .build();
     }

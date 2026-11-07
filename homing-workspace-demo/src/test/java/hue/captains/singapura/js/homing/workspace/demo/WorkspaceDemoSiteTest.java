@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.demo;
 
+import hue.captains.singapura.js.homing.site.PathParser;
 import hue.captains.singapura.js.homing.core.ParamCodec.Decoded;
 import hue.captains.singapura.js.homing.site.Path;
 import hue.captains.singapura.js.homing.site.Query;
@@ -25,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class WorkspaceDemoSiteTest {
 
     private static String page(String path, Query query) {
-        return WorkspaceDemoSite.INSTANCE.router().resolve(Path.parse(path)).orElseThrow(() -> new AssertionError("nothing at " + path)).html(query).body();
+        return WorkspaceDemoSite.INSTANCE.router().resolve(PathParser.INSTANCE.parse(path)).orElseThrow(() -> new AssertionError("nothing at " + path)).html(query).body();
     }
 
     @Test
@@ -45,13 +46,13 @@ class WorkspaceDemoSiteTest {
     void theRootSendsToTheGroup_andAKindHasNoPathOfItsOwn() {
         assertTrue(page("/", Query.NONE).contains("window.location.replace(\"\\/demo\" + window.location.hash)"));
         for (String nowhere : List.of("/elsewhere", "/together/demo", "/one-set-each/books", "/one-set-each", "/demo/together/demo")) {
-            assertFalse(WorkspaceDemoSite.INSTANCE.router().resolve(Path.parse(nowhere)).isPresent(), nowhere);
+            assertFalse(WorkspaceDemoSite.INSTANCE.router().resolve(PathParser.INSTANCE.parse(nowhere)).isPresent(), nowhere);
         }
     }
 
     @Test
     void theRouteNamesTheGroup_andTheQueryNothingInsideIt() {
-        String html = page("/demo", Query.parse("ws_id=0f1b6c2e-5000-4000-8f1b-6c2e00000001&ws_name=Reading%20list&ws_group=elsewhere&ws_kind=monitors"));
+        String html = page("/demo", new Query("ws_id=0f1b6c2e-5000-4000-8f1b-6c2e00000001&ws_name=Reading%20list&ws_group=elsewhere&ws_kind=monitors"));
         assertTrue(html.contains("\"ws_group\":\"demo\""), "which group: the route's, whatever the address says");
         assertFalse(html.contains("ws_id") || html.contains("ws_name") || html.contains("ws_kind"),
                 "which kind, and which workspace of it, are the anchor's - #ws/<section>/<kind>?ws_name=…");

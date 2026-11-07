@@ -34,7 +34,7 @@ class DeclaredImportsTest {
 
     @Test
     void everyNameTakenFromAnotherModuleIsImported() throws IOException {
-        var closure = new ArrayList<>(CrateClosure.of(TOP));
+        var closure = new ArrayList<>(CrateClosure.INSTANCE.of(TOP));
         Map<String, String> exporter = new HashMap<>();
         for (Crate c : closure) for (CrateEntry e : c.entries()) {
             for (var x : e.module().exports().exports()) exporter.putIfAbsent(x.getClass().getSimpleName(), e.moduleClass());
@@ -78,7 +78,7 @@ class DeclaredImportsTest {
     @Test
     void noPlainModuleImportsADomModule() {
         var problems = new ArrayList<String>();
-        for (Crate c : CrateClosure.of(TOP)) {
+        for (Crate c : CrateClosure.INSTANCE.of(TOP)) {
             if (!c.name().startsWith("homing-workspace")) continue;
             for (CrateEntry e : c.entries()) {
                 if (e.module() instanceof hue.captains.singapura.js.homing.core.DomModule<?>) continue;

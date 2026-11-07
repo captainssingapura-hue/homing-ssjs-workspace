@@ -21,7 +21,7 @@ public record KindAndParamsTitleModule() implements EsModule<KindAndParamsTitleM
 
     @Override
     public ImportsFor<KindAndParamsTitleModule> imports() {
-        return ImportsFor.<KindAndParamsTitleModule>builder()
+        return new ImportsFor._Builder<KindAndParamsTitleModule>()
                 .add(new ModuleImports<>(List.of(new WidgetIdsModule.WidgetIds()), WidgetIdsModule.INSTANCE))
                 .build();
     }

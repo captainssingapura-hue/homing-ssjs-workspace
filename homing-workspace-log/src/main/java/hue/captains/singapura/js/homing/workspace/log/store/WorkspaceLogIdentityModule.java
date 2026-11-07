@@ -19,7 +19,7 @@ public record WorkspaceLogIdentityModule() implements DomModule<WorkspaceLogIden
 
     @Override
     public ImportsFor<WorkspaceLogIdentityModule> imports() {
-        return ImportsFor.<WorkspaceLogIdentityModule>builder()
+        return new ImportsFor._Builder<WorkspaceLogIdentityModule>()
                 .add(new ModuleImports<>(List.of(new LogIdsModule.WorkspaceKind(), new LogIdsModule.WorkspaceInstanceId()), LogIdsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new LogHeaderModule.LogHeader()), LogHeaderModule.INSTANCE))
                 .build();

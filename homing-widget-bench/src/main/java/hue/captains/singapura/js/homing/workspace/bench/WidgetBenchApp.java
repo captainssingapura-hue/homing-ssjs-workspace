@@ -58,20 +58,20 @@ public record WidgetBenchApp() implements AppModule<WidgetBenchApp.Params, Widge
     public static final ParamCodec<Params> CODEC = new ParamCodec<>() {
 
         @Override public Decoded<Params> from(Map<String, List<String>> query) {
-            String widget = QueryString.first(query, "widget");
-            if (widget == null || widget.isBlank()) return Decoded.missing("widget");
+            String widget = QueryString.INSTANCE.first(query, "widget");
+            if (widget == null || widget.isBlank()) return new Decoded.Missing<>("widget");
             var kind = WidgetBench.kind(widget);
-            if (kind.isEmpty()) return Decoded.malformed("widget", widget, "a widget kind: " + WidgetBench.names());
+            if (kind.isEmpty()) return new Decoded.Malformed<>("widget", widget, "a widget kind: " + WidgetBench.names());
             var read = kind.get().query().from(query);
-            if (read instanceof WidgetQuery.Read.Refused<?> r) return Decoded.malformed(r.key(), r.value(), r.expected());
-            return Decoded.ok(new Params(widget, ((WidgetQuery.Read.Ok<?>) read).params()));
+            if (read instanceof WidgetQuery.Read.Refused<?> r) return new Decoded.Malformed<>(r.key(), r.value(), r.expected());
+            return new Decoded.Ok<>(new Params(widget, ((WidgetQuery.Read.Ok<?>) read).params()));
         }
 
         @Override public Map<String, List<String>> to(Params params) {
-            var q = QueryString.params();
-            QueryString.put(q, "widget", params.widget());
+            var q = QueryString.INSTANCE.params();
+            QueryString.INSTANCE.put(q, "widget", params.widget());
             WidgetBench.kind(params.widget()).orElseThrow().toQuery(params.params())
-                    .forEach((k, vs) -> vs.forEach(v -> QueryString.put(q, k, v)));
+                    .forEach((k, vs) -> vs.forEach(v -> QueryString.INSTANCE.put(q, k, v)));
             return q;
         }
     };
@@ -83,7 +83,7 @@ public record WidgetBenchApp() implements AppModule<WidgetBenchApp.Params, Widge
 
     @Override
     public ImportsFor<WidgetBenchApp> imports() {
-        return ImportsFor.<WidgetBenchApp>builder()
+        return new ImportsFor._Builder<WidgetBenchApp>()
                 // the page's directory, provided at boot with the bench's groups
                 .add(new ModuleImports<>(List.of(new BenchGroupsModule.BENCH_GROUPS()), BenchGroupsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceDirectoryModule.WorkspaceDirectory()), WorkspaceDirectoryModule.INSTANCE))

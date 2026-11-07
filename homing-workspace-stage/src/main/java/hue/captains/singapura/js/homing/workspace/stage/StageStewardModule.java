@@ -21,7 +21,7 @@ public record StageStewardModule() implements DomModule<StageStewardModule> {
 
     @Override
     public ImportsFor<StageStewardModule> imports() {
-        return ImportsFor.<StageStewardModule>builder()
+        return new ImportsFor._Builder<StageStewardModule>()
                 .add(new ModuleImports<>(List.of(new StageLayerModule.StageLayer()), StageLayerModule.INSTANCE))
                 .build();
     }

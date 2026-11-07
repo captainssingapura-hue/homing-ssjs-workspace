@@ -19,7 +19,7 @@ public record CheckpointFoldModule() implements DomModule<CheckpointFoldModule> 
 
     @Override
     public ImportsFor<CheckpointFoldModule> imports() {
-        return ImportsFor.<CheckpointFoldModule>builder()
+        return new ImportsFor._Builder<CheckpointFoldModule>()
                 .add(new ModuleImports<>(List.of(new WorkspaceFoldModule.WorkspaceFold()), WorkspaceFoldModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new LogHeaderModule.LogHeaderCodec()), LogHeaderModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new CheckpointModule.Checkpoint()), CheckpointModule.INSTANCE))

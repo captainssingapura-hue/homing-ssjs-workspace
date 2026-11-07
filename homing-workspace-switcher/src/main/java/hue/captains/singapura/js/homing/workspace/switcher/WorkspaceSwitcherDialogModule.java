@@ -27,7 +27,7 @@ public record WorkspaceSwitcherDialogModule() implements DomModule<WorkspaceSwit
     public record WorkspaceSwitcherDialog() implements BranchComponent<WorkspaceSwitcherDialogModule>, NeedKeyboard {
         @Override public String summary() { return "The workspace switcher in the system dialog: summoned by a page, gone when closed, kept by no log."; }
         @Override public List<KeyBinding> keys() {
-            return List.of(KeyBinding.of(Key.ESCAPE, "the dialog closed, wherever the hand is in the switcher"));
+            return List.of(new KeyBinding(Key.ESCAPE, "the dialog closed, wherever the hand is in the switcher"));
         }
     }
 
@@ -35,7 +35,7 @@ public record WorkspaceSwitcherDialogModule() implements DomModule<WorkspaceSwit
 
     @Override
     public ImportsFor<WorkspaceSwitcherDialogModule> imports() {
-        return ImportsFor.<WorkspaceSwitcherDialogModule>builder()
+        return new ImportsFor._Builder<WorkspaceSwitcherDialogModule>()
                 // the system dialog it is, and the switcher in it
                 .add(new ModuleImports<>(List.of(new DialogModule.Dialog()), DialogModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceSwitcherModule.WorkspaceSwitcher()), WorkspaceSwitcherModule.INSTANCE))

@@ -34,7 +34,7 @@ class DeclaredImportsTest {
 
     @Test
     void everyNameTakenFromAnotherModuleIsImported() throws IOException {
-        var closure = new ArrayList<>(CrateClosure.of(TOP));
+        var closure = new ArrayList<>(CrateClosure.INSTANCE.of(TOP));
         Map<String, String> exporter = new HashMap<>();
         for (Crate c : closure) for (CrateEntry e : c.entries()) {
             for (var x : e.module().exports().exports()) exporter.putIfAbsent(x.getClass().getSimpleName(), e.moduleClass());
@@ -67,8 +67,8 @@ class DeclaredImportsTest {
         assertEquals(List.of(), problems);
     }
 
-    /** A capitalised name read as a value, not as a member: not after a dot. */
-    private static final Pattern NAME = Pattern.compile("(?<![\\w$.])([A-Z][A-Za-z0-9_$]*)\\b");
+    /** A capitalised name read as a value, not as a member: not after a dot, and not an object's key. */
+    private static final Pattern NAME = Pattern.compile("(?<![\\w$.])([A-Z][A-Za-z0-9_$]*)\\b(?!:)");
     private static final Pattern DECLARED = Pattern.compile("\\b(?:class|function|const|let|var)\\s+([A-Za-z_$][\\w$]*)");
 
     private static String strip(String js) {

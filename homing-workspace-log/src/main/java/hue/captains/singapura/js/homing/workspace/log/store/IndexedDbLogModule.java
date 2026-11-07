@@ -16,7 +16,7 @@ public record IndexedDbLogModule() implements DomModule<IndexedDbLogModule> {
 
     @Override
     public ImportsFor<IndexedDbLogModule> imports() {
-        return ImportsFor.noImports();
+        return new ImportsFor<>();
     }
 
     @Override

@@ -17,7 +17,7 @@ public record BenchNoteStewardModule() implements EsModule<BenchNoteStewardModul
 
     @Override
     public ImportsFor<BenchNoteStewardModule> imports() {
-        return ImportsFor.<BenchNoteStewardModule>builder()
+        return new ImportsFor._Builder<BenchNoteStewardModule>()
                 .add(new ModuleImports<>(List.of(new BenchContentStewardModule.BenchContentSteward()), BenchContentStewardModule.INSTANCE))
                 .build();
     }

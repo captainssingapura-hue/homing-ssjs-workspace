@@ -22,7 +22,7 @@ public record WorkspacePartiesModule() implements EsModule<WorkspacePartiesModul
 
     @Override
     public ImportsFor<WorkspacePartiesModule> imports() {
-        return ImportsFor.<WorkspacePartiesModule>builder()
+        return new ImportsFor._Builder<WorkspacePartiesModule>()
                 .add(new ModuleImports<>(List.of(new MessagingPartyModule.MessagingParty()), MessagingPartyModule.INSTANCE))
                 .build();
     }

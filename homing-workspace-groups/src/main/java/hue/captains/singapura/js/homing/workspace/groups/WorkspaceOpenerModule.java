@@ -19,7 +19,7 @@ public record WorkspaceOpenerModule() implements EsModule<WorkspaceOpenerModule>
 
     public static final WorkspaceOpenerModule INSTANCE = new WorkspaceOpenerModule();
 
-    @Override public ImportsFor<WorkspaceOpenerModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<WorkspaceOpenerModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<WorkspaceOpenerModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new WorkspaceOpener())); }

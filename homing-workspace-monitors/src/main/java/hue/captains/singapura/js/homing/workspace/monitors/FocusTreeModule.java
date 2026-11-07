@@ -24,7 +24,7 @@ public record FocusTreeModule() implements DomModule<FocusTreeModule> {
 
     @Override
     public ImportsFor<FocusTreeModule> imports() {
-        return ImportsFor.<FocusTreeModule>builder()
+        return new ImportsFor._Builder<FocusTreeModule>()
                 .add(new ModuleImports<>(List.of(new MonitorModule.Monitor()), MonitorModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new FocusMonitorModule.FocusMonitor()), FocusMonitorModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WidgetSlotModule.WidgetSlot()), WidgetSlotModule.INSTANCE))

@@ -22,7 +22,7 @@ public record GridArrangementModule() implements EsModule<GridArrangementModule>
     public static final GridArrangementModule INSTANCE = new GridArrangementModule();
 
     @Override public ImportsFor<GridArrangementModule> imports() {
-        return ImportsFor.<GridArrangementModule>builder()
+        return new ImportsFor._Builder<GridArrangementModule>()
                 .add(new ModuleImports<>(List.of(new LayoutModule.Layout()), LayoutModule.INSTANCE))
                 .build();
     }

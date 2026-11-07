@@ -24,7 +24,7 @@ public record GridFoldModule() implements DomModule<GridFoldModule> {
 
     @Override
     public ImportsFor<GridFoldModule> imports() {
-        return ImportsFor.<GridFoldModule>builder()
+        return new ImportsFor._Builder<GridFoldModule>()
                 .add(new ModuleImports<>(List.of(new LayoutAlgebraModule.LayoutAlgebra()), LayoutAlgebraModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new LogIdsModule.RegionId(), new LogIdsModule.FloatId(), new LogIdsModule.TabId()), LogIdsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new HostModule.InRegion(), new HostModule.InFloat()), HostModule.INSTANCE))

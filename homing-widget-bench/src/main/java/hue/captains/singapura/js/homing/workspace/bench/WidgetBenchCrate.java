@@ -75,40 +75,40 @@ public final class WidgetBenchCrate implements Crate {
     @Override
     public List<CrateEntry> entries() {
         return List.of(
-                CrateEntry.of(WidgetBenchApp.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(BenchWidgetsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(BenchWorkspaceModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WidgetBenchApp.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(BenchWidgetsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(BenchWorkspaceModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
                 // its groups, for its page's directory
-                CrateEntry.of(BenchGroupsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(WidgetBenchStyles.INSTANCE),
+                new CrateEntry(BenchGroupsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(WidgetBenchStyles.INSTANCE),
                 // the monitors' bar, and the desk their floats lie on
-                CrateEntry.of(BenchMonitorsModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(BenchMonitorsModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 // the parties the widget joins, at the root: the manual secretary, and its simulator
-                CrateEntry.of(BenchSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
-                CrateEntry.of(PartySimulatorModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(BenchSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
+                new CrateEntry(PartySimulatorModule.INSTANCE, StandardJsModuleType.CONSUMER),
                 // a workspace of one pane, on its headless core: its placement, the workspace, its page
-                CrateEntry.of(PaneSlotsModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(PanePickerModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(SinglePaneModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(SinglePaneWorkspaceModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(WorkspaceBenchApp.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(PaneSlotsModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(PanePickerModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(SinglePaneModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(SinglePaneWorkspaceModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(WorkspaceBenchApp.INSTANCE, StandardJsModuleType.CONSUMER),
                 // the nasty widgets, which misbehave on purpose for the bench to catch
-                CrateEntry.of(NastyFixedModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(NastyStyles.INSTANCE),
+                new CrateEntry(NastyFixedModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(NastyStyles.INSTANCE),
                 // the tree placement, on the bench: its tree, its stand-in card, its page
-                CrateEntry.of(TreeBenchStyles.INSTANCE),
-                CrateEntry.of(BenchTreeModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(ParamsCardModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(TreeBenchApp.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(TreeBenchStyles.INSTANCE),
+                new CrateEntry(BenchTreeModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(ParamsCardModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(TreeBenchApp.INSTANCE, StandardJsModuleType.CONSUMER),
                 // content parties, on the bench: its note type and stewards, its card, its scopes, the traffic, its page
-                CrateEntry.of(ContentBenchStyles.INSTANCE),
-                CrateEntry.of(BenchNoteModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(BenchContentStewardModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(BenchNoteStewardModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(BenchFlowStewardModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(NoteCardModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(ContentPanelModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(PartyTrafficModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(ContentBenchApp.INSTANCE, StandardJsModuleType.CONSUMER));
+                new CrateEntry(ContentBenchStyles.INSTANCE),
+                new CrateEntry(BenchNoteModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(BenchContentStewardModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(BenchNoteStewardModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(BenchFlowStewardModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(NoteCardModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(ContentPanelModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(PartyTrafficModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(ContentBenchApp.INSTANCE, StandardJsModuleType.CONSUMER));
     }
 }

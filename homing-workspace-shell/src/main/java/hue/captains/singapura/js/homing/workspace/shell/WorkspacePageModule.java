@@ -52,11 +52,11 @@ public record WorkspacePageModule() implements DomModule<WorkspacePageModule> {
     public static final ParamCodec<Params> CODEC = new ParamCodec<>() {
 
         @Override public Decoded<Params> from(Map<String, List<String>> query) {
-            String id = QueryString.first(query, "ws_id");
-            if (id != null && !isWorkspaceId(id)) return Decoded.malformed("ws_id", id, "a workspace's id (a lowercase UUID), or absent for the kind's own");
-            String server = QueryString.first(query, "ws_server");
-            if (server != null && !server.equals("on")) return Decoded.malformed("ws_server", server, "on, or absent");
-            return Decoded.ok(new Params(id, server != null));
+            String id = QueryString.INSTANCE.first(query, "ws_id");
+            if (id != null && !isWorkspaceId(id)) return new Decoded.Malformed<>("ws_id", id, "a workspace's id (a lowercase UUID), or absent for the kind's own");
+            String server = QueryString.INSTANCE.first(query, "ws_server");
+            if (server != null && !server.equals("on")) return new Decoded.Malformed<>("ws_server", server, "on, or absent");
+            return new Decoded.Ok<>(new Params(id, server != null));
         }
 
         /** A UUID as the log writes one - lowercase, hyphenated - so that one workspace has one address. */
@@ -66,16 +66,16 @@ public record WorkspacePageModule() implements DomModule<WorkspacePageModule> {
         }
 
         @Override public Map<String, List<String>> to(Params params) {
-            var q = QueryString.params();
-            if (params.ws_id() != null) QueryString.put(q, "ws_id", params.ws_id());
-            if (params.ws_server()) QueryString.put(q, "ws_server", "on");
+            var q = QueryString.INSTANCE.params();
+            if (params.ws_id() != null) QueryString.INSTANCE.put(q, "ws_id", params.ws_id());
+            if (params.ws_server()) QueryString.INSTANCE.put(q, "ws_server", "on");
             return q;
         }
     };
 
     @Override
     public ImportsFor<WorkspacePageModule> imports() {
-        return ImportsFor.<WorkspacePageModule>builder()
+        return new ImportsFor._Builder<WorkspacePageModule>()
                 .add(new ModuleImports<>(List.of(new domOpsParty()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new GridWorkspaceModule.GridWorkspace()), GridWorkspaceModule.INSTANCE))
                 // a split grid's arrangement, laid out on a log that holds nothing yet

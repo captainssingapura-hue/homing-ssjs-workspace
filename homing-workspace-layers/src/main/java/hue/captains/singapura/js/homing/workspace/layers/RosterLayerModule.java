@@ -22,7 +22,7 @@ public record RosterLayerModule() implements DomModule<RosterLayerModule> {
 
     @Override
     public ImportsFor<RosterLayerModule> imports() {
-        return ImportsFor.<RosterLayerModule>builder()
+        return new ImportsFor._Builder<RosterLayerModule>()
                 .add(new ModuleImports<>(List.of(new WidgetIdModule.WidgetId()), WidgetIdModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WidgetNameModule.WidgetName()), WidgetNameModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new LogIdsModule.WidgetKind()), LogIdsModule.INSTANCE))

@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.shell;
 
+import hue.captains.singapura.js.homing.ui.menu.CrateMenus;
 import hue.captains.singapura.js.homing.ssjs.test.JsModuleTestBase;
 import hue.captains.singapura.js.homing.ui.panes.SplitMenu;
 import hue.captains.singapura.js.homing.ui.menu.ContextMenuRegistry;
@@ -31,7 +32,7 @@ class WorkspaceMenusTest extends JsModuleTestBase {
 
     @Test
     void theKindsAreDerivedFromTheComponentsNeeds() {
-        assertEquals(List.of(), ContextMenuRegistry.validate(List.of(WorkspaceShellCrate.INSTANCE)));
+        assertEquals(List.of(), CrateMenus.INSTANCE.validate(List.of(WorkspaceShellCrate.INSTANCE)));
         assertTrue(WorkspaceMenus.REGISTRY.kinds().contains(TabMenu.INSTANCE), "the pane's tab menu");
         assertTrue(WorkspaceMenus.REGISTRY.kinds().contains(SplitMenu.INSTANCE), "a dock's strip-ground menu, which the desk's docking answers");
     }

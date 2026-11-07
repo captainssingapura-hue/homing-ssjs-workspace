@@ -24,7 +24,7 @@ public record WidgetTabsModule() implements DomModule<WidgetTabsModule> {
 
     @Override
     public ImportsFor<WidgetTabsModule> imports() {
-        return ImportsFor.<WidgetTabsModule>builder()
+        return new ImportsFor._Builder<WidgetTabsModule>()
                 .add(new ModuleImports<>(List.of(new HostedWidgetModule.HostedWidget()), HostedWidgetModule.INSTANCE))
                 .build();
     }

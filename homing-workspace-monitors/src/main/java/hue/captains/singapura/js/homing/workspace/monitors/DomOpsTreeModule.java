@@ -30,7 +30,7 @@ public record DomOpsTreeModule() implements DomModule<DomOpsTreeModule> {
 
     @Override
     public ImportsFor<DomOpsTreeModule> imports() {
-        return ImportsFor.<DomOpsTreeModule>builder()
+        return new ImportsFor._Builder<DomOpsTreeModule>()
                 .add(new ModuleImports<>(List.of(new MonitorModule.Monitor()), MonitorModule.INSTANCE))
                 // the page's party, read; the rows as the focus tree's, so the two trees read alike
                 .add(new ModuleImports<>(List.of(new domOpsParty(), new domOpsParties()), DomOpsPartyModule.INSTANCE))

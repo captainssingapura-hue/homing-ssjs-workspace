@@ -36,12 +36,12 @@ public record TreeTocModule() implements DomModule<TreeTocModule> {
         @Override public String summary() {
             return "A tree placement's table of contents, as a relation tree: the cursor the reader's pick, following the section in view.";
         }
-        @Override public List<KeyBinding> keys() { return List.of(KeyBinding.of(Key.ESCAPE, "the keys given back, when the tree did not take it")); }
+        @Override public List<KeyBinding> keys() { return List.of(new KeyBinding(Key.ESCAPE, "the keys given back, when the tree did not take it")); }
     }
 
     @Override
     public ImportsFor<TreeTocModule> imports() {
-        return ImportsFor.<TreeTocModule>builder()
+        return new ImportsFor._Builder<TreeTocModule>()
                 .add(new ModuleImports<>(List.of(new domOpsParties()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new KeysModule.Keys()), KeysModule.INSTANCE))

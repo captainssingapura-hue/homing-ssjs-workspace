@@ -27,7 +27,7 @@ class SiteConformanceTest {
 
     @Test
     void theCrateIsStructurallyComplete() {
-        var result = CrateConformance.evaluate(new ArrayList<>(CrateClosure.of(TOP))).crates().get(WorkspaceSiteCrate.INSTANCE.name());
+        var result = CrateConformance.INSTANCE.evaluate(new ArrayList<>(CrateClosure.INSTANCE.of(TOP))).crates().get(WorkspaceSiteCrate.INSTANCE.name());
         assertEquals(List.of(), result.orphans(), "every served module must be declared");
         assertEquals(List.of(), result.illegalImports(), "every cross-crate import must be declared in requires()");
     }

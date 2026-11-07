@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.site;
 
+import hue.captains.singapura.js.homing.site.PathParser;
 import hue.captains.singapura.js.homing.core.ParamCodec.Decoded;
 import hue.captains.singapura.js.homing.site.Path;
 import hue.captains.singapura.js.homing.site.Query;
@@ -47,7 +48,7 @@ class GroupedWorkspacesTest {
     static final GroupedWorkspaces SITE = GroupedWorkspaces.of(GROUPS, new Named("demo"), new Named("books"), new Named("monitors"), new Named("trial"));
 
     private static String at(String path) {
-        return SITE.group(Path.parse(path)).map(g -> g.id().value() + " " + GroupedWorkspaces.address(g)).orElse("nowhere");
+        return SITE.group(PathParser.INSTANCE.parse(path)).map(g -> g.id().value() + " " + GroupedWorkspaces.address(g)).orElse("nowhere");
     }
 
     @Test
@@ -66,7 +67,7 @@ class GroupedWorkspacesTest {
 
     @Test
     void theRootSendsToTheFirstGroup_theQueryAndTheAnchorCarried() {
-        String sent = GroupedWorkspaces.sentTo("/demo", Query.parse("ws_name=Reading list&theme=editorial")).body();
+        String sent = GroupedWorkspaces.sentTo("/demo", new Query("ws_name=Reading list&theme=editorial")).body();
         assertTrue(sent.contains("window.location.replace(\"\\/demo?ws_name=Reading+list\\u0026theme=editorial\" + window.location.hash)"), sent);
         assertTrue(sent.contains("content=\"0;url=/demo?ws_name=Reading+list&amp;theme=editorial\""), sent);
         assertTrue(GroupedWorkspaces.sentTo("/demo", Query.NONE).body().contains("window.location.replace(\"\\/demo\" + window.location.hash)"));

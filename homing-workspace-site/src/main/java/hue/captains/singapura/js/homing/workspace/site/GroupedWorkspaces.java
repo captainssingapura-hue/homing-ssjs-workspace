@@ -154,7 +154,7 @@ public record GroupedWorkspaces(WorkspaceGroups groups, List<WorkspaceDeclaratio
                     <script>window.location.replace(%s + window.location.hash);</script>
                 </body>
                 </html>
-                """.formatted(Html.escape(to), StampedParams.jsString(to)));
+                """.formatted(Html.INSTANCE.escape(to), StampedParams.INSTANCE.jsString(to)));
     }
 
     /** The manifests, by kind: {@code const <constName> = Object.freeze({ "<kind>": …, … });}. */

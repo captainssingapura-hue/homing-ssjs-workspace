@@ -19,7 +19,7 @@ public record MessagingPartyModule() implements EsModule<MessagingPartyModule> {
 
     public static final MessagingPartyModule INSTANCE = new MessagingPartyModule();
 
-    @Override public ImportsFor<MessagingPartyModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<MessagingPartyModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<MessagingPartyModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new MessagingParty())); }

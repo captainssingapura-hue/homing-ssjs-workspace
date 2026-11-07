@@ -101,9 +101,9 @@ public final class WorkspaceLogJsGen {
         sb.append("\n    @Override\n");
         sb.append("    public ImportsFor<").append(name).append("> imports() {\n");
         if (name.equals(LogModules.WIRE_MODULE)) {
-            sb.append("        return ImportsFor.noImports();\n");
+            sb.append("        return new ImportsFor<>();\n");
         } else {
-            sb.append("        return ImportsFor.<").append(name).append(">builder()\n");
+            sb.append("        return new ImportsFor._Builder<").append(name).append(">()\n");
             sb.append(importLine(LogModules.WIRE_MODULE, List.of(LogModules.WIRE)));
             for (var i : imports.entrySet()) sb.append(importLine(i.getKey(), i.getValue()));
             sb.append("                .build();\n");
@@ -144,7 +144,7 @@ public final class WorkspaceLogJsGen {
         sb.append("    public List<CrateEntry> entries() {\n");
         sb.append("        return List.of(\n");
         for (int i = 0; i < modules.size(); i++) {
-            sb.append("                CrateEntry.of(").append(modules.get(i)).append(".INSTANCE, StandardJsModuleType.PURE_LOGIC)")
+            sb.append("                new CrateEntry(").append(modules.get(i)).append(".INSTANCE, StandardJsModuleType.PURE_LOGIC)")
               .append(i < modules.size() - 1 ? ",\n" : ");\n");
         }
         sb.append("    }\n\n");

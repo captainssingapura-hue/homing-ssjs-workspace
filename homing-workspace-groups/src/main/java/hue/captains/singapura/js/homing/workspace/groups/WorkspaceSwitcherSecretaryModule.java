@@ -22,7 +22,7 @@ public record WorkspaceSwitcherSecretaryModule() implements EsModule<WorkspaceSw
 
     @Override
     public ImportsFor<WorkspaceSwitcherSecretaryModule> imports() {
-        return ImportsFor.<WorkspaceSwitcherSecretaryModule>builder()
+        return new ImportsFor._Builder<WorkspaceSwitcherSecretaryModule>()
                 // within the scope, it is the workspace choice secretary
                 .add(new ModuleImports<>(List.of(new WorkspaceChoiceSecretaryModule.WorkspaceChoiceSecretary()), WorkspaceChoiceSecretaryModule.INSTANCE))
                 .build();

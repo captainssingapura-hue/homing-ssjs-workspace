@@ -41,11 +41,11 @@ public record WorkspaceInstancesModule() implements DomModule<WorkspaceInstances
     public record WorkspaceInstances() implements SelfContainedWidget<WorkspaceInstancesModule>, NeedKeyboard {
         @Override public String summary() { return "The workspaces of the chosen kind this browser keeps, as a table: Enter, or a double press, the asking to open one."; }
         @Override public List<KeyBinding> keys() {
-            return List.of(KeyBinding.of(Key.ENTER, "the workspace at the cursor asked to open - on the new row, its name taken"),
-                           KeyBinding.of(Key.F2, "the workspace at the cursor, its name taken, to be called otherwise"),
-                           KeyBinding.of(Key.DELETE, "the workspace at the cursor asked to be deleted - softly"),
-                           KeyBinding.of(Key.ARROW_LEFT, "past the grid's left edge: its host told, to hand the keys on"),
-                           KeyBinding.of(Key.ESCAPE, "the keys given back, when the grid did not take it"));
+            return List.of(new KeyBinding(Key.ENTER, "the workspace at the cursor asked to open - on the new row, its name taken"),
+                           new KeyBinding(Key.F2, "the workspace at the cursor, its name taken, to be called otherwise"),
+                           new KeyBinding(Key.DELETE, "the workspace at the cursor asked to be deleted - softly"),
+                           new KeyBinding(Key.ARROW_LEFT, "past the grid's left edge: its host told, to hand the keys on"),
+                           new KeyBinding(Key.ESCAPE, "the keys given back, when the grid did not take it"));
         }
     }
 
@@ -53,7 +53,7 @@ public record WorkspaceInstancesModule() implements DomModule<WorkspaceInstances
 
     @Override
     public ImportsFor<WorkspaceInstancesModule> imports() {
-        return ImportsFor.<WorkspaceInstancesModule>builder()
+        return new ImportsFor._Builder<WorkspaceInstancesModule>()
                 // its title, the house's heading of its level
                 .add(new ModuleImports<>(List.of(new LookModule.Look()), LookModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new CastingsModule.ROLE()), CastingsModule.INSTANCE))

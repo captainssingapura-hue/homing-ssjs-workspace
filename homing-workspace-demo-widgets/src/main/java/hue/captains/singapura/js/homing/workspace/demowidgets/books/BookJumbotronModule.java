@@ -30,14 +30,14 @@ public record BookJumbotronModule() implements DomModule<BookJumbotronModule> {
 
     public record BookJumbotron() implements SelfContainedWidget<BookJumbotronModule>, NeedKeyboard {
         @Override public String summary() { return "The chosen book, big - its title and its author, sized by its box - as the book selection party says it."; }
-        @Override public List<KeyBinding> keys() { return List.of(KeyBinding.of(Key.ESCAPE, "the keys given back")); }
+        @Override public List<KeyBinding> keys() { return List.of(new KeyBinding(Key.ESCAPE, "the keys given back")); }
     }
 
     public static final BookJumbotronModule INSTANCE = new BookJumbotronModule();
 
     @Override
     public ImportsFor<BookJumbotronModule> imports() {
-        return ImportsFor.<BookJumbotronModule>builder()
+        return new ImportsFor._Builder<BookJumbotronModule>()
                 .add(new ModuleImports<>(List.of(new domOpsParties()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new KeysModule.Keys()), KeysModule.INSTANCE))

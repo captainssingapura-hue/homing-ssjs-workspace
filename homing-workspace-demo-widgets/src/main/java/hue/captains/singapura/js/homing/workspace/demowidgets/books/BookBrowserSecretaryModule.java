@@ -22,7 +22,7 @@ public record BookBrowserSecretaryModule() implements EsModule<BookBrowserSecret
 
     @Override
     public ImportsFor<BookBrowserSecretaryModule> imports() {
-        return ImportsFor.<BookBrowserSecretaryModule>builder()
+        return new ImportsFor._Builder<BookBrowserSecretaryModule>()
                 // within the scope, it is the book selection secretary
                 .add(new ModuleImports<>(List.of(new BookSelectionSecretaryModule.BookSelectionSecretary()), BookSelectionSecretaryModule.INSTANCE))
                 .build();

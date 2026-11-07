@@ -25,7 +25,7 @@ public record SinglePaneModule() implements DomModule<SinglePaneModule> {
 
     @Override
     public ImportsFor<SinglePaneModule> imports() {
-        return ImportsFor.<SinglePaneModule>builder()
+        return new ImportsFor._Builder<SinglePaneModule>()
                 // its transient picker pane
                 .add(new ModuleImports<>(List.of(new PanePickerModule.PanePicker()), PanePickerModule.INSTANCE))
                 // what it shows, headless

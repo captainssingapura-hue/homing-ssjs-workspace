@@ -37,7 +37,7 @@ public record ContentPanelModule() implements DomModule<ContentPanelModule> {
 
     @Override
     public ImportsFor<ContentPanelModule> imports() {
-        return ImportsFor.<ContentPanelModule>builder()
+        return new ImportsFor._Builder<ContentPanelModule>()
                 // its title, the house's heading of its level
                 .add(new ModuleImports<>(List.of(new LookModule.Look()), LookModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new CastingsModule.ROLE()), CastingsModule.INSTANCE))

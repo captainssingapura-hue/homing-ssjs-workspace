@@ -54,7 +54,7 @@ public final class WorkspaceConformance {
     public static final JsRulePolicy POLICY = DefaultJsRulePolicy.INSTANCE;
 
     /** The top level and everything it requires, transitively. */
-    public static Collection<Crate> closure() { return CrateClosure.of(TOP_LEVEL); }
+    public static Collection<Crate> closure() { return CrateClosure.INSTANCE.of(TOP_LEVEL); }
 
     /** The framework-strict grader: no debt but what a module declares on its own class ({@code @ConformanceDebt}). */
     public static FindingGrader grader() {

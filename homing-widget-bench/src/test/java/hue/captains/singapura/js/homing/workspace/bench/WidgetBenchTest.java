@@ -1,5 +1,6 @@
 package hue.captains.singapura.js.homing.workspace.bench;
 
+import hue.captains.singapura.js.homing.site.PathParser;
 import hue.captains.singapura.js.homing.core.ParamCodec.Decoded;
 import hue.captains.singapura.js.homing.site.Path;
 import hue.captains.singapura.js.homing.site.Query;
@@ -22,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class WidgetBenchTest {
 
     private static String pageAt(String path, Query query) {
-        var found = WidgetBenchSite.INSTANCE.router().resolve(Path.parse(path));
+        var found = WidgetBenchSite.INSTANCE.router().resolve(PathParser.INSTANCE.parse(path));
         assertTrue(found.isPresent(), "no page at " + path);
         return found.get().html(query).body();
     }
@@ -52,9 +53,9 @@ class WidgetBenchTest {
         assertTrue(root.contains("\"widget\":\"books-grid\""), "the root stands the first kind up");
         assertTrue(root.contains(WidgetBenchApp.class.getCanonicalName()));
         assertFalse(pageAt("/books-grid", Query.NONE).contains("numbers"), "at its defaults, the page says nothing of them");
-        assertTrue(pageAt("/books-grid", Query.of("numbers", "on")).contains("\"numbers\":\"on\""),
+        assertTrue(pageAt("/books-grid", new Query("numbers", "on")).contains("\"numbers\":\"on\""),
                 "the address's query read over the page's defaults");
-        assertTrue(WidgetBenchSite.INSTANCE.router().resolve(Path.parse("/nope")).isEmpty());
+        assertTrue(WidgetBenchSite.INSTANCE.router().resolve(PathParser.INSTANCE.parse("/nope")).isEmpty());
     }
 
     @Test

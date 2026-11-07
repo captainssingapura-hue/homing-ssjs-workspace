@@ -27,7 +27,7 @@ public record WorkspaceRecorderModule() implements DomModule<WorkspaceRecorderMo
 
     @Override
     public ImportsFor<WorkspaceRecorderModule> imports() {
-        return ImportsFor.<WorkspaceRecorderModule>builder()
+        return new ImportsFor._Builder<WorkspaceRecorderModule>()
                 .add(new ModuleImports<>(List.of(new LogIdsModule.TabId(), new LogIdsModule.RegionId(), new LogIdsModule.FloatId(), new LogIdsModule.WidgetKind(), new LogIdsModule.WidgetTitle(), new LogIdsModule.SplitPath()), LogIdsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new ScaledModule.Scaled()), ScaledModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new HostModule.InRegion(), new HostModule.InFloat()), HostModule.INSTANCE))

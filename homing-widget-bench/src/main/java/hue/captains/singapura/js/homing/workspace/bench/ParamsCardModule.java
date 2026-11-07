@@ -30,7 +30,7 @@ public record ParamsCardModule() implements DomModule<ParamsCardModule> {
 
     @Override
     public ImportsFor<ParamsCardModule> imports() {
-        return ImportsFor.<ParamsCardModule>builder()
+        return new ImportsFor._Builder<ParamsCardModule>()
                 .add(new ModuleImports<>(List.of(new domOpsParties()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new TreeBenchStyles.tb_card(), new TreeBenchStyles.tb_key(), new TreeBenchStyles.tb_value()),

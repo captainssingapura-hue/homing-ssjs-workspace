@@ -35,7 +35,7 @@ public record WorkspaceLogBarModule() implements DomModule<WorkspaceLogBarModule
 
     @Override
     public ImportsFor<WorkspaceLogBarModule> imports() {
-        return ImportsFor.<WorkspaceLogBarModule>builder()
+        return new ImportsFor._Builder<WorkspaceLogBarModule>()
                 .add(new ModuleImports<>(List.of(new StatesAndEventsModule.EVENT()), StatesAndEventsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WorkspaceLogExportModule.WorkspaceLogExport()), WorkspaceLogExportModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WriteLockModule.Held()), WriteLockModule.INSTANCE))

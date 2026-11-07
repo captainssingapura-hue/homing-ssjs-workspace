@@ -16,7 +16,7 @@ public record ExactShareModule() implements DomModule<ExactShareModule> {
 
     @Override
     public ImportsFor<ExactShareModule> imports() {
-        return ImportsFor.noImports();
+        return new ImportsFor<>();
     }
 
     @Override

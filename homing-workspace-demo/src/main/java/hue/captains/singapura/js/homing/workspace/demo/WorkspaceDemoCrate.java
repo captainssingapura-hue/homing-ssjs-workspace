@@ -34,9 +34,9 @@ public final class WorkspaceDemoCrate implements Crate {
     @Override
     public List<CrateEntry> entries() {
         return List.of(
-                CrateEntry.of(DemoWorkspacesModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(DemoGroupsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(DemoArrangementsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(DemoWorkspaceApp.INSTANCE, StandardJsModuleType.CONSUMER));
+                new CrateEntry(DemoWorkspacesModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(DemoGroupsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(DemoArrangementsModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(DemoWorkspaceApp.INSTANCE, StandardJsModuleType.CONSUMER));
     }
 }

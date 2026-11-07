@@ -33,7 +33,7 @@ public record BooksGridModule() implements DomModule<BooksGridModule> {
     public record BooksGrid() implements SelfContainedWidget<BooksGridModule>, NeedKeyboard {
         @Override public String summary() { return "The books in the relation grid, standing on its own: its roots its own, the grid's cells natively focused inside it."; }
         @Override public List<KeyBinding> keys() {
-            return List.of(KeyBinding.of(Key.ESCAPE, "the keys given back, when the grid did not take it"));
+            return List.of(new KeyBinding(Key.ESCAPE, "the keys given back, when the grid did not take it"));
         }
     }
 
@@ -41,7 +41,7 @@ public record BooksGridModule() implements DomModule<BooksGridModule> {
 
     @Override
     public ImportsFor<BooksGridModule> imports() {
-        return ImportsFor.<BooksGridModule>builder()
+        return new ImportsFor._Builder<BooksGridModule>()
                 // its own DomOps party and focus party, each from its party of parties
                 .add(new ModuleImports<>(List.of(new domOpsParties()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))

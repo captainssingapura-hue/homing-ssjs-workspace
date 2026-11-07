@@ -19,7 +19,7 @@ public record WorkspaceWriteLockModule() implements DomModule<WorkspaceWriteLock
 
     @Override
     public ImportsFor<WorkspaceWriteLockModule> imports() {
-        return ImportsFor.<WorkspaceWriteLockModule>builder()
+        return new ImportsFor._Builder<WorkspaceWriteLockModule>()
                 .add(new ModuleImports<>(List.of(new LogKeyModule.LogKey()), LogKeyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WriteLockModule.WriteLock(), new WriteLockModule.Held()), WriteLockModule.INSTANCE))
                 .build();

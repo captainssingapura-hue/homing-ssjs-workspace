@@ -27,7 +27,7 @@ public record BenchMonitorsModule() implements DomModule<BenchMonitorsModule> {
 
     @Override
     public ImportsFor<BenchMonitorsModule> imports() {
-        return ImportsFor.<BenchMonitorsModule>builder()
+        return new ImportsFor._Builder<BenchMonitorsModule>()
                 .add(new ModuleImports<>(List.of(new DeskModule.Desk()), DeskModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new HostedWidgetModule.HostedWidget()), HostedWidgetModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WidgetBenchStyles.wb_bar(), new WidgetBenchStyles.wb_toggle(), new WidgetBenchStyles.wb_toggle_on(), new WidgetBenchStyles.wb_bar_gap()), WidgetBenchStyles.INSTANCE))

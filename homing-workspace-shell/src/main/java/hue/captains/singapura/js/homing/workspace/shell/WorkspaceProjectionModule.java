@@ -25,7 +25,7 @@ public record WorkspaceProjectionModule() implements DomModule<WorkspaceProjecti
 
     @Override
     public ImportsFor<WorkspaceProjectionModule> imports() {
-        return ImportsFor.<WorkspaceProjectionModule>builder()
+        return new ImportsFor._Builder<WorkspaceProjectionModule>()
                 .add(new ModuleImports<>(List.of(new WorkspaceRecorderModule.WorkspaceRecorder()), WorkspaceRecorderModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new LogIdsModule.RegionId(), new LogIdsModule.TabId(), new LogIdsModule.WidgetKind(), new LogIdsModule.WidgetTitle(), new LogIdsModule.FloatId()), LogIdsModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new LayoutModule.Cell(), new LayoutModule.Split(), new LayoutModule.Track(), new LayoutModule.Axis()), LayoutModule.INSTANCE))

@@ -22,7 +22,7 @@ public record WorkspaceNameCellModule() implements DomModule<WorkspaceNameCellMo
 
     @Override
     public ImportsFor<WorkspaceNameCellModule> imports() {
-        return ImportsFor.<WorkspaceNameCellModule>builder()
+        return new ImportsFor._Builder<WorkspaceNameCellModule>()
                 .add(new ModuleImports<>(List.of(new RelGridStockCellsModule.RelGridTextCell()), RelGridStockCellsModule.INSTANCE))
                 .build();
     }

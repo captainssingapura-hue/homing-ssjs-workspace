@@ -24,7 +24,7 @@ public record StewardLampModule() implements DomModule<StewardLampModule> {
 
     @Override
     public ImportsFor<StewardLampModule> imports() {
-        return ImportsFor.<StewardLampModule>builder()
+        return new ImportsFor._Builder<StewardLampModule>()
                 .add(new ModuleImports<>(List.of(new MonitorModule.Monitor()), MonitorModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new StewardMonitorModule.StewardMonitor()), StewardMonitorModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new WidgetSlotModule.WidgetSlot()), WidgetSlotModule.INSTANCE))

@@ -18,7 +18,7 @@ public record BenchSecretaryModule() implements EsModule<BenchSecretaryModule> {
 
     public static final BenchSecretaryModule INSTANCE = new BenchSecretaryModule();
 
-    @Override public ImportsFor<BenchSecretaryModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<BenchSecretaryModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<BenchSecretaryModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new BenchSecretary())); }

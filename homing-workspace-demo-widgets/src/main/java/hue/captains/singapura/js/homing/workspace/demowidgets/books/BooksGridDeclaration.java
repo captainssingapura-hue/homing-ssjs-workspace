@@ -43,23 +43,23 @@ public record BooksGridDeclaration() implements WidgetDeclaration<BooksGridDecla
         @Override
         public Read<Params> from(Map<String, List<String>> query) {
             List<String> columns = COLUMNS;
-            String said = QueryString.first(query, "columns");
+            String said = QueryString.INSTANCE.first(query, "columns");
             if (said != null) {
                 try { columns = new Params(List.of(said.split(",", -1)), false).columns(); }
                 catch (IllegalArgumentException e) {
                     return Read.refused("columns", said, "a comma list of " + String.join(", ", COLUMNS) + ", each once");
                 }
             }
-            String numbers = QueryString.first(query, "numbers");
+            String numbers = QueryString.INSTANCE.first(query, "numbers");
             if (numbers != null && !numbers.equals("on")) return Read.refused("numbers", numbers, "on, or absent");
             return Read.ok(new Params(columns, numbers != null));
         }
 
         @Override
         public Map<String, List<String>> to(Params params) {
-            var q = QueryString.params();
-            if (!params.columns().equals(COLUMNS)) QueryString.put(q, "columns", String.join(",", params.columns()));
-            if (params.rowNumbers()) QueryString.put(q, "numbers", "on");
+            var q = QueryString.INSTANCE.params();
+            if (!params.columns().equals(COLUMNS)) QueryString.INSTANCE.put(q, "columns", String.join(",", params.columns()));
+            if (params.rowNumbers()) QueryString.INSTANCE.put(q, "numbers", "on");
             return q;
         }
     }

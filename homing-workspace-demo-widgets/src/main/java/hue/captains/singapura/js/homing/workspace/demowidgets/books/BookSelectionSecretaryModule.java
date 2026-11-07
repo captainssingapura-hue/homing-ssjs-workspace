@@ -19,7 +19,7 @@ public record BookSelectionSecretaryModule() implements EsModule<BookSelectionSe
 
     public static final BookSelectionSecretaryModule INSTANCE = new BookSelectionSecretaryModule();
 
-    @Override public ImportsFor<BookSelectionSecretaryModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<BookSelectionSecretaryModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<BookSelectionSecretaryModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new BookSelectionSecretary())); }

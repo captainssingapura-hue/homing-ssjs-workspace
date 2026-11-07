@@ -33,7 +33,7 @@ public record NoteCardModule() implements DomModule<NoteCardModule> {
 
     @Override
     public ImportsFor<NoteCardModule> imports() {
-        return ImportsFor.<NoteCardModule>builder()
+        return new ImportsFor._Builder<NoteCardModule>()
                 // its title, the house's heading of its level
                 .add(new ModuleImports<>(List.of(new LookModule.Look()), LookModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new CastingsModule.ROLE()), CastingsModule.INSTANCE))

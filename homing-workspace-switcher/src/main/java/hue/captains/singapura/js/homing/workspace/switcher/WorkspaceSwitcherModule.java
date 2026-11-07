@@ -35,7 +35,7 @@ public record WorkspaceSwitcherModule() implements DomModule<WorkspaceSwitcherMo
 
     @Override
     public ImportsFor<WorkspaceSwitcherModule> imports() {
-        return ImportsFor.<WorkspaceSwitcherModule>builder()
+        return new ImportsFor._Builder<WorkspaceSwitcherModule>()
                 .add(new ModuleImports<>(List.of(new domOpsParties()), DomOpsPartyModule.INSTANCE))
                 .add(new ModuleImports<>(List.of(new focusParties()), FocusPartyModule.INSTANCE))
                 // its subordinates

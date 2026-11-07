@@ -40,7 +40,7 @@ public record BenchWidgetsModule() implements DomModule<BenchWidgetsModule>, Sel
 
     @Override
     public ImportsFor<BenchWidgetsModule> imports() {
-        var b = ImportsFor.<BenchWidgetsModule>builder();
+        var b = new ImportsFor._Builder<BenchWidgetsModule>();
         for (WidgetDeclaration<?> k : WidgetBench.KINDS) b.add(k.constructs());
         // each type a kind declares, as a page has it: its constant
         var constants = new LinkedHashSet<ModuleImports<?>>();

@@ -16,7 +16,7 @@ public record BenchNoteModule() implements EsModule<BenchNoteModule>, SelfConten
 
     public record BENCH_NOTE() implements Exportable._Constant<BenchNoteModule> {}
 
-    @Override public ImportsFor<BenchNoteModule> imports() { return ImportsFor.noImports(); }
+    @Override public ImportsFor<BenchNoteModule> imports() { return new ImportsFor<>(); }
 
     @Override
     public ExportsOf<BenchNoteModule> exports() { return new ExportsOf<>(INSTANCE, List.of(new BENCH_NOTE())); }

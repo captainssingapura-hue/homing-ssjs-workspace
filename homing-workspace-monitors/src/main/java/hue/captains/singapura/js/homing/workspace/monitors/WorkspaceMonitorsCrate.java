@@ -45,11 +45,11 @@ public final class WorkspaceMonitorsCrate implements Crate {
     @Override
     public List<CrateEntry> entries() {
         return List.of(
-                CrateEntry.of(MonitorStyles.INSTANCE),
-                CrateEntry.of(MonitorModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(FocusTreeModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(StewardLampModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(DomOpsTreeModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(PartyLogModule.INSTANCE, StandardJsModuleType.CONSUMER));
+                new CrateEntry(MonitorStyles.INSTANCE),
+                new CrateEntry(MonitorModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(FocusTreeModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(StewardLampModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(DomOpsTreeModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(PartyLogModule.INSTANCE, StandardJsModuleType.CONSUMER));
     }
 }

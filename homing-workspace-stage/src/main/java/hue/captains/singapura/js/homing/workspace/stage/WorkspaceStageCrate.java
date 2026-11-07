@@ -37,11 +37,11 @@ public final class WorkspaceStageCrate implements Crate {
     @Override
     public List<CrateEntry> entries() {
         return List.of(
-                CrateEntry.of(StagePartyModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
-                CrateEntry.of(StageSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
-                CrateEntry.of(StageStyles.INSTANCE),
-                CrateEntry.of(StageLayerModule.INSTANCE, StandardJsModuleType.PRIMITIVE),
-                CrateEntry.of(StageStewardModule.INSTANCE, StandardJsModuleType.CONSUMER),
-                CrateEntry.of(StageButtonModule.INSTANCE, StandardJsModuleType.PRIMITIVE));
+                new CrateEntry(StagePartyModule.INSTANCE, StandardJsModuleType.PURE_LOGIC),
+                new CrateEntry(StageSecretaryModule.INSTANCE, StandardJsModuleType.SECRETARY),
+                new CrateEntry(StageStyles.INSTANCE),
+                new CrateEntry(StageLayerModule.INSTANCE, StandardJsModuleType.PRIMITIVE),
+                new CrateEntry(StageStewardModule.INSTANCE, StandardJsModuleType.CONSUMER),
+                new CrateEntry(StageButtonModule.INSTANCE, StandardJsModuleType.PRIMITIVE));
     }
 }
